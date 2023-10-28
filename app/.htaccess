@@ -1,0 +1,10 @@
+RewriteEngine on
+
+RewriteRule ^fetch/([A-Za-z0-9_-]+)$ lib/request/$1.php
+RewriteRule ^edit-user/([0-9]+)$ edit-user.php/?usuario=$1
+RewriteRule ^edit-cancha/([0-9]+)$ edit-cancha.php/?cancha=$1
+RewriteRule ^reserva/([0-9]+)$ reserva.php/?reserva=$1
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php
