@@ -14,6 +14,7 @@
         ]
     ]);
     inc('add-user');
+    
     Theme::footer([
         'js' => [
             'plugins.bundle',

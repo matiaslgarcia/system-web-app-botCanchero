@@ -17,3 +17,4 @@ ini_set('display_errors', 1);
     require 'lib/ClassSchedules.php';
     require 'lib/ClassInvoices.php';
     require 'lib/ClassMobex.php';
+    require 'lib/ClassMercadoPago.php';

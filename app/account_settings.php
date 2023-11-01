@@ -13,11 +13,11 @@
             'theme'
         ]
     ]);
-    inc('index');
+    inc('account_settings');
     Theme::footer([
         'js' => [
             'plugins.bundle',
             'scripts.bundle',
         ],
-        'dataJS' => ['login']
+        'dataJS' => ['account_settings']
     ]);
