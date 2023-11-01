@@ -2,12 +2,6 @@ import {Func} from  './function.js';
 const fun = new Func;
 var calendarEl = document.getElementById('reservas');
 
-if(document.referrer.match('mercadopago_OAuth')){
-    fun.swal({
-        icon: 'success'
-    })
-}
-
 function updateEvent(data){
     fun.xhr({
         url: 'updateEvent',

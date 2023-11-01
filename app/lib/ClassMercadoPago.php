@@ -35,7 +35,7 @@
 
             self::setAccessToken($data->access_token);
 
-            header('Location: ' . URL);
+            header('Location: ' . URL . 'account_settings');
         }
 
         private static function setAccessToken($accessToken){
