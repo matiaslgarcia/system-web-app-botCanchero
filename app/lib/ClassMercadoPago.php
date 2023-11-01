@@ -34,7 +34,8 @@
             $data = json_decode($response);
 
             self::setAccessToken($data->access_token);
-            JSON($data);
+
+            header('Location: ' . URL);
         }
 
         private static function setAccessToken($accessToken){
