@@ -35,4 +35,9 @@
 
             JSON($data);
         }
+
+        private static function accessToken($accessToken){
+            $id = Users::infoUser('id_field');
+            query("UPDATE soccer_field SET token_mercadopago = '$accessToken' WHERE id = '42';");
+        }
     }
