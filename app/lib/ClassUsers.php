@@ -34,7 +34,8 @@
         }
         public static function infoUser($param){
             $id = $_SESSION['canchero'];
-            $user = query("SELECT id, full_name AS name, email, avatar rol, id_field AS id_field, rol FROM users WHERE id = '$id';", 'ARRAY');
+            $user = query("SELECT u.id, u.full_name AS name, u.email, u.avatar, u.rol, u.id_field AS id_field, RIGHT(s.token_mercadopago, 5) AS token_id FROM users u LEFT JOIN soccer_field s ON u.id_field = s.id WHERE u.id = '$id';", 'ARRAY');
+            $user['token_id'] = (!empty($user['token_id'])) ? '******' . $user['token_id']  : '';
             $user['avatar'] = (!empty($user->avatar)) ? 'uploads/avatar/' .  $user->avatar : 'assets/img/avatars/avatar.png';
             return $user[$param];
         }

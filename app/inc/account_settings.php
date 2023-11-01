@@ -30,7 +30,7 @@
                                                                 <!--begin::Owner-->
                                                                 <div class="d-flex align-items-center fs-4 fw-bolder mb-5">
                                                                     Mercado Pago
-                                                                    <i style="cursor: help;" class="ms-2 fa-solid fa-circle-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tooltip on top"></i>
+                                                                    <i style="cursor: help;" class="ms-2 fa-solid fa-circle-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Permitir pagos con Mercado Pago"></i>
                                                                 </div>
                                                                 <!--end::Owner-->
                                                                 <!--begin::Wrapper-->
@@ -40,7 +40,7 @@
                                                                     <!--end::Icon-->
                                                                     <!--begin::Details-->
                                                                     <div>
-                                                                        <div class="fs-4 fw-bolder">[TOKEN]</div>
+                                                                        <div class="fs-4 fw-bolder"><?php echo Users::infoUser('token_id'); ?></div>
                                                                     </div>
                                                                     <!--end::Details-->
                                                                 </div>
@@ -50,7 +50,11 @@
                                                             <!--begin::Actions-->
                                                             <div class="d-flex align-items-center py-2">
                                                                 <div class="form-check form-switch form-check-custom form-check-solid">
+                                                                    <?php if(empty(Users::infoUser('token_id'))) : ?>
                                                                     <a href="<?php echo MercadoPago::getUrlOAuth() ?>" target="_blank" class="btn btn-primary">Vincular</a>
+                                                                    <?php else : ?>
+                                                                    <a  disabled target="_blank" class="btn btn-secondary">Ya estas Agregada</a>
+                                                                    <?php endif; ?>
                                                                 </div>
                                                             </div>
                                                             <!--end::Actions-->
