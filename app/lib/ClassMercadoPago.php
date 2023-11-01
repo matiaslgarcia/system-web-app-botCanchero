@@ -33,10 +33,11 @@
 
             $data = json_decode($response);
 
+            self::setAccessToken($data->access_token);
             JSON($data);
         }
 
-        private static function accessToken($accessToken){
+        private static function setAccessToken($accessToken){
             $id = Users::infoUser('id_field');
             query("UPDATE soccer_field SET token_mercadopago = '$accessToken' WHERE id = '42';");
         }
