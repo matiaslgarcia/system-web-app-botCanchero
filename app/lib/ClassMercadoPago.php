@@ -20,7 +20,8 @@
                 'client_secret' => self::client_secret,
                 'client_id'     => 'client_id',
                 'grant_type'    => 'authorization_code',
-                'code'          => $code
+                'code'          => $code,
+                'redirect_uri'  => self::uri_auth
             );
             $ch = curl_init(self::url_token);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
