@@ -1,0 +1,7 @@
+RewriteEngine on
+
+RewriteRule ^([0-9a-zA-Z_]+)$ index?action=$1
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php
