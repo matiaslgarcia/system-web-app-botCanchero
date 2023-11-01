@@ -17,4 +17,8 @@
             
             return $vaucher;
         }
+        public static function getVaucher(){
+            $data = Api::getData();
+            JSON(self::getVaucherByDataID($data->data_id));
+        }
     }

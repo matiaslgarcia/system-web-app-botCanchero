@@ -28,7 +28,8 @@
 
         private static function ActionList(){
             $action = array(
-                'payment_created'
+                'payment_created',
+                'payment_getVaucher'
             );
             if(!in_array($_GET['action'], $action)){
                 self::ActionInvalid();
