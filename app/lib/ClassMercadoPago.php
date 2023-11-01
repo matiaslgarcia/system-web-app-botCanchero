@@ -18,7 +18,7 @@
         public static function createRefreshToken($code){
             $data = array(
                 'client_secret' => self::client_secret,
-                'client_id'     => 'client_id',
+                'client_id'     => self::client_id,
                 'grant_type'    => 'authorization_code',
                 'code'          => $code,
                 'redirect_uri'  => self::uri_auth
@@ -30,8 +30,5 @@
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
             $response = curl_exec($ch);
-
-
-            JSON($response);
         }
     }
