@@ -30,5 +30,9 @@
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
             $response = curl_exec($ch);
+
+            $data = json_decode($response);
+
+            JSON($data);
         }
     }
