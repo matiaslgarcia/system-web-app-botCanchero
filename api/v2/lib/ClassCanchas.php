@@ -11,4 +11,24 @@
 
             JSON($canchas);
         }
+        public static function getByHora(){
+            $data = Api::getData();
+            $canchas = query("SELECT
+                    sf.id,
+                    sf.full_name as name,
+                    sf.phone as phone,
+                    sf.latitude,
+                    sf.length,
+                    sf.logo,
+                    sf.price_hour,
+                    sf.token_mercadopago,
+                    h.id_schedule as id_hora,
+                    (select hour12 from schedules  where id = h.id_schedule) as hora12
+                from soccer_field sf
+                inner join schedules_field h on
+                    sf.id = h.id_field
+                where h.id_schedule = '$data->hora'"
+            , 'all');
+            JSON($canchas);
+        }
     }
