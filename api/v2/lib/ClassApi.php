@@ -29,7 +29,9 @@
         private static function ActionList(){
             $action = array(
                 'payment_created',
-                'payment_getVaucher'
+                'payment_getVaucher',
+                'canchas_getAll',
+                'payment_result',
             );
             if(!in_array($_GET['action'], $action)){
                 self::ActionInvalid();

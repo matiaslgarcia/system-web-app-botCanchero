@@ -45,7 +45,7 @@
 											<tr>
 												<td><?php echo $invoice->date ?></td>
 												<td><?php echo $invoice->status ?></td>
-												<td><img class="logo-card-type" src="<?php echo showLogoTypeCard($invoice->card_type) ?>" ><?php echo showCard($invoice->card) ?></td>
+												<td><img class="logo-card-type" src="<?php echo showLogoPaymetMethod($invoice->paymet_method) ?>" ></td>
 
 												<td><?php echo $invoice->total ?></td>
 											</tr>

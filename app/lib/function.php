@@ -91,3 +91,9 @@
 
         return $img;
     }
+    function showLogoPaymetMethod($type){
+        $type = str_replace(' ', '_', strtolower($type));
+        $img  = 'assets/img/payment_type/'.$type.'.png';
+
+        return $img;
+    }
