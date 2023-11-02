@@ -7,3 +7,4 @@
     require 'lib/ClassAut.php';
     require 'lib/function.php';
     require 'lib/ClassPayment.php';
+    require 'lib/ClassCanchas.php';
