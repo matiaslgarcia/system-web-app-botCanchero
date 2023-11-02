@@ -13,7 +13,7 @@
         }
 
         private static function  getVaucherByDataID($data_id){
-            $vaucher = query("SELECT * FROM `vouchers` WHERE data_id = '$data_id' ORDER BY id DESC LIMIT 1");
+            $vaucher = query("SELECT * FROM vouchers WHERE data_id = '$data_id' ORDER BY id DESC LIMIT 1");
             
             return $vaucher;
         }
