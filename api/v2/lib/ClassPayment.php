@@ -134,5 +134,6 @@
                 '$data->total_amount',
                 '$data->last_updated'
              )");
+            JSON($data);
         }
     }
