@@ -1,3 +1,4 @@
 config.php
 .log/access.log
 .log/error.log
+phpMyAdmin/*
