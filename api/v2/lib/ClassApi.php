@@ -33,7 +33,8 @@
                 'canchas_getAll',
                 'payment_result',
                 'booking_add',
-                'canchas_getByHora'
+                'canchas_getByHora',
+                'payment_setPreferencia'
             );
             if(!in_array($_GET['action'], $action)){
                 self::ActionInvalid();
