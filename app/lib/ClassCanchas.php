@@ -39,8 +39,8 @@
                 if($key != 'id'){
                    query("UPDATE soccer_field SET $key = '$value' WHERE id = '$data->id'"); 
                 }
-                self::setLogo($data->id);
             }
+            self::setLogo($data->id);
             JSON(['success' => true, 'icon' => 'success', 'msg' => 'guardado correctamente']);
         }
 
@@ -53,7 +53,7 @@
                 $dir  = '../../upload/cancha/';
 
                 move_uploaded_file($tmp, $dir . $logo);
-                query("UPDATE soccer_field SET 'logo' = '$logo' WHERE id = '$id'"); 
+                query("UPDATE soccer_field SET logo = '$logo' WHERE id = '$id'"); 
             }
         }
         public static function getMyCancha(){
