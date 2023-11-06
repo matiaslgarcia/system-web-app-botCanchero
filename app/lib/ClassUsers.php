@@ -1,10 +1,10 @@
 <?php
 
     class Users{
-        public static function loginCheck(){
+        public static function loginCheck($arr = []){
             session_start();
             if(!isset($_SESSION['canchero'])){
-                self::showLogin();
+                self::showLogin($arr);
                 die();
             }
         }
