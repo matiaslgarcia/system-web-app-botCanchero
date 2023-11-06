@@ -52,7 +52,6 @@
 										<select name="id_field" id="id_field" data-control="select2" data-placeholder="Selección cancha" class="form-select">
 											<option selected disabled hidden>--SELECCIONE--</option>
 											<?php foreach(canchas::getAll() AS $cancha) { ?>
-												<?php echo $usuario->cancha ?>
 												<option  <?php showSelected($usuario->id_field, $cancha->id) ?> value="<?php echo $cancha->id ?>"><?php echo $cancha->name ?></option>
 											<?php } ?>
 										</select>
