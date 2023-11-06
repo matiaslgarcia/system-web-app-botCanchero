@@ -23,7 +23,7 @@ form.addEventListener('submit', (e) =>{
                 icon: _response.icon,
                 title: _response.msg,
                 success: () => {
-                   // location.href = 'users-list'
+                    location.href = 'users-list'
                 }
             })
         }
