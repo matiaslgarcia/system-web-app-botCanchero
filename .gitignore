@@ -4,5 +4,8 @@ config.php
 phpMyAdmin/*
 app/upload/avatar/*jpg
 app/upload/avatar/*png
+app/upload/avatar/*jpeg
+
 app/upload/cancha/*jpg
 app/upload/cancha/*png
+app/upload/avatar/*jpeg
