@@ -12,14 +12,14 @@
             return $canchas;
         }
         public static function add($data){
-            $data->logo = self::setLogo();
+            $id = self::getIdNewCancha();
             query("INSERT INTO soccer_field
                 (full_name, phone, address, latitude, length, logo, price_hour, threshold, tax_id)
                     VALUES
                 ('$data->full_name',  '$data->phone',  '$data->address', '$data->latitude', '$data->length', '$data->logo', '$data->price_hour', '$data->limit', '$data->tax_id')"
             );
             
-            
+            $data->logo = self::setLogo($id);
             JSON(['icon' => 'success', 'msg' => 'Cancha Agregada Correctamente']);
         }
         private static function getIdNewCancha(){
@@ -39,24 +39,21 @@
                 if($key != 'id'){
                    query("UPDATE soccer_field SET $key = '$value' WHERE id = '$data->id'"); 
                 }
-                
+                self::setLogo($data->id);
             }
             JSON(['success' => true, 'icon' => 'success', 'msg' => 'guardado correctamente']);
         }
 
-        private static function setLogo(){
+        private static function setLogo($id){
             if(!empty($_FILES['logo']['name'])){
                 $file = $_FILES['logo'];
 
-                $Logo = $file['name'];
+                $logo = $file['name'];
                 $tmp  = $file['tmp_name'];
                 $dir  = '../../upload/cancha/';
 
-                move_uploaded_file($tmp, $dir . $Logo);
-
-                return $Logo;
-            }else{
-                return '';
+                move_uploaded_file($tmp, $dir . $logo);
+                query("UPDATE soccer_field SET ''logo = '$logo' WHERE id = '$id'"); 
             }
         }
         public static function getMyCancha(){
