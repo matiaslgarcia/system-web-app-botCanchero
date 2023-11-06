@@ -2,3 +2,7 @@ config.php
 .log/access.log
 .log/error.log
 phpMyAdmin/*
+app/upload/avatar/*jpg
+app/upload/avatar/*png
+app/upload/cancha/*jpg
+app/upload/cancha/*png
