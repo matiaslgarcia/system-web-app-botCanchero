@@ -79,9 +79,11 @@
         public static function delete($data){
             query("DELETE FROM users WHERE id = '$data->id'");
         }
-        private static function showLogin(){
+        private static function showLogin($arr = []){
+            $base = (isset($arr['base'])) ? $arr['base'] : '';
             Theme::header([
                 'title' => 'Login',
+                'base' => $base,
                 'css'   => [
                     'plugins.bundle',
                     'style.bundle',

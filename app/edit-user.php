@@ -2,7 +2,9 @@
 
     require 'int.php';
 
-    Users::loginCheck();
+    Users::loginCheck([
+        'base' => '../'
+    ]);
     $usuario = '';
     Theme::header([
         'title' => 'Editar Usuario',
