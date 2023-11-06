@@ -29,7 +29,7 @@
 										<input type="text" name="id" id="id" value="<?php echo $usuario->id ?>" >
 									</div>
 									<div class="col-12 col-md-6 mb-3">
-										<label class="form-label" for="Nombre" >Nombre</label>
+										<label class="form-label" for="full_name" >Nombre</label>
 										<input type="text" name="full_name" id="full_name" class="form-control" placeholder="Nombre" value="<?php echo $usuario->name ?>">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
@@ -41,14 +41,14 @@
 										<input type="email" name="email" id="email" class="form-control" placeholder="Correo" value="<?php echo $usuario->email ?>">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
-										<label class="form-label" for="Nombre" >Rol</label>
+										<label class="form-label" for="rol" >Rol</label>
 										<select name="rol" id="rol" class="form-select">
 											<option <?php showSelected('cancero', $usuario->rol) ?> value="canchero" >Canchero</option>
 											<option <?php showSelected('superAdmin', $usuario->rol) ?> value="superAdmin" >SuperAdmin</option>
 										</select>
 									</div>
 									<div class="col-12 mb-3">
-										<label class="form-label" for="Nombre" >Cancha</label>
+										<label class="form-label" for="id_field" >Cancha</label>
 										<select name="id_field" id="id_field" data-control="select2" data-placeholder="Selección cancha" class="form-select">
 											<option selected disabled hidden>--SELECCIONE--</option>
 											<?php foreach(canchas::getAll() AS $cancha) { ?>
