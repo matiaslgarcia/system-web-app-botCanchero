@@ -3,6 +3,16 @@ const fun = new Func;
 
 let form = document.querySelector('#form-edit-cancha')
 
+let avatar = document.querySelector('#add-user-select-avatar')
+let avatarInput = document.querySelector('#logo')
+avatar.addEventListener('click', () =>{
+    avatarInput.click()
+})
+avatarInput.addEventListener('change', () => {
+    if(avatarInput.files.length == 1){
+        fun.setImgSrc(avatarInput.files[0], avatar.id)
+    }
+})
 form.addEventListener('submit', (e) =>{
     e.preventDefault()
     let inputEmpty = []
@@ -20,7 +30,7 @@ form.addEventListener('submit', (e) =>{
                     icon: _response.icon,
                     title: _response.msg,
                     success: () => {
-                        location.href = 'canchas-list'
+                       // location.href = 'canchas-list'
                     }
                 })
             }
