@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-    define('VERSION', '1.0.8');
+    define('VERSION', '1.0.9');
 
     require 'config.php';
     require 'lib/function.php';

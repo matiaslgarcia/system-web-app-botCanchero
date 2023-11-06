@@ -30,7 +30,7 @@ form.addEventListener('submit', (e) =>{
                     icon: _response.icon,
                     title: _response.msg,
                     success: () => {
-                       // location.href = 'canchas-list'
+                        location.href = 'canchas-list'
                     }
                 })
             }
