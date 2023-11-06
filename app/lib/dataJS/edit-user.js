@@ -2,7 +2,17 @@ import {Func} from  './function.js';
 const fun = new Func;
 
 let form = document.querySelector('#form-edit-user')
+let avatar = document.querySelector('#add-user-select-avatar')
+let avatarInput = document.querySelector('#avatar')
+avatar.addEventListener('click', () =>{
+    avatarInput.click()
+})
 
+avatarInput.addEventListener('change', () => {
+    if(avatarInput.files.length == 1){
+        fun.setImgSrc(avatarInput.files[0], avatar.id)
+    }
+})
 form.addEventListener('submit', (e) =>{
     e.preventDefault()
     fun.xhr({
@@ -13,7 +23,7 @@ form.addEventListener('submit', (e) =>{
                 icon: _response.icon,
                 title: _response.msg,
                 success: () => {
-                    location.href = 'users-list'
+                   // location.href = 'users-list'
                 }
             })
         }

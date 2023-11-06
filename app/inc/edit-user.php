@@ -25,7 +25,7 @@
 								</div>
 								<form id="form-edit-user" class="row pb-5">
 									<div class="d-none">
-										<input type="file" name="Avatar" id="Avatar" accept="image/*" >
+										<input type="file" name="avatar" id="avatar" accept="image/*" >
 										<input type="text" name="id" id="id" value="<?php echo $usuario->id ?>" >
 									</div>
 									<div class="col-12 col-md-6 mb-3">

@@ -40,7 +40,7 @@
             return $user[$param];
         }
         public static function edit($data){
-            self::uploadAvatarUser('Avatar', $data->id);
+            self::uploadAvatarUser($data->id);
 
             foreach($data AS $key => $value){
                 if($key != 'id'){
@@ -63,13 +63,12 @@
             (full_name, phone, id_field, password, email, rol)
                 VALUES
             ('$user->full_name','$user->phone', '$user->id_field', '$user->password','$user->email','$user->rol')");
-
-            self::uploadAvatarUser('avatar', $user->id);
+            self::uploadAvatarUser($user->id);
 
             JSON(['succes' => true, 'user_id' => $user->id]);
         }
         public static function getAll(){
-            $users = query("SELECT u.id, u.full_name AS name, f.full_name AS cancha FROM users as u INNER JOIN soccer_field AS f ON f.id = u.id_field WHERE u.full_name != 'botCanchero' ", 'ALL');
+            $users = query("SELECT u.id, u.full_name AS name, u.avatar, f.full_name AS cancha FROM users as u INNER JOIN soccer_field AS f ON f.id = u.id_field WHERE u.full_name != 'botCanchero' ", 'ALL');
 
             foreach($users as $user){
                 $user->avatar = (!empty($user->avatar)) ? 'upload/avatar/' .  $user->avatar : 'assets/img/avatars/avatar.png';
@@ -118,12 +117,13 @@
             return $password;
         }
 
-        private static function uploadAvatarUser($file, $id){
-            if(isset( $_FILES[$file])){
-                $file = $_FILES[$file];
+        private static function uploadAvatarUser($id){
+            if(!empty( $_FILES['avatar']['name'])){
+                $file = $_FILES['avatar'];
                 move_uploaded_file($file['tmp_name'], '../../upload/avatar/'. $file['name']);
                 $name = $file['name'];
                 query("UPDATE users SET avatar = '$name' WHERE id = '$id'");
+                
             }  
         }
         public static function changePasword($password, $id){
