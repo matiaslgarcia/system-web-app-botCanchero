@@ -34,11 +34,11 @@
 									</div>
 									<div class="col-12 col-md-6 mb-3">
 										<label class="form-label" for="phone" >Telefono</label>
-										<input type="text" name="phone" id="phone" class="form-control" placeholder="Telefono" value="<?php echo $usuario->phone ?>">
+										<input type="text" name="phone" id="phone" class="form-control" placeholder="Telefono" value="<?php echo $usuario->phone ?>" autocomplete="off">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
 										<label class="form-label" for="email" >Correo</label>
-										<input type="email" name="email" id="email" class="form-control" placeholder="Correo" value="<?php echo $usuario->email ?>">
+										<input type="email" name="email" id="email" class="form-control" placeholder="Correo" value="<?php echo $usuario->email ?>" autocomplete="off">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
 										<label class="form-label" for="rol" >Rol</label>
