@@ -68,7 +68,7 @@
             JSON(['succes' => true, 'user_id' => $user->id]);
         }
         public static function getAll(){
-            $users = query("SELECT u.id, u.full_name AS name, u.avatar, f.full_name AS cancha, f.id = id_cancha FROM users as u INNER JOIN soccer_field AS f ON f.id = u.id_field WHERE u.full_name != 'botCanchero' ", 'ALL');
+            $users = query("SELECT u.id, u.full_name AS name, u.avatar, f.full_name AS cancha, f.id as id_cancha FROM users as u INNER JOIN soccer_field AS f ON f.id = u.id_field WHERE u.full_name != 'botCanchero' ", 'all');
 
             foreach($users as $user){
                 $user->avatar = (!empty($user->avatar)) ? 'upload/avatar/' .  $user->avatar : 'assets/img/avatars/avatar.png';
