@@ -83,7 +83,7 @@
             $result = query("SELECT
                     s.id AS id,
                     s.hour12 AS text,
-                    (SELECT COUNT(*) AS total FROM booking WHERE id_field = '$cancha' and date_booking = '2023-10-02' AND time_booking = s.id) AS total,
+                    (SELECT COUNT(*) AS total FROM booking WHERE id_field = '$cancha' and date_booking = '$date' AND time_booking = s.id) AS total,
                     f.threshold
                 FROM
                     schedules_field AS sf
