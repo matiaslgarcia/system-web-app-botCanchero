@@ -3,7 +3,26 @@
     
     class Canchas{
         public static function getall(){
-            $canchas = query("SELECT id, full_name AS name, phone, latitude, length, logo, price_hour, tax_id, token_mercadopago FROM soccer_field WHERE status = 1", 'ALL');
+            $canchas = query("SELECT
+            sf.id,
+            sf.full_name AS name,
+            sf.phone,
+            sf.latitude,
+            sf.length,
+            sf.logo,
+            sf.price_hour,
+            sf.tax_id,
+            sf.token_mercadopago,
+            p.name as province,
+            p.id as id_province,
+            c.name as city,
+            c.id as id_city
+        FROM
+            soccer_field sf
+            INNER JOIN province p ON p.id = sf.id_province
+            INNER JOIN city c on c.id = sf.id_city
+        WHERE
+            sf.status = 1", 'ALL');
 
             foreach($canchas AS $cancha){
                $cancha->logo = (empty($cancha->logo)) ? 'assets/img/cancha.png' : 'upload/cancha/' . $cancha->logo; 

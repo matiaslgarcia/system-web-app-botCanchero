@@ -14,9 +14,9 @@
         public static function add($data){
             $id = self::getIdNewCancha();
             query("INSERT INTO soccer_field
-                (full_name, phone, address, latitude, length, logo, price_hour, threshold, tax_id)
+                (full_name, phone, address, latitude, length, price_hour, threshold, id_province, id_city)
                     VALUES
-                ('$data->full_name',  '$data->phone',  '$data->address', '$data->latitude', '$data->length', '$data->logo', '$data->price_hour', '$data->limit', '$data->tax_id')"
+                ('$data->full_name',  '$data->phone',  '$data->address', '$data->latitude', '$data->length', '$data->price_hour', '$data->limit', '$data->id_province', '$data->id_city')"
             );
             
             $data->logo = self::setLogo($id);
@@ -28,7 +28,7 @@
             return $result->value;
         }
         public static function getById($id){
-            $cancha = query("SELECT id, full_name AS name, latitude, length, logo,  phone, address, price_hour, threshold, tax_id  FROM soccer_field AS f WHERE id = '$id'");
+            $cancha = query("SELECT id, full_name AS name, latitude, length, logo,  phone, address, price_hour, threshold, id_province, id_city  FROM soccer_field AS f WHERE id = '$id'");
                $cancha->logo = (empty($cancha->logo)) ? 'assets/img/cancha.png' : 'upload/cancha/' . $cancha->logo; 
 
             return $cancha;

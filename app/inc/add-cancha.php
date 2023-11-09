@@ -43,10 +43,24 @@
 													<label class="form-label" for="limit">limite recerva por hora</label>
 													<input type="number" name="limit" id="limit" class="form-control" placeholder="1">
 												</div>
-												<div class="col-12 col-md-6 mb-3">
-													<label class="form-label" for="tax_id">tax_id</label>
-													<input type="text" name="tax_id" id="tax_id" class="form-control">
-												</div>
+												<div class="col-6 my-3">
+                                            		<label for="time_booking" class="form-label">Provincia</label>
+                                            		<select name="id_province" id="id_province" class="form-control" required>
+                                                		<option selected="true" disabled="" value="" data-select2-id="select2-data-2-ih0l">--Provincia--</option>
+														<?php foreach(Address::getProvincias() as $provincie) { ?>
+															<option value="<?php echo $provincie->id ?>"><?php echo $provincie->name ?></option>
+														<?php }  ?>
+                                            		</select>
+                                        	</div>
+												<div class="col-6 my-3">
+                                            		<label for="time_booking" class="form-label">Ciudad</label>
+                                            		<select name="id_city" id="id_city" class="form-control" required>
+                                                		<option selected="true" disabled="" value="" data-select2-id="select2-data-2-ih0l">--Ciudad--</option>
+														<?php foreach(Address::getCity() as $city) { ?>
+															<option data-id-province="<?php echo $city->id_provincia?>" value="<?php echo $city->id ?>"><?php echo $city->name ?></option>
+														<?php }  ?>
+                                            		</select>
+                                        	</div>
 												<div class="col-12 mb-3">
 													<label class="form-label" for="address">Direccion</label>
 													<textarea type="email" name="address" id="address" class="form-control" placeholder="Direccion"></textarea>

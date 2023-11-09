@@ -13,4 +13,10 @@
 
             return $provincia;
         }
+        public static function getCity(){
+
+            $provincias = query("SELECT * FROM city", 'ALL');
+
+            return $provincias;
+        }
     }

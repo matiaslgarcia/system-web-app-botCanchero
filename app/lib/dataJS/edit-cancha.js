@@ -63,3 +63,15 @@ document.querySelectorAll('.form-horario').forEach((el)=>{
         })
     })
 })
+$('#id_province').on('change', (e) =>{
+    let id_province =  e.target.value
+    let selectCity = document.querySelector('#id_city')
+    selectCity.value = ''
+    selectCity.children.forEach((o) => {
+        if(o.getAttribute('data-id-province') != id_province){
+            o.hidden = true
+        }else{
+            o.hidden = false
+        }
+    });
+})
