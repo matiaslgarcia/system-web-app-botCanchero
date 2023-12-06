@@ -21,14 +21,14 @@
 									<!--begin::Header-->
 									<div class="card-header border-0 pt-5">
 										<h3 class="card-title align-items-start flex-column">
-											<span class="card-label fw-bolder fs-3 mb-1">Lista de canchas</span>
+											<span class="card-label fw-bolder fs-3 mb-1">Listado de Canchas</span>
 										</h3>
 										<div class="card-toolbar">
 											<a href="add-cancha" class="btn btn-sm btn-light btn-active-primary">
 												<span class="svg-icon svg-icon-3">
 													<i class="fa-solid fa-plus"></i>
 												</span>
-												<!--end::Svg Icon-->Agregar Canchas</a>
+												<!--end::Svg Icon-->Agregar Cancha</a>
 										</div>
 									</div>
 									<!--end::Header-->
@@ -41,10 +41,10 @@
 												<!--begin::Table head-->
 												<thead>
 													<tr class="fw-bolder text-muted">
-														<th class="min-w-150px">Cancha</th>
-														<th class="min-w-150px">Latidud</th>
+														<th class="min-w-150px">Nombre</th>
+														<th class="min-w-150px">Latitud</th>
 														<th class="min-w-150px">Longitud</th>
-														<th class="min-w-100px text-end">Actions</th>
+														<th class="min-w-100px text-end">Acciones</th>
 													</tr>
 												</thead>
 												<!--end::Table head-->

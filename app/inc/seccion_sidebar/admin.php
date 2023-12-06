@@ -49,7 +49,7 @@
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>
-                    <span class="menu-title">Usuarios</span>
+                    <span class="menu-title">Listado de Usuarios</span>
                 </a>
             </div>
             <div class="menu-item">
@@ -57,7 +57,7 @@
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>
-                    <span class="menu-title">Crear Usuarios</span>
+                    <span class="menu-title">Crear Usuario</span>
                 </a>
             </div>
         </div>
@@ -80,7 +80,7 @@
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>
-                    <span class="menu-title">Lista de Canchas</span>
+                    <span class="menu-title">Listado de Canchas</span>
                 </a>
             </div>
             <div class="menu-item">
@@ -88,7 +88,7 @@
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>
-                    <span class="menu-title">Crear Canchas</span>
+                    <span class="menu-title">Crear Cancha</span>
                 </a>
             </div>
         </div>

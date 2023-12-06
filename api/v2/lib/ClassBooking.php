@@ -1,23 +1,6 @@
 <?php
 
     class Booking{
-        public static function add(){
-            $data = Api::getData();
-
-            $data->full_name            = $data->name;
-            $data->email                = (isset($_POST['email'])) ? $_POST['email'] : '';
-            $data->UsuarioPlayerId      = Customers::checkExitCustomerOCreate($data)->id;
-            $data->CanchaAsignada       = $data->id_cancha;
-            $data->UsuarioModificacion  = 1;
-            $data->FechaReserva         = $data->fecha;
-            $data->HoraReserva          = $data->hora;
-            $data->DiaReserva           = dayName($data->fecha);
-            $data->id                   = self::getIDNewReserva();
-
-            self::set($data);
-            Payment::updateCheckOut($data->data_id, $data->id);
-            Booking::getBookingByAPI($data->id);
-        }
         private static function set($data){
             query("INSERT INTO booking(
                 id,
@@ -68,5 +51,22 @@
             );
 
             JSON($booking);
+        }
+        public static function add(){
+            $data = Api::getData();
+
+            $data->full_name            = $data->name;
+            $data->email                = (isset($_POST['email'])) ? $_POST['email'] : '';
+            $data->UsuarioPlayerId      = Customers::checkExitCustomerOCreate($data)->id;
+            $data->CanchaAsignada       = $data->id_cancha;
+            $data->UsuarioModificacion  = 1;
+            $data->FechaReserva         = $data->fecha;
+            $data->HoraReserva          = $data->hora;
+            $data->DiaReserva           = dayName($data->fecha);
+            $data->id                   = self::getIDNewReserva();
+
+            self::set($data);
+            Payment::updateCheckOut($data->data_id, $data->id);
+            self::getBookingByAPI($data->id);
         }
     }

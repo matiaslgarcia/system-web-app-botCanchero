@@ -8,7 +8,7 @@ function deleteUser(id){
         success: () => {
             fun.swal({
                 icon: 'success',
-                title: 'Usuario eliminado',
+                title: 'Usuario Eliminado Correctamente',
                 success: () => {
                     location.reload();
                 }
@@ -22,7 +22,7 @@ function changePassword(id, password){
         data: fun.setForm({id: id, password: password}),
         success: () =>{
             fun.swal({
-                title: 'Se actualizo la contraseña correctamente',
+                title: 'Se Actualizo Tu Contraseña Correctamente',
                 icon: 'success',
             })
         }
@@ -32,7 +32,7 @@ document.querySelectorAll('.btn-delete-user').forEach( btn => {
     btn.addEventListener('click', () => {
         fun.swal({
             icon: 'warning',
-            title: '¿Quieres eliminar el usuario?',
+            title: '¿Estas Seguro De Eliminar Este Usuario?',
             success: (_response) =>{
                 if(_response.isConfirmed){
                     deleteUser(btn.getAttribute('data-user'))
@@ -51,7 +51,7 @@ document.querySelectorAll('.btn-change-password').forEach( btnChangePassword => 
     btnChangePassword.addEventListener('click', () => {
         let id = btnChangePassword.getAttribute('data-user')
         fun.swal({
-            title: 'Nueva contraseña',
+            title: 'Nueva Contraseña',
             input: 'password',
             success: (_response) =>{
                 if(_response.isConfirmed){

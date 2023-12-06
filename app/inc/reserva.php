@@ -1,6 +1,9 @@
 <?php $reserva = Booking::getById($_GET['reserva']);
 var_dump($_GET['reserva']);
 ?>
+<?php $total = Booking::getTotalById($_GET['reserva']);
+var_dump($_GET['reserva']);
+?>
 <div class="d-flex flex-column flex-root">
     <!--begin::Page-->
     <div class="page d-flex flex-row flex-column-fluid">
@@ -50,11 +53,11 @@ var_dump($_GET['reserva']);
                                                     <!--begin::Menu item-->
                                                     <?php if($reserva->status_id != 2) : ?>
                                                     <div class="menu-item px-3 menu-action-reserva-action">
-                                                        <span class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#reagendar-reserva">Re agendar</span>
+                                                        <span class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#reagendar-reserva">Re-Agendar</span>
                                                     </div>
                                                     <?php endif; ?>
                                                     <div id="btn-action-cancelar-reserva" data-id-reserva="<?php echo $reserva->id ?>" class="menu-item px-3 ">
-                                                        <span class="menu-link px-3">Cancelar</span>
+                                                        <span class="menu-link px-3">Cancelar Reserva</span>
                                                     </div>
                                                     <!--end::Menu item-->
                                                 </div>
@@ -74,7 +77,7 @@ var_dump($_GET['reserva']);
                                                             <th class="min-w-100px">Fecha</th>
                                                             <th class="min-w-100px">Hora</th>
                                                             <th class="min-w-100px">Usuario</th>
-                                                            <th class="min-w-100px">Cambio</th>
+                                                            <th class="min-w-100px">Estado</th>
                                                         </tr>
                                                     </thead>
                                                     <!--end::Table head-->
@@ -110,7 +113,7 @@ var_dump($_GET['reserva']);
                                     <div class="card-header">
                                         <!--begin::Card title-->
                                         <div class="card-title">
-                                            <h2>Reserva</h2>
+                                            <h2>Datos de la Reserva</h2>
                                         </div>
                                         <!--end::Card title-->
                                     </div>
@@ -121,11 +124,13 @@ var_dump($_GET['reserva']);
                                         <div class="mb-7">
                                             <div class="d-flex align-items-center mb-1">
                                                 <!--begin::Name-->
-                                                <a href="#" class="fw-bolder text-gray-800 text-hover-primary me-2"><?php echo $reserva->customer_name ?></a>
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Jugador: </span><a href="#" class="fw-bolder text-gray-800 text-hover-primary me-2"><?php echo isset($reserva->customer_name) ? $reserva->customer_name : ''; ?></a>
                                             </div>
                                             <!--end::Details-->
                                             <!--begin::Email-->
-                                            <a href="https://wa.me/<?php echo $reserva->customer_phone ?>" class="fw-bold text-gray-600 text-hover-primary"><?php echo $reserva->customer_phone ?></a>
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Tel: </span><a href="https://wa.me/<?php echo isset($reserva->customer_phone) ? $reserva->customer_phone : ''; ?>" class="fw-bold text-gray-600 text-hover-primary"><?php echo $reserva->customer_phone ?></a>
+                                            </div>
                                             <!--end::Email-->
                                         </div>
                                         <!--end::Section-->
@@ -133,13 +138,18 @@ var_dump($_GET['reserva']);
                                         <div class="separator separator-dashed mb-7"></div>
                                         <div class="mb-7">
                                             <div class="d-flex align-items-center mb-3">
-                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo $reserva->cancha ?></span>
+                                            <span class="fw-bolder text-gray-800 text-hover-primary me-3">Cancha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->cancha) ? $reserva->cancha : ''; ?></span>
                                             </div>
                                             <div class="d-flex align-items-center mb-3">
-                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Fecha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo showDate($reserva->fecha) ?></span>
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Fecha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->fecha) ? showDate($reserva->fecha) : ''; ?>
+</span>
                                             </div>
                                             <div class="d-flex align-items-center mb-3">
-                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Hora: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo $reserva->hora ?></span>
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Hora: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->hora) ? $reserva->hora : ''; ?></span>
+                                            </div>
+                                            <div class="separator separator-dashed mb-7"></div>
+                                            <div class="d-flex align-items-center mb-3">
+                                            <span class="fw-bolder text-gray-800 text-hover-primary me-3">Total Pagado: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3">$ <?php echo isset($total->cant) ? $total->cant : '--'; ?></span>
                                             </div>
                                             <!--end::Email-->
                                         </div>

@@ -62,10 +62,10 @@
 							</div>
 						</div>
 						<div class="menu-item px-5 my-1">
-							<a href="account_settings" class="menu-link px-5">Account Settings</a>
+							<a href="account_settings" class="menu-link px-5">Configuración</a>
 						</div>
 						<div class="menu-item px-5">
-							<a href="out" class="menu-link px-5">Sign Out</a>
+							<a href="out" class="menu-link px-5">Cerrar sesión</a>
 						</div>
 					</div>
 				</div>

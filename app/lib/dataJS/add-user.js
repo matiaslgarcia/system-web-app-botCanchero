@@ -42,7 +42,7 @@ form.addEventListener('submit', (e) => {
         },
         success: (_response) =>{
             fun.swal({
-                title: 'Canchero Creado',
+                title: 'Usuario Canchero Creado Correctamente',
                 icon: 'success',
                 success: () =>{
                     location.href = 'users-list'

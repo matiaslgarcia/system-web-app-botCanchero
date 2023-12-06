@@ -31,7 +31,7 @@ function login(){
     }else{
         fun.swal({
             icon: 'error',
-            title: 'Complete todo los campos',
+            title: 'Por favor! Complete Todos Los Campos',
             timerProgressBar: true,
         })
         inputEmpty.forEach(e => {

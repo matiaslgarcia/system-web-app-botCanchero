@@ -34,11 +34,11 @@
 												<input type="file" name="logo" id="logo" accept="image/*">
 											</div>
 											<div class="col-12 col-md-6 mb-3">
-												<label class="form-label" for="full_name">Cancha</label>
+												<label class="form-label" for="full_name">Nombre de la Cancha</label>
 												<input type="text" name="full_name" id="full_name" class="form-control" placeholder="Cancha" value="<?php echo $cancha->name ?>">
 											</div>
 											<div class="col-12 col-md-6 mb-3">
-												<label class="form-label" for="phone">Telefono</label>
+												<label class="form-label" for="phone">Teléfono</label>
 												<input type="text" name="phone" id="phone" class="form-control" placeholder="Celular" value="<?php echo $cancha->phone ?>" autocomplete="phone">
 											</div>
 											<div class="col-12 col-md-6 mb-3">
@@ -54,11 +54,11 @@
 												<input type="text" name="price_hour" id="price_hour" class="form-control" placeholder="00.0" value="<?php echo $cancha->price_hour ?>">
 											</div>
 											<div class="col-12 col-md-6 mb-3">
-												<label class="form-label" for="limit">limite reserva por hora</label>
+												<label class="form-label" for="limit">Cantidad de Canchas</label>
 												<input type="number" name="threshold" id="threshold" class="form-control" placeholder="1" value="<?php echo $cancha->threshold ?>">
 											</div>
 											<div class="col-12 mb-3">
-												<label class="form-label" for="address">Direccion</label>
+												<label class="form-label" for="address">Dirección</label>
 												<textarea type="email" name="address" id="address" class="form-control" placeholder="Direccion" autocomplete="address"><?php echo $cancha->address ?></textarea>
 											</div>
 											<div class="text-end">

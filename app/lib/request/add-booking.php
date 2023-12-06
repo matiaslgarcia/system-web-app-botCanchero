@@ -14,9 +14,9 @@
     if(empty($_POST['id_field'])){
         array_push($error, array('key' => 'id_field'));
     }
-    if(empty($_POST['email'])){
-        array_push($error, array('key' => 'email'));
-    }
+    // if(empty($_POST['email'])){
+    //     array_push($error, array('key' => 'email'));
+    // }
     if(empty($_POST['date_booking'])){
         array_push($error, array('key' => 'date_booking'));
     }
@@ -25,7 +25,7 @@
     }
     
     if(count($error) > 0){
-        JSON(['fail' => true, 'error' => $error, 'icon' => 'error', 'msg' => 'complete todo los campo'], 403);
+        JSON(['fail' => true, 'error' => $error, 'icon' => 'error', 'msg' => 'Por Favor! Complete Todos Los Campos'], 403);
     }else{
         $_POST['id_customer']   = Customers::checkExitCustomerOCreate(obj($_POST))->id;
         $_POST['id_field']      = $_POST['id_field'];

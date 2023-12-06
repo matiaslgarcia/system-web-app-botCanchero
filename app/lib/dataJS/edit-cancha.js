@@ -42,7 +42,7 @@ form.addEventListener('submit', (e) =>{
         });
         fun.swal({
             icon: 'error',
-            title: 'complete todo los campos'
+            title: 'Por Favor! Complete Todos Los Campos'
         })
     }
 })
@@ -57,7 +57,7 @@ document.querySelectorAll('.form-horario').forEach((el)=>{
             success: () =>{
                 fun.swal({
                     icon: 'success',
-                    title: 'Horarios actualizados'
+                    title: 'Horarios Actualizados Correctamente'
                 })
             }
         })

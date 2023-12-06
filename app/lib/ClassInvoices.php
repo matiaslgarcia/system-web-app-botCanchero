@@ -62,5 +62,52 @@
                 where v.date_create like '$date%' and b.id_field  LIKE '$cancha'", 'ALL');
             return $invoices;
         }
+        public static function getTotalMiIngresos(){
+            $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
+            $cancha = Users::infoUser('id_field');
+            
+            $condition = "DATE(v.date_create) = '$date'";
 
+            $total = query("SELECT
+                        Round(sum(CASE WHEN bs.name = 'Cancelado' THEN -p.transaction_amount ELSE p.transaction_amount END),2 ) as totalDia
+                    FROM
+                        booking b
+                    INNER JOIN vouchers v ON
+                        b.id = v.id_booking
+                    INNER JOIN booking_status bs ON
+                        bs.id = b.status
+                    INNER JOIN payment p ON
+                        p.payment_id = v.data_id 
+                    WHERE
+                        $condition;
+                   ",
+            'ALL');
+            return $total;
+        }
+        public static function getTotalIngresos(){
+            $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
+            $cancha = (isset($_GET['cancha'])) ? $_GET['cancha'] : '%';
+        
+            $condition = "DATE(v.date_create) = '$date'";
+            if ($cancha !== '%') {
+                $condition .= " AND b.id_field = $cancha";
+            }
+        
+            $total = query("SELECT
+                        Round(sum(CASE WHEN bs.name = 'Cancelado' THEN -p.transaction_amount ELSE p.transaction_amount END),2 ) as totalDia
+                    FROM
+                        booking b
+                    INNER JOIN vouchers v ON
+                        b.id = v.id_booking
+                    INNER JOIN booking_status bs ON
+                        bs.id = b.status
+                    INNER JOIN payment p ON
+                        p.payment_id = v.data_id 
+                    WHERE
+                        $condition;
+                       ",
+            'ALL');
+        
+            return $total;
+        }
     }

@@ -35,7 +35,7 @@
                         <input type="text" name="FechaReserva" id="FechaReserva" class="form-control">
                     </div>
                     <div class="col-6 input-floting-label my-3" >
-                        <label for="HoraReserva" class="form-label">Fecha Reserva</label>
+                        <label for="HoraReserva" class="form-label">Hora Reserva</label>
                         <input type="text" name="HoraReserva" id="HoraReserva" class="form-control">
                     </div>
                 </div>

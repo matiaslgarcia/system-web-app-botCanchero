@@ -20,7 +20,7 @@
                                 <form id="add-booking-form" class="row pb-5">
                                     <div class="row">
                                         <div class="col-6 my-3">
-                                            <label for="phone" class="form-label">Numero Telefono</label>
+                                            <label for="phone" class="form-label">Número de Telefono</label>
                                             <input type="text" name="phone" id="phone" class="form-control" autocomplete="phone">
                                         </div>
                                         <div class="col-6 my-3">
@@ -52,7 +52,7 @@
                                             </select>
                                         </div>
                                         <div class="text-end">
-                                            <button class="btn btn-primary">Crear</button>
+                                            <button class="btn btn-primary">Crear Reserva</button>
                                         </div>
                                     </div>
                                 </form>

@@ -53,7 +53,7 @@
                                                                     <?php if(empty(Users::infoUser('token_id'))) : ?>
                                                                     <a href="<?php echo MercadoPago::getUrlOAuth() ?>" target="_blank" class="btn btn-primary">Vincular</a>
                                                                     <?php else : ?>
-                                                                    <a  disabled target="_blank" class="btn btn-secondary">Ya estas Agregada</a>
+                                                                    <a  disabled target="_blank" class="btn btn-secondary">!Tu Cuenta Ya Esta Vinculada!</a>
                                                                     <?php endif; ?>
                                                                 </div>
                                                             </div>

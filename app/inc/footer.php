@@ -10,7 +10,7 @@
 		<!--begin::Menu-->
 		<ul class="menu menu-gray-600 menu-hover-primary fw-bold order-1">
 			<li class="menu-item">
-				<a href="support" target="_blank" class="menu-link px-2">Support</a>
+			<a href="mailto:botcanchero@gmail.com" target="_blank" class="menu-link px-2">Soporte</a>
 			</li>
 		</ul>
 		<!--end::Menu-->

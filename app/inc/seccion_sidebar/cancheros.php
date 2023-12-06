@@ -22,7 +22,7 @@
             <span class="menu-icon">
                 <i class="fa-solid fa-futbol"></i>
             </span>
-            <span class="menu-title">Mi cancha</span>
+            <span class="menu-title">Informacion de Mi Cancha</span>
         </a>
     </div>
     <div class="menu-item">

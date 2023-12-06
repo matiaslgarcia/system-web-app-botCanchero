@@ -41,9 +41,9 @@
 												<!--begin::Table head-->
 												<thead>
 													<tr class="fw-bolder text-muted">
-														<th class="min-w-200px">Authors</th>
+														<th class="min-w-200px">Nombre</th>
 														<th class="min-w-150px">Cancha</th>
-														<th class="min-w-100px text-end">Actions</th>
+														<th class="min-w-100px text-end">Acciones</th>
 													</tr>
 												</thead>
 												<!--end::Table head-->

@@ -3,32 +3,37 @@
     class Booking{
         public static function getById($id){
             $reserva = query("SELECT
-                b.id,
-                b.id_field,
-                f.full_name AS cancha,
-                b.time_booking,
-                b.date_booking AS fecha,
-                h.hour12 AS hora,
-                c.full_name AS customer_name,
-                c.phone AS customer_phone,
-                s.name AS status_name,
-                s.id   AS status_id,
-                s.color AS status_color
+            b.id,
+            b.id_field,
+            f.full_name AS cancha,
+            b.time_booking,
+            b.date_booking AS fecha,
+            h.hour12 AS hora,
+            c.full_name AS customer_name,
+            c.phone AS customer_phone,
+            s.name AS status_name,
+            s.id AS status_id,
+            s.color AS status_color
             FROM
                 booking AS b
-            INNER JOIN soccer_field AS f
-            ON
-                b.id_field = f.id
-            INNER JOIN customers AS c
-            ON
-                b.id_customer = c.id
-            INNER JOIN booking_status AS s
-            ON
-                b.status = s.id
+            INNER JOIN soccer_field AS f ON b.id_field = f.id
+            INNER JOIN customers AS c ON b.id_customer = c.id
+            INNER JOIN booking_status AS s ON b.status = s.id
             INNER JOIN schedules AS h ON h.id = b.time_booking
             WHERE b.id = '$id'");
             
             return $reserva;
+        }
+        public static function getTotalById($id){
+            $total = query("SELECT
+            p.transaction_amount as cant
+            FROM
+                booking AS b
+            INNER JOIN vouchers AS v ON b.id = v.id_booking
+            INNER JOIN payment AS p ON p.payment_id = v.data_id
+            WHERE b.id = '$id'");
+            
+            return $total;
         }
         public static function getLogs($Id){
             $logs = query("SELECT
@@ -111,28 +116,25 @@
         }
         public static function getBookingByAPI($id){
             $booking = query("SELECT
-                    b.id,
-                    t.data_id,
-                    s.tax_id,
-                    (SELECT HOUR FROM schedules WHERE id = b.time_booking) AS time,
-                    b.date_booking AS date,
-                    s.full_name AS cancha,
-                    c.phone AS customer_phone,
-                    t.total
-                FROM
-                    booking AS b
-                INNER JOIN transacciones AS t
-                INNER JOIN mobbex_ops AS m
-                ON
-                t.data_id = m.checkout_uid AND t.id_booking = b.id
-                INNER JOIN soccer_field AS s
-                ON
-                    s.id = b.id_field
-                INNER JOIN customers AS c
-                ON
-                    c.id = b.id_customer
-                WHERE b.id = '$id'");
-
+	                b.id,
+	                v.data_id,
+	                sf.token_mercadopago,
+	                (select hour from schedules where id = b.time_booking) as time,
+	                b.date_booking as date,
+	                sf.full_name as cancha,
+	                c.phone as customer_phone,
+	                p.transaction_amount as total
+                from booking as b
+                inner join vouchers v on
+	                v.id_booking = b.id
+                inner join payment p on
+	                p.payment_id = v.data_id
+                inner join soccer_field sf on
+	                sf.id  = b.id_field
+                inner join customers c on
+	                c.id = b.id_customer 
+                where b.id = '$id'"
+            );
             JSON($booking);
         }
     }

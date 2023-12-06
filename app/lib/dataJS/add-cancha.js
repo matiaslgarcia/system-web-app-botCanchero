@@ -36,7 +36,7 @@ form.addEventListener('submit', (e) =>{
         });
         fun.swal({
             icon: 'error',
-            title: 'complete todo los campos',
+            title: 'Por Favor! Complete Todos Los Campos',
         })
     }
 })

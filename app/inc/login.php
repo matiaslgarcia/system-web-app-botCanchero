@@ -10,7 +10,7 @@
 				<form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" data-kt-redirect-url="../../demo1/dist/index.html" action="#">
 					<div class="fv-row mb-10">
 						<div class="input-floting-label">
-							<label class="form-label" for="email">Usuario</label>
+							<label class="form-label" for="email">Email</label>
 							<input type="text" name="email" id="email" class="form-control">
 						</div>
 					</div>

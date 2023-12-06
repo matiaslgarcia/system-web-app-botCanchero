@@ -166,7 +166,14 @@
                     f.length AS longitud,
                     f.phone,
                     b.date_booking AS fecha,
-                    status.name AS status
+                    status.name AS status,
+                    v.data_id AS paymentId,
+                    f.token_mercadopago AS access_token,
+                    (SELECT p.transaction_amount 
+                    FROM payment p 
+                    INNER JOIN vouchers v2 ON p.payment_id = v2.data_id
+                    WHERE v2.data_id = v.data_id
+                    LIMIT 1) AS transaction_amount
                 FROM booking AS b 
                     INNER JOIN customers AS c 
                         ON b.id_customer = c.id
@@ -178,6 +185,8 @@
                         ON s.id = b.time_booking
                     INNER JOIN booking_status AS status
                         ON b.status = status.id
+                    INNER JOIN vouchers AS v 
+                        ON v.id_booking = b.id
                 WHERE c.phone = '$data->phone'"
             , 'ALL');
             foreach($booking AS $b){

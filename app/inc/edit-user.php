@@ -33,11 +33,11 @@
 										<input type="text" name="full_name" id="full_name" class="form-control" placeholder="Nombre" value="<?php echo $usuario->name ?>">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
-										<label class="form-label" for="phone" >Telefono</label>
+										<label class="form-label" for="phone" >Teléfono</label>
 										<input type="text" name="phone" id="phone" class="form-control" placeholder="Telefono" value="<?php echo $usuario->phone ?>" autocomplete="off">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
-										<label class="form-label" for="email" >Correo</label>
+										<label class="form-label" for="email" >Correo Electrónico</label>
 										<input type="email" name="email" id="email" class="form-control" placeholder="Correo" value="<?php echo $usuario->email ?>" autocomplete="off">
 									</div>
 									<div class="col-12 col-md-6 mb-3">

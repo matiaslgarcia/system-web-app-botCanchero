@@ -19,7 +19,7 @@
 													<input type="file" name="logo" id="logo" accept="image/*">
 												</div>
 												<div class="col-12 col-md-6 mb-3">
-													<label class="form-label" for="full_name">Cancha</label>
+													<label class="form-label" for="full_name">Nombre de la Cancha</label>
 													<input type="text" name="full_name" id="full_name" class="form-control" placeholder="Cancha">
 												</div>
 												<div class="col-12 col-md-6 mb-3">
@@ -40,7 +40,7 @@
 												</div>
 												<div class="col-12 col-md-6 mb-3">
 
-													<label class="form-label" for="limit">limite recerva por hora</label>
+													<label class="form-label" for="limit">Cantidad de Canchas</label>
 													<input type="number" name="limit" id="limit" class="form-control" placeholder="1">
 												</div>
 												<div class="col-6 my-3">

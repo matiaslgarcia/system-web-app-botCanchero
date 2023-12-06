@@ -59,7 +59,7 @@
                     d.name AS dia,
                     d.id AS num_day,
                     s.hour AS time,
-                    (SELECT COUNT(*) FROM booking WHERE id_field = sf.id_field AND day_booking = d.id AND time_booking = s.id AND date_booking = '$date') AS total_reservas,
+                    (SELECT COUNT(*) FROM booking WHERE id_field = sf.id_field AND day_booking = d.id AND time_booking = s.id AND date_booking = '$date' AND status <> 2) AS total,
                     f.threshold as threshold
                  FROM
                     schedules_field AS sf
@@ -74,7 +74,7 @@
                     f.id = sf.id_field
                 WHERE 
                     sf.id_field = '$id_field' AND sf.id_day = '$id_day'
-                HAVING total_reservas < threshold;
+                HAVING COALESCE(total, 0) < threshold
             ", 'ALL');
 
             return $result;
@@ -83,7 +83,7 @@
             $result = query("SELECT
                     s.id AS id,
                     s.hour12 AS text,
-                    (SELECT COUNT(*) AS total FROM booking WHERE id_field = '$cancha' and date_booking = '$date' AND time_booking = s.id) AS total,
+                    (SELECT COUNT(*) AS total FROM booking WHERE id_field = '$cancha' and date_booking = '$date' AND time_booking = s.id AND status <> 2) AS total,
                     f.threshold
                 FROM
                     schedules_field AS sf
@@ -94,7 +94,8 @@
                 INNER JOIN soccer_field AS f
                     ON f.id = sf.id_field
                 WHERE f.id = '$cancha' AND  d.id = '$day'
-                HAVING total < threshold",
+                HAVING 
+                 COALESCE(total, 0) < threshold",
             'ALL');
             
             JSON($result);

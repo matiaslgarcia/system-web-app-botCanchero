@@ -22,7 +22,7 @@ if(btnCancelarReserva){
         }
         fun.swal({
             icon: 'warning',
-            title: '¿Quieres cancelar la reserva #'+reserva.id+'?',
+            title: '¿Estas Seguro De Cancelar Esta Reserva #'+reserva.id+'?',
             showConfirmButton: true,
             showCancelButton: true,
             timer: 0,
@@ -51,7 +51,7 @@ formReagendar.addEventListener('submit', (e) =>{
         success: () =>{
             fun.swal({
                 icon: 'success',
-                title: 'Guardado correctamente',
+                title: 'Guardado Correctamente',
                 success: () =>{
                     location.reload()
                 }

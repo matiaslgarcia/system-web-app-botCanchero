@@ -1,6 +1,7 @@
 <?php
     require '/var/www/systemWebBotCanchero/app/int.php';
-
+    date_default_timezone_set('America/Argentina/Buenos_Aires');
+    
     $date = date('Ymd');
     $time = date('His');
 

@@ -1,3 +1,7 @@
+<?php
+	$totalDiario = Invoices::getTotalIngresos();
+	var_dump($totalDiario);
+?>
 <div class="d-flex flex-column flex-root">
 	<!--begin::Page-->
 	<div class="page d-flex flex-row flex-column-fluid">
@@ -46,20 +50,42 @@
 											<th>Fecha</th>
 											<th>Estado</th>
 											<th>Tarjeta</th>
-											<th>Total</th>
+											<th>SubTotal</th>										
 										</tr>
 									</thead>
 									<tbody>
 										<?php foreach (Invoices::getIngresos() as $invoice) { ?>
-											<tr>
-												<td><?php echo $invoice->date ?></td>
-												<td><?php echo $invoice->status ?></td>
-												<td><img class="logo-card-type" src="<?php echo showLogoPaymetMethod($invoice->paymet_method) ?>" ></td>
-												<td><?php echo $invoice->total ?></td>
-											</tr>
+										<tr>
+											<td><?php echo $invoice->date ?></td>
+											<td style="color: <?php echo ($invoice->status == 'Cancelado') ? 'red' : (($invoice->status == 'Activo' || $invoice->status == 'Completado') ? 'green' : 'black'); ?>">
+												<?php echo $invoice->status ?>
+											</td>
+											<td><img class="logo-card-type" src="<?php echo showLogoPaymetMethod($invoice->paymet_method) ?>" ></td>
+											<td style="color: <?php echo ($invoice->status == 'Cancelado') ? 'red' : (($invoice->status == 'Activo' || $invoice->status == 'Completado') ? 'green' : 'black'); ?>">
+												<?php
+												if ($invoice->status == 'Cancelado') {
+													echo '-' . $invoice->total;
+												} else {
+													echo $invoice->total;
+												}
+												?>
+											</td>
+										</tr>
 										<?php } ?>
 									</tbody>
 								</table>
+							</div>
+						</div>
+						<div class="card mb-2">
+							<div class="card-body">
+								 <div class="d-flex justify-content-end">
+								 <span class="fw-bolder text-gray-800 text-hover-primary me-3 fs-4">
+									Total:
+								</span>
+								<span class="fw-bolder <?php echo (isset($totalDiario[0]->totalDia) && $totalDiario[0]->totalDia >= 0) ? 'text-success' : 'text-danger'; ?> text-hover-primary me-3 fs-4">
+									<?php echo isset($totalDiario[0]->totalDia) ? '$' . $totalDiario[0]->totalDia : 'No Hay Ingresos a través del bot'; ?>
+								</span>
+								</div>
 							</div>
 						</div>
 						<!--end::Row-->

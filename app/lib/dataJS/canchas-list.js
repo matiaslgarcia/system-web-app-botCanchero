@@ -6,7 +6,7 @@ document.querySelectorAll('.btn-delete-cancha').forEach( btn => {
         e.preventDefault();
         fun.swal({
             icon: 'warning',
-            title: 'Quieres eliminar Cancha ',
+            title: '¿Estas Seguro De Quieres Eliminar Esta Cancha?',
             showConfirmButton: true,
             confirmButtonText: 'SI',
             showCancelButton: true,
