@@ -1,6 +1,6 @@
 <?php
 
-    class Payment{
+    class Payment{    
         public static function created(){
            $data = Api::getData();
            $data->date_created = date("Y-m-d H:i:s");
@@ -46,9 +46,7 @@
             JSON($data);
         }
 
-        public static function updateCheckOut($data_id, $id_booking){
-            query("UPDATE vouchers SET id_booking = '$id_booking' WHERE data_id = '$data_id'");
-        }
+        
         public static function setPreferencia(){
             $data = Api::getData();
 

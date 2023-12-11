@@ -7,7 +7,7 @@ export class Func{
             param.url    = 'fetch/' + param.url
             param.data   = (param.data) ?  param.data : '';
             xhr.open(param.method, param.url, true)
-            xhr.onload = () =>  {
+            xhr.onload = () =>  {  
                 if(xhr.status == 200){
                     if (typeof param.success === 'function')
                         param.success(xhr.response)

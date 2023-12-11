@@ -1,12 +1,18 @@
 <?php
     require '/var/www/systemWebBotCanchero/app/int.php';
     date_default_timezone_set('America/Argentina/Buenos_Aires');
-    
+
     $date = date('Ymd');
     $time = date('His');
 
     function completar($id){
-        query("UPDATE booking SET user = 1, status = 3 WHERE id = '$id'");
+        $current_user = query("SELECT user FROM booking WHERE id = '$id'", 'ONE');
+
+        if ($current_user == 1) {
+            query("UPDATE booking SET user = 1, status = 3 WHERE id = '$id'");
+        } elseif ($current_user == 21) {
+            query("UPDATE booking SET user = 21, status = 3 WHERE id = '$id'");
+        }
     }
 
     $booking = query("SELECT
@@ -25,3 +31,4 @@
     foreach($booking AS $b){
         completar($b->id);
     }
+

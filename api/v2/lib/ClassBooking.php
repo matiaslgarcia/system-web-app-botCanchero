@@ -22,9 +22,12 @@
                     '1'
                 )"
             );
+        } 
+        private static function updateCheckOut($data_id, $id_booking){
+            query("UPDATE vouchers SET id_booking = $id_booking WHERE data_id = $data_id");
         }
         private static function getIDNewReserva(){
-            $result = query("SELECT id + 1 AS id FROM `booking`  ORDER BY id DESC LIMIT 1");
+            $result = query("SELECT id + 1 AS id FROM `booking` ORDER BY id DESC LIMIT 1");
 
             return $result->id;
         }
@@ -66,7 +69,7 @@
             $data->id                   = self::getIDNewReserva();
 
             self::set($data);
-            Payment::updateCheckOut($data->data_id, $data->id);
+            self::updateCheckOut($data->data_id, $data->id);
             self::getBookingByAPI($data->id);
         }
     }

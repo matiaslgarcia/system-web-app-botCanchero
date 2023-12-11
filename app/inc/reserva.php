@@ -4,6 +4,10 @@ var_dump($_GET['reserva']);
 <?php $total = Booking::getTotalById($_GET['reserva']);
 var_dump($_GET['reserva']);
 ?>
+<?php $usuario = Booking::getUsuario($_GET['reserva']);
+var_dump($_GET['reserva'])
+?>
+
 <div class="d-flex flex-column flex-root">
     <!--begin::Page-->
     <div class="page d-flex flex-row flex-column-fluid">
@@ -44,21 +48,26 @@ var_dump($_GET['reserva']);
                                                     <i class="fa-solid fa-bars"></i>
                                                 </button>
                                                 <!--begin::Menu 3-->
-                                                <div id="menu-action-reserva" class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true" style="">
+                                                <div id="menu-action-reserva" class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px py-3" data-kt-menu="true">
                                                     <!--begin::Heading-->
                                                     <div class="menu-item px-3">
                                                         <div class="menu-content text-muted pb-2 px-3 fs-7 text-uppercase">Acciones</div>
                                                     </div>
-                                                    <!--end::Heading-->
-                                                    <!--begin::Menu item-->
-                                                    <?php if($reserva->status_id != 2) : ?>
+                                                    <?php if ($reserva->status_id != 2 && $reserva->status_id != 3 && $reserva->precio_cancha != $reserva->pagado) : ?>
+                                                        <div class="menu-item px-3 menu-action-reserva-action">
+                                                            <span class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#cerrarpago-reserva">Cerrar Pago</span>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                    <?php if($reserva->status_id != 2 && $reserva->status_id != 3) : ?>
                                                     <div class="menu-item px-3 menu-action-reserva-action">
                                                         <span class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#reagendar-reserva">Re-Agendar</span>
                                                     </div>
                                                     <?php endif; ?>
+                                                    <?php if($reserva->status_id != 3 && $reserva->status_id != 2) : ?>
                                                     <div id="btn-action-cancelar-reserva" data-id-reserva="<?php echo $reserva->id ?>" class="menu-item px-3 ">
                                                         <span class="menu-link px-3">Cancelar Reserva</span>
                                                     </div>
+                                                    <?php endif; ?>
                                                     <!--end::Menu item-->
                                                 </div>
                                                 <!--end::Menu 3-->
@@ -124,7 +133,7 @@ var_dump($_GET['reserva']);
                                         <div class="mb-7">
                                             <div class="d-flex align-items-center mb-1">
                                                 <!--begin::Name-->
-                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Jugador: </span><a href="#" class="fw-bolder text-gray-800 text-hover-primary me-2"><?php echo isset($reserva->customer_name) ? $reserva->customer_name : ''; ?></a>
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Jugador: </span><span class="fw-bolder text-gray-800 text-hover-primary me-2"><?php echo isset($reserva->customer_name) ? $reserva->customer_name : ''; ?></span>
                                             </div>
                                             <!--end::Details-->
                                             <!--begin::Email-->
@@ -135,22 +144,63 @@ var_dump($_GET['reserva']);
                                         </div>
                                         <!--end::Section-->
                                         <!--begin::Seperator-->
-                                        <div class="separator separator-dashed mb-7"></div>
+                                        <div class="separator separator-dashed my-7"></div>
                                         <div class="mb-7">
                                             <div class="d-flex align-items-center mb-3">
-                                            <span class="fw-bolder text-gray-800 text-hover-primary me-3">Cancha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->cancha) ? $reserva->cancha : ''; ?></span>
+                                            <span class="fw-bolder text-gray-800 text-hover-primary me-3 pe-auto">Cancha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->cancha) ? $reserva->cancha : ''; ?></span>
                                             </div>
                                             <div class="d-flex align-items-center mb-3">
-                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Fecha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->fecha) ? showDate($reserva->fecha) : ''; ?>
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3 pe-auto">Fecha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->fecha) ? showDate($reserva->fecha) : ''; ?>
 </span>
                                             </div>
                                             <div class="d-flex align-items-center mb-3">
-                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3">Hora: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->hora) ? $reserva->hora : ''; ?></span>
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3 pe-auto">Hora: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3"><?php echo isset($reserva->hora) ? $reserva->hora : ''; ?></span>
                                             </div>
-                                            <div class="separator separator-dashed mb-7"></div>
+                                            <div class="separator separator-dashed my-7"></div>
                                             <div class="d-flex align-items-center mb-3">
-                                            <span class="fw-bolder text-gray-800 text-hover-primary me-3">Total Pagado: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3">$ <?php echo isset($total->cant) ? $total->cant : '--'; ?></span>
+                                                <span class="fw-bolder text-gray-800 text-hover-primary me-3 pe-auto">Valor de la Cancha: </span><span class="fw-bolder text-gray-800 text-hover-primary me-3" >$ <?php echo isset($reserva->precio_cancha) ? $reserva->precio_cancha : ''; ?></span>
                                             </div>
+                                            <?php
+                                            if ($usuario->user == 1) {
+                                                ?>
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <span class="fw-bolder text-gray-800 text-hover-primary me-3 pe-auto">Tasa de Servicio - Uso Bot: </span>
+                                                    <span class="fw-bolder text-hover-primary me-3">$ <?php echo isset($reserva->precio_cancha) ? ($reserva->precio_cancha * 1.17) * 0.10 : '--'; ?></span>
+                                                </div>
+                                                <?php
+                                            }
+                                            ?>
+                                            <div class="d-flex align-items-center mb-3">
+                                            <span class="fw-bolder text-gray-800 text-hover-primary me-3 pe-auto">Total Pagado: </span>
+                                                <?php if ($usuario == 1): ?>
+                                                    <span class="fw-bolder text-hover-primary me-3" style="color:green; cursor:pointer;">
+                                                        $ <?php echo isset($total->cant) ? $total->cant : '--'; ?>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="fw-bolder text-hover-primary me-3" style="color:green; cursor:pointer;">
+                                                        $ <?php echo isset($reserva->pagado) ? $reserva->pagado : '--'; ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                                    <div class="d-flex align-items-center mb-3">
+                                                    <span class="fw-bolder text-gray-800 text-hover-primary me-3 pe-auto">Falta Pagar: </span>
+                                                    <?php
+                                                        if ($usuario == 1) {
+                                                            $faltaPagar = isset($reserva->precio_cancha) && isset($total->cant) ? $reserva->precio_cancha - $total->cant : $reserva->precio_cancha;
+                                                            $faltaPagar = $faltaPagar < 0 ? 0 : $faltaPagar;
+                                                        } else {
+                                                            $faltaPagar = isset($reserva->precio_cancha) && isset($total->cant) ? $reserva->precio_cancha - $total->cant : $reserva->precio_cancha;
+                                                            $faltaPagar = $faltaPagar < 0 ? 0 : $faltaPagar;
+                                                            if ($reserva->pagado !== null) {
+                                                                $faltaPagar = max(0, $reserva->precio_cancha - $reserva->pagado);
+                                                            }
+                                                        }
+
+                                                    ?>
+                                                        <span class="fw-bolder text-red-800 text-hover-primary me-3 pe-auto" style="color:red;">$
+                                                            <?php echo $faltaPagar; ?>
+                                                        </span>
+                                                    </div> 
                                             <!--end::Email-->
                                         </div>
                                     </div>
@@ -170,6 +220,7 @@ var_dump($_GET['reserva']);
 
             <?php inc('footer') ?>
             <?php modal('re-agendar') ?>
+            <?php modal('cerrar-pago') ?>
             <!--end::Footer-->
         </div>
         <!--end::Wrapper-->

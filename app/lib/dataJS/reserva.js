@@ -1,6 +1,7 @@
 import {Func} from  './function.js';
 const fun = new Func;
 const formReagendar = document.querySelector('#form-reagendar')
+const formCerrarPago = document.querySelector('#form-cerrar-pago')
 let btnCancelarReserva = document.querySelector('#btn-action-cancelar-reserva')
 let time_booking = document.querySelector('#time_booking')
 let id_field = document.querySelector('#id_field')
@@ -60,6 +61,57 @@ formReagendar.addEventListener('submit', (e) =>{
         }
     })
 })
+
+formCerrarPago.addEventListener('submit', (e) =>{
+   
+    e.preventDefault()
+    let inputEmpty = []
+    formCerrarPago.querySelectorAll('input, select').forEach(element =>{
+        if(element.type != 'file'){
+            if(!Boolean(element.value)){
+                inputEmpty.push({key: element.id})  
+            }
+        }
+    })
+
+    let cantidadAPagar = parseFloat(document.getElementById('cantidad_a_pagar').value);
+    let valorCancha = parseFloat(document.getElementById('valorCancha').value);
+
+    if (cantidadAPagar <= 0 || cantidadAPagar > valorCancha || cantidadAPagar !== valorCancha) {
+        fun.swal({
+            icon: 'error',
+            title: 'El monto debe ser positivo e igual a $ ' + valorCancha + '.',
+        });
+        e.preventDefault(); 
+    }
+    if(inputEmpty.length == 0 && cantidadAPagar == valorCancha){
+        fun.xhr({
+            url: 'cerrarpago',
+            data: new FormData(formCerrarPago),
+            
+            success: (_response) =>{
+                fun.swal({
+                    icon: 'success',
+                    title: 'Guardado Correctamente',
+                    success: () =>{
+                        location.reload()
+                    }
+                })
+            }
+        })
+    }else{
+        
+        document.getElementById(inputEmpty[0].key).focus()
+        inputEmpty.forEach(el => {
+            document.getElementById(el.key).error({class: ['error']})
+        });
+        fun.swal({
+            icon: 'error',
+            title: 'Por Favor! Complete Todos Los Campos',
+        })
+    }
+})
+
 
 $('#date_booking').daterangepicker({
     singleDatePicker: true,

@@ -13,16 +13,28 @@
             c.phone AS customer_phone,
             s.name AS status_name,
             s.id AS status_id,
-            s.color AS status_color
+            s.color AS status_color,
+            f.price_hour AS precio_cancha,
+            w.amount_payment as pagado
             FROM
                 booking AS b
             INNER JOIN soccer_field AS f ON b.id_field = f.id
             INNER JOIN customers AS c ON b.id_customer = c.id
             INNER JOIN booking_status AS s ON b.status = s.id
             INNER JOIN schedules AS h ON h.id = b.time_booking
-            WHERE b.id = '$id'");
+            LEFT JOIN payment_app_web as w ON w.id_booking = b.id
+             WHERE b.id = '$id'");
             
             return $reserva;
+        }
+        public static function getValorCanchaByBooking($id){
+            $valor = query("SELECT
+                                f.price_hour AS precio_cancha
+                            FROM
+                                booking AS b
+                            INNER JOIN soccer_field AS f ON b.id_field = f.id
+                            WHERE b.id = '$id'");
+            return $valor;
         }
         public static function getTotalById($id){
             $total = query("SELECT
@@ -50,6 +62,14 @@
                     ON u.id = l.users WHERE l.id_reserva = '$Id' ORDER BY fecha DESC",'ALL');
 
            return $logs;
+        }
+        public static function getUsuario($id){
+            $usuario = query("SELECT 
+            u.id as user
+            FROM `users` as u inner join booking as b on b.user = u.id
+            where u.id = 1 and b.id = '$id'");
+
+           return $usuario;
         }
         public static function update($data) {
             query("UPDATE booking SET
@@ -136,5 +156,20 @@
                 where b.id = '$id'"
             );
             JSON($booking);
+        }
+        public static function cerrarPago($data){
+            query("INSERT INTO payment_app_web (
+                        payment_date, 
+                        amount_payment, 
+                        method_payment, 
+                        id_booking
+                    ) VALUES (
+                        CURRENT_DATE(), 
+                        '$data->cantidad_a_pagar', 
+                        '$data->metodo_pago', 
+                        '$data->id_reserva'
+                    )"
+                );
+            JSON($data);
         }
     }
