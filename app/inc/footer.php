@@ -1,4 +1,4 @@
-<div class="footer py-4 d-flex flex-lg-column" id="kt_footer">
+<div class="footer py-4 d-flex flex-lg-column premium-footer" id="kt_footer">
 	<!--begin::Container-->
 	<div class="container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between">
 		<!--begin::Copyright-->
@@ -10,7 +10,7 @@
 		<!--begin::Menu-->
 		<ul class="menu menu-gray-600 menu-hover-primary fw-bold order-1">
 			<li class="menu-item">
-			<a href="mailto:botcanchero@gmail.com" target="_blank" class="menu-link px-2">Soporte</a>
+			<a href="mailto:soporte@botcanchero.com" target="_blank" class="menu-link px-2 footer-link">Soporte Técnico</a>
 			</li>
 		</ul>
 		<!--end::Menu-->

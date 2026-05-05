@@ -1,4 +1,4 @@
-<div id="kt_header" style="" class="header align-items-stretch">
+<div id="kt_header" class="header align-items-stretch glass-header">
 	<!--begin::Container-->
 	<div class="container-fluid d-flex align-items-stretch justify-content-between">
 		<!--begin::Aside mobile toggle-->
@@ -17,31 +17,32 @@
 		<!--end::Aside mobile toggle-->
 		<!--begin::Mobile logo-->
 		<div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
-			<a href="<?php echo URL ?>" class="d-lg-none">
-				<img alt="Logo" src="assets/img/logos/logo_canchero.png" class="h-30px" />
+			<a href="./" class="d-lg-none">
+				<img alt="Logo" src="assets/img/logos/logoNew.png" class="h-30px" />
 			</a>
 		</div>
 		<!--end::Mobile logo-->
 		<!--begin::Wrapper-->
 		<div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
 			<!--begin::Navbar-->
-			<div class="d-flex align-items-stretch" id="kt_header_nav">
-				<!--begin::Menu wrapper-->
-				<div class="header-menu align-items-stretch" data-kt-drawer="true" data-kt-drawer-name="header-menu" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="{default:'200px', '300px': '250px'}" data-kt-drawer-direction="end" data-kt-drawer-toggle="#kt_header_menu_mobile_toggle" data-kt-swapper="true" data-kt-swapper-mode="prepend" data-kt-swapper-parent="{default: '#kt_body', lg: '#kt_header_nav'}">
-					<!--begin::Menu-->
-					<div class="menu menu-lg-rounded menu-column menu-lg-row menu-state-bg menu-title-gray-700 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-400 fw-bold my-5 my-lg-0 align-items-stretch" id="#kt_header_menu" data-kt-menu="true">
-					</div>
-					<!--end::Menu-->
-				</div>
-				<!--end::Menu wrapper-->
+			<div class="d-flex align-items-center" id="kt_header_nav">
+                <div class="d-flex flex-column welcome-text">
+                    <span class="text-muted fw-bold fs-8">Bienvenido,</span>
+                    <span class="text-dark fw-bolder welcome-name"><?php echo Users::infoUser('name') ?></span>
+                </div>
+                <div class="separator separator-dashed v-100 mx-5 h-20px d-none d-md-block"></div>
+                <div class="header-date-badge d-none d-md-flex">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <?php echo date('d/m/Y') ?>
+                </div>
 			</div>
 			<!--end::Navbar-->
 			<!--begin::Toolbar wrapper-->
 			<div class="d-flex align-items-stretch flex-shrink-0">
 				<div class="d-flex align-items-center ms-1 ms-lg-3" id="kt_header_user_menu_toggle">
 					<!--begin::Menu wrapper-->
-					<div class="cursor-pointer symbol symbol-30px symbol-md-40px" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-						<img src="<?php echo  Users::infoUser('avatar')?>" alt="user" />
+					<div class="cursor-pointer symbol symbol-35px symbol-md-45px" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+						<img src="<?php echo  Users::infoUser('avatar')?>" class="user-avatar-premium" alt="user" />
 					</div>
 					<!--begin::User account menu-->
 					<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px" data-kt-menu="true">

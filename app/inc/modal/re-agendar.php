@@ -1,29 +1,72 @@
-<?php $reserva = Booking::getById($_GET['reserva']);  ?>
-<div class="modal fade" id="reagendar-reserva" data-bs-backdrop="static" tabindex="-1" aria-labelledby="reagendar-reservalLabel" aria-hidden="true">
+<?php 
+    $idReserva = $_GET['reserva'];
+    $reserva = Booking::getById($idReserva); 
+?>
+
+<div class="modal fade" id="reagendar-reserva" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <form id="form-reagendar" class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Re-Agendar Reserva #<?php echo $reserva->id ?></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Header -->
+            <div class="modal-header pb-0 border-0 justify-content-end">
+                <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark fs-1"></i>
+                </div>
             </div>
-            <div class="modal-body">
+
+            <!-- Body -->
+            <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
+                <div class="mb-13 text-center">
+                    <h1 class="mb-3">Re-Agendar Reserva</h1>
+                    <div class="text-muted fw-bold fs-5">Reserva #<?php echo $reserva->id ?> - Selecciona el nuevo horario</div>
+                </div>
+
                 <input type="hidden" name="id" id="id" value="<?php echo $reserva->id?>">
                 <input type="hidden" name="id_field" id="id_field" value="<?php echo $reserva->id_field ?>">
-                <div class="mb-3">
-                    <label class="form-label" for="date_booking">Fecha</label>
-                    <input type="text" name="date_booking" id="date_booking" class="form-control" value="<?php echo showDate($reserva->fecha) ?>" data-min-date="<?php echo date('d/m/Y')?>">
+
+                <!-- Fecha -->
+                <div class="fv-row mb-10">
+                    <label class="d-flex align-items-center fs-6 fw-bold mb-2">
+                        <span class="required">Nueva Fecha</span>
+                    </label>
+                    <div class="input-group input-group-solid">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-calendar-day fs-4"></i>
+                        </span>
+                        <input type="text" name="date_booking" id="date_booking" class="form-control ps-3 fs-6 fw-bold" value="<?php echo showDate($reserva->fecha) ?>" data-min-date="<?php echo date('d/m/Y')?>">
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label" for="date_booking">Hora</label>
-                    <select type="text" name="time_booking" id="time_booking" class="form-control">
-                        <option selected="true" disabled value="">--SELECIONE--</option>
-                    </select>
+
+                <!-- Hora -->
+                <div class="fv-row mb-10">
+                    <label class="d-flex align-items-center fs-6 fw-bold mb-2">
+                        <span class="required">Nueva Hora</span>
+                    </label>
+                    <div class="input-group input-group-solid">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-clock fs-4"></i>
+                        </span>
+                        <select name="time_booking" id="time_booking" class="form-control ps-3 fs-6 fw-bold">
+                            <option selected="true" disabled value="">--SELECCIONE--</option>
+                        </select>
+                    </div>
+                    <div class="text-muted fs-7 mt-2">Solo se muestran los turnos libres para la fecha seleccionada.</div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar</button>
+
+                <!-- Footer Acciones -->
+                <div class="text-center">
+                    <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="indicator-label">Guardar Cambios</span>
+                    </button>
+                </div>
             </div>
         </div>
     </form>
 </div>
+
+<style>
+/* Ajuste para que el icono no tape el texto en el select si no se usa select2 */
+#time_booking {
+    padding-left: 3rem !important;
+}
+</style>

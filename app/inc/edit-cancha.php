@@ -1,4 +1,7 @@
-<?php $cancha = Canchas::getById($_GET['cancha']); ?>
+<?php
+	$cancha = Canchas::getById($_GET['cancha']);
+	$priceRanges = Canchas::getPriceRangesByField($cancha->id);
+?>
 <div class="d-flex flex-column flex-root">
 	<div class="page d-flex flex-row flex-column-fluid">
 		<?php inc('sidebar') ?>
@@ -52,10 +55,63 @@
 											<div class="col-12 col-md-6 mb-3">
 												<label class="form-label" for="price_hour">Precio por Hora</label>
 												<input type="text" name="price_hour" id="price_hour" class="form-control" placeholder="00.0" value="<?php echo $cancha->price_hour ?>">
+												<div class="form-text">Precio base usado como fallback si no existe franja para ese horario.</div>
 											</div>
 											<div class="col-12 col-md-6 mb-3">
 												<label class="form-label" for="limit">Cantidad de Canchas</label>
 												<input type="number" name="threshold" id="threshold" class="form-control" placeholder="1" value="<?php echo $cancha->threshold ?>">
+											</div>
+											<div class="col-12 mb-2">
+												<hr>
+											</div>
+											<div class="col-12 mb-3">
+												<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+													<div>
+														<label class="form-label mb-1">Precios por Franja Horaria</label>
+														<div class="text-muted fs-7">Configurá valores de día/noche u otras franjas sin superposición.</div>
+													</div>
+													<div class="d-flex gap-2">
+														<button type="button" id="btn-preset-price-ranges" class="btn btn-light-primary btn-sm">Plantilla Día/Noche</button>
+														<button type="button" id="btn-add-price-range" class="btn btn-light btn-sm">Agregar Franja</button>
+													</div>
+												</div>
+												<div class="table-responsive border rounded p-3">
+													<table class="table align-middle table-row-dashed mb-0">
+														<thead>
+															<tr class="text-muted fw-bold">
+																<th>Desde</th>
+																<th>Hasta</th>
+																<th>Precio ($)</th>
+																<th class="text-end">Quitar</th>
+															</tr>
+														</thead>
+														<tbody id="price-ranges-body">
+															<?php
+																$rows = is_array($priceRanges) && count($priceRanges) > 0
+																	? $priceRanges
+																	: [
+																		(object) ['start_time' => '08:00:00', 'end_time' => '18:00:00', 'price' => $cancha->price_hour],
+																		(object) ['start_time' => '18:00:00', 'end_time' => '23:59:00', 'price' => $cancha->price_hour],
+																	];
+																foreach ($rows as $range) {
+																	$start = substr((string) ($range->start_time ?? '08:00:00'), 0, 5);
+																	$end = substr((string) ($range->end_time ?? '18:00:00'), 0, 5);
+																	$price = (string) ($range->price ?? '');
+															?>
+															<tr class="price-range-row">
+																<td><input type="time" class="form-control form-control-sm range-start" value="<?php echo $start; ?>"></td>
+																<td><input type="time" class="form-control form-control-sm range-end" value="<?php echo $end; ?>"></td>
+																<td><input type="number" min="1" step="0.01" class="form-control form-control-sm range-price" value="<?php echo $price; ?>" placeholder="0.00"></td>
+																<td class="text-end"><button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-range"><i class="fa-solid fa-trash"></i></button></td>
+															</tr>
+															<?php } ?>
+														</tbody>
+													</table>
+												</div>
+												<div class="d-flex justify-content-end mt-3">
+													<button type="button" id="btn-save-price-ranges" class="btn btn-primary btn-sm">Guardar Franjas</button>
+												</div>
+												<script type="application/json" id="price-ranges-data"><?php echo json_encode($priceRanges, JSON_UNESCAPED_UNICODE); ?></script>
 											</div>
 											<div class="col-6 my-3">
                                             	<label for="time_booking" class="form-label">Provincia</label>

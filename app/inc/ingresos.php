@@ -1,6 +1,5 @@
 <?php
 	$totalDiario = Invoices::getTotalIngresos();
-	var_dump($totalDiario);
 ?>
 <div class="d-flex flex-column flex-root">
 	<!--begin::Page-->
@@ -47,29 +46,33 @@
 								<table id="kt_datatable_example_1" class="table table-row-bordered gy-5">
 									<thead>
 										<tr class="fw-bold fs-6 text-muted">
+											<th>N° Reserva</th>
 											<th>Fecha</th>
-											<th>Estado</th>
-											<th>Tarjeta</th>
+											<th>Estado del Pago</th>
+											<th>Método de Pago</th>
 											<th>SubTotal</th>										
 										</tr>
 									</thead>
 									<tbody>
 										<?php foreach (Invoices::getIngresos() as $invoice) { ?>
 										<tr>
-											<td><?php echo $invoice->date ?></td>
-											<td style="color: <?php echo ($invoice->status == 'Cancelado') ? 'red' : (($invoice->status == 'Activo' || $invoice->status == 'Completado') ? 'green' : 'black'); ?>">
-												<?php echo $invoice->status ?>
-											</td>
+											<td><?php echo $invoice->nroReserva ?></td>
+											<td><?php echo date('d/m/Y', strtotime($invoice->date)) ?></td>
+											<td>
+													<?php
+														$estados = array(
+															"approved" => "Aprobado",
+															"refunded" => "Reembolsado",
+															"pending" => "Pendiente"
+														);
+
+														echo isset($estados[$invoice->estado]) ? $estados[$invoice->estado] : ucfirst($invoice->estado);
+													?>
+												</td>
 											<td><img class="logo-card-type" src="<?php echo showLogoPaymetMethod($invoice->paymet_method) ?>" ></td>
-											<td style="color: <?php echo ($invoice->status == 'Cancelado') ? 'red' : (($invoice->status == 'Activo' || $invoice->status == 'Completado') ? 'green' : 'black'); ?>">
-												<?php
-												if ($invoice->status == 'Cancelado') {
-													echo '-' . $invoice->total;
-												} else {
-													echo $invoice->total;
-												}
-												?>
-											</td>
+											<td style="color: <?php echo ((float)$invoice->signed_total < 0) ? 'red' : 'green'; ?>">
+													<?php echo '$' . number_format((float)$invoice->signed_total, 2); ?>
+												</td>
 										</tr>
 										<?php } ?>
 									</tbody>
@@ -82,8 +85,8 @@
 								 <span class="fw-bolder text-gray-800 text-hover-primary me-3 fs-4">
 									Total:
 								</span>
-								<span class="fw-bolder <?php echo (isset($totalDiario[0]->totalDia) && $totalDiario[0]->totalDia >= 0) ? 'text-success' : 'text-danger'; ?> text-hover-primary me-3 fs-4">
-									<?php echo isset($totalDiario[0]->totalDia) ? '$' . $totalDiario[0]->totalDia : 'No Hay Ingresos a través del bot'; ?>
+								<span class="fw-bolder <?php echo (isset($totalDiario) && $totalDiario > 0) ? 'text-success' : 'text-danger'; ?> text-hover-primary me-3 fs-4">
+									<?php echo isset($totalDiario) ? '$' . $totalDiario : 'En este momento no hay Ingresos'; ?>
 								</span>
 								</div>
 							</div>

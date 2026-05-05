@@ -2,4 +2,4 @@
 
     require '../../int.php';
 
-    Users::changePasword($_POST['password'], $_POST['id']);
+    Users::changePassword($_POST['password'], $_POST['id']);

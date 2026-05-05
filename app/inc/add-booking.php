@@ -28,13 +28,9 @@
                                             <input type="text" name="full_name" id="full_name" class="form-control">
                                         </div>
                                         <div class="col-6 my-3">
-                                            <label for="email" class="form-label">Correo</label>
-                                            <input type="email" name="email" id="email" class="form-control" autocomplete="email">
-                                        </div>
-                                        <div class="col-6 my-3">
                                             <label for="id_label" >Cancha</label>
                                             <select class="form-control" name="id_field" id="id_field">
-                                                <option selected disabled value="" >--SELECIONE--</option>
+                                                <option selected disabled value="" >--SELECCIONE--</option>
                                                 <?php foreach(Canchas::getByIdUser() AS $cancha)  {?>
                                                     <option value="<?php echo $cancha->id ?>" ><?php echo $cancha->name ?></option>
                                                 <?php } ?>
@@ -48,7 +44,7 @@
                                         <div class="col-6 my-3">
                                             <label for="time_booking" class="form-label">Hora Reserva</label>
                                             <select name="time_booking" id="time_booking" class="form-control">
-                                                <option selected="true" disabled value="">--SELECIONE--</option>
+                                                <option selected="true" disabled value="">--SELECCIONE--</option>
                                             </select>
                                         </div>
                                         <div class="text-end">

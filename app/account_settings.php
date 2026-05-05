@@ -5,7 +5,7 @@
     Users::loginCheck();
 
     Theme::header([
-        'title' => 'Dashboard',
+        'title' => 'Configuración de Cuenta',
         'css'   => [
             'plugins.bundle',
             'style.bundle',
@@ -18,6 +18,7 @@
         'js' => [
             'plugins.bundle',
             'scripts.bundle',
-        ],
-        'dataJS' => ['account_settings']
+        ]
     ]);
+?>
+<script type="module" src="lib/dataJS/account_settings.js?ver=<?php echo VERSION ?>"></script>

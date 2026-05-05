@@ -28,14 +28,53 @@
 
         private static function ActionList(){
             $action = array(
-                'payment_created',
-                'payment_getVaucher',
+                // Canchas
                 'canchas_getAll',
-                'payment_result',
-                'booking_add',
                 'canchas_getByHora',
+
+                // Booking
+                'booking_add',
+                'booking_cancel',
+                'booking_move',
+                'booking_confirm',
+                'booking_checkAvailability',
+                'booking_getBalance',
+                'booking_listAvailable',
+                'booking_listByPhone',
+
+                // Customers (API v2 - Migrados de v1)
+                'customers_get',
+                'customers_register',
+                'customers_listAll',
+
+                // Schedules
+                'schedules_getFreeByField',
+
+                // Payment
+                'payment_created',
                 'payment_setPreferencia',
-                'payment_get'
+                'payment_get',
+                'payment_getCredentials',
+                'payment_getVaucher',
+                'payment_result',
+                'payment_registerCash',
+
+                // Services
+                'services_getAllServicesCancha',
+
+                // Recurring (Fase 2)
+                'recurring_addBooking',
+                'recurring_listBookings',
+                'recurring_moveBooking',
+                'recurring_cancelBooking',
+                'recurring_pauseRequest',
+                'recurring_pauseReview',
+                'recurring_listPauses',
+                'recurring_generateWeek',
+                'recurring_updatePayment',
+
+                // Calendario
+                'calendar_view',
             );
             if(!in_array($_GET['action'], $action)){
                 self::ActionInvalid();

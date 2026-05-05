@@ -30,40 +30,35 @@ function changePassword(id, password){
 }
 document.querySelectorAll('.btn-delete-user').forEach( btn => {
     btn.addEventListener('click', () => {
-        fun.swal({
+        fun.confirm({
             icon: 'warning',
             title: '¿Estas Seguro De Eliminar Este Usuario?',
-            success: (_response) =>{
-                if(_response.isConfirmed){
-                    deleteUser(btn.getAttribute('data-user'))
-                }
-            },
-            showConfirmButton: true,
-            showCancelButton: true,
-            confirmButtonText: 'Si',
-            cancelButtonText: 'No',
-            timer: 0
-        })
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'No, cancelar',
+            confirmVariant: 'danger',
+            cancelVariant: 'secondary',
+        }).then((_response) => {
+            if(_response.isConfirmed){
+                deleteUser(btn.getAttribute('data-user'))
+            }
+        });
     })
     
 })
 document.querySelectorAll('.btn-change-password').forEach( btnChangePassword => {
     btnChangePassword.addEventListener('click', () => {
         let id = btnChangePassword.getAttribute('data-user')
-        fun.swal({
+        fun.confirm({
             title: 'Nueva Contraseña',
             input: 'password',
-            success: (_response) =>{
-                if(_response.isConfirmed){
-                   changePassword(id, _response.value)
-                }
-            },
-            showConfirmButton: true,
-            showCancelButton: true,
             confirmButtonText: 'Guardar',
-            cancelButtonText: 'Cancelar',
-            timer: 0
-        })
+            cancelButtonText: 'No, cancelar',
+            cancelVariant: 'secondary',
+        }).then((_response) => {
+            if(_response.isConfirmed){
+               changePassword(id, _response.value)
+            }
+        });
     })
     
 })

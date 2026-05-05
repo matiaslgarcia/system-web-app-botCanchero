@@ -2,8 +2,6 @@
 
     require 'int.php';
 
-    Users::loginCheck();
-
     Theme::header([
         'title' => 'Dashboard',
         'css'   => [
@@ -18,7 +16,6 @@
         'js' => [
             'plugins.bundle',
             'scripts.bundle',
-            'fullcalendar'
         ],
         'dataJS' => ['reservas']
     ]);

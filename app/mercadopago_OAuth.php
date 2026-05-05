@@ -4,4 +4,11 @@
 
     session_start();
 
-    MercadoPago::createRefreshToken($_GET['code']);
+    $code = $_GET['code'] ?? null;
+    $state = $_GET['state'] ?? null;
+    if (empty($code)) {
+        header('Location: ' . URL . 'account_settings?error=mp_oauth_code_missing');
+        die();
+    }
+
+    MercadoPago::createRefreshToken($code, $state);

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: botcanchero_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-botcanchero}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-BC_Secure_Pwd_2026!}
+    ports:
+      - "${DB_PORT_EXTERNAL:-3306}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - botcanchero_net
+
+  # Aplicación PHP / Apache
+  app:
+    build: .
+    container_name: botcanchero_app
+    restart: always
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-botcanchero}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASS=${DB_PASS:-BC_Secure_Pwd_2026!}
+    depends_on:
+      - db
+    networks:
+      - botcanchero_net
+
+networks:
+  botcanchero_net:
+    driver: bridge
+
+volumes:
+  db_data:

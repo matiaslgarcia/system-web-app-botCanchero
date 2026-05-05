@@ -4,14 +4,11 @@
 
         public static function add($data){
             $data->fechaInvoice = date('Y-m-d');
-            $data->total = Canchas::getById($data->id_cancha)->price_hour;
+            $bookingPrice = Booking::getValorCanchaByBooking($data->id);
+            $data->total = (float) ($bookingPrice->precio_cancha ?? Canchas::getById($data->id_cancha)->price_hour ?? 0);
             query("INSERT INTO invoices(
                 id_booking, date, id_status, total
-                ) VALUES (
-                    '$data->id',
-                    '$data->fechaInvoice',
-                    '3',
-                    '$data->total')");   
+                ) VALUES (?, ?, '3', ?)", '', [$data->id, $data->fechaInvoice, $data->total]);   
         }
 
         public static function getStatusAll(){
@@ -23,91 +20,173 @@
         public static function getIngresos(){
             $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
             $cancha = (isset($_GET['cancha'])) ? $_GET['cancha'] : '%'; 
-            $invoices = query("SELECT
-                    v.date_create as date,
+            $invoices = query(
+                "SELECT
+                    b.id AS nroReserva,
+                    DATE(COALESCE(b.paid_in_cash_at, v.last_voucher_date, b.date_booking)) AS date,
                     b.id_field,
-                    bs.name as status,
-                    bs.color as color,
-                    v.method_name as paymet_method,
-                    p.transaction_amount as total
-                from
-                booking b
-                inner join vouchers v on
-                    b.id = v.id_booking
-                inner join booking_status bs on
-                    bs.id = b.status
-                inner join payment p on
-                    p.payment_id = v.data_id 
-                    where v.date_create like '$date%' and b.id_field  LIKE '$cancha'", 'ALL');
+                    bs.name AS status,
+                    bs.color AS color,
+                    CASE
+                        WHEN COALESCE(pw.cash_amount, 0) > 0 AND COALESCE(v.method_name, '') <> '' THEN 'mixto'
+                        WHEN COALESCE(pw.cash_amount, 0) > 0 THEN 'efectivo'
+                        WHEN COALESCE(v.method_name, '') <> '' THEN v.method_name
+                        ELSE 'online'
+                    END AS paymet_method,
+                    ROUND(ABS(COALESCE(b.paid_amount, 0)), 2) AS total,
+                    ROUND(
+                        CASE
+                            WHEN b.payment_status = 'refunded' THEN -ABS(COALESCE(b.paid_amount, 0))
+                            ELSE ABS(COALESCE(b.paid_amount, 0))
+                        END,
+                        2
+                    ) AS signed_total,
+                    CASE
+                        WHEN b.payment_status = 'refunded' THEN 'refunded'
+                        WHEN COALESCE(b.paid_amount, 0) > 0 THEN 'approved'
+                        ELSE 'pending'
+                    END AS estado
+                FROM booking b
+                INNER JOIN booking_status bs ON bs.id = b.status
+                LEFT JOIN (
+                    SELECT
+                        id_booking,
+                        MAX(date_create) AS last_voucher_date,
+                        SUBSTRING_INDEX(GROUP_CONCAT(method_name ORDER BY date_create DESC), ',', 1) AS method_name
+                    FROM vouchers
+                    GROUP BY id_booking
+                ) v ON v.id_booking = b.id
+                LEFT JOIN (
+                    SELECT
+                        id_booking,
+                        SUM(amount_payment) AS cash_amount
+                    FROM payment_app_web
+                    GROUP BY id_booking
+                ) pw ON pw.id_booking = b.id
+                WHERE DATE(COALESCE(b.paid_in_cash_at, v.last_voucher_date, b.date_booking)) = ?
+                  AND b.id_field LIKE ?
+                  AND (
+                    COALESCE(b.paid_amount, 0) > 0
+                    OR b.payment_status = 'refunded'
+                  )
+                ORDER BY b.id DESC",
+                'ALL',
+                [$date, $cancha]
+            );
             return $invoices;
         }
         public static function getMiIngresos(){
             $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
             $cancha = Users::infoUser('id_field');
-            $invoices = query("SELECT
-                    v.date_create as date,
+            $invoices = query(
+                "SELECT
+                    b.id AS nroReserva,
+                    DATE(COALESCE(b.paid_in_cash_at, v.last_voucher_date, b.date_booking)) AS date,
                     b.id_field,
-                    bs.name as status,
-                    bs.color as color,
-                    v.method_name as paymet_method,
-                    p.transaction_amount as total
-                from
-                    booking b
-                inner join vouchers v on
-                    b.id = v.id_booking
-                inner join booking_status bs on
-                    bs.id = b.status
-                inner join payment p on
-                    p.payment_id = v.data_id 
-                where v.date_create like '$date%' and b.id_field  LIKE '$cancha'", 'ALL');
-            return $invoices;
+                    bs.name AS status,
+                    bs.color AS color,
+                    CASE
+                        WHEN COALESCE(pw.cash_amount, 0) > 0 AND COALESCE(v.method_name, '') <> '' THEN 'mixto'
+                        WHEN COALESCE(pw.cash_amount, 0) > 0 THEN 'efectivo'
+                        WHEN COALESCE(v.method_name, '') <> '' THEN v.method_name
+                        ELSE 'online'
+                    END AS paymet_method,
+                    ROUND(ABS(COALESCE(b.paid_amount, 0)), 2) AS total,
+                    ROUND(
+                        CASE
+                            WHEN b.payment_status = 'refunded' THEN -ABS(COALESCE(b.paid_amount, 0))
+                            ELSE ABS(COALESCE(b.paid_amount, 0))
+                        END,
+                        2
+                    ) AS signed_total,
+                    CASE
+                        WHEN b.payment_status = 'refunded' THEN 'refunded'
+                        WHEN COALESCE(b.paid_amount, 0) > 0 THEN 'approved'
+                        ELSE 'pending'
+                    END AS estado
+                FROM booking b
+                INNER JOIN booking_status bs ON bs.id = b.status
+                LEFT JOIN (
+                    SELECT
+                        id_booking,
+                        MAX(date_create) AS last_voucher_date,
+                        SUBSTRING_INDEX(GROUP_CONCAT(method_name ORDER BY date_create DESC), ',', 1) AS method_name
+                    FROM vouchers
+                    GROUP BY id_booking
+                ) v ON v.id_booking = b.id
+                LEFT JOIN (
+                    SELECT
+                        id_booking,
+                        SUM(amount_payment) AS cash_amount
+                    FROM payment_app_web
+                    GROUP BY id_booking
+                ) pw ON pw.id_booking = b.id
+                WHERE DATE(COALESCE(b.paid_in_cash_at, v.last_voucher_date, b.date_booking)) = ?
+                  AND b.id_field = ?
+                  AND (
+                    COALESCE(b.paid_amount, 0) > 0
+                    OR b.payment_status = 'refunded'
+                  )
+                ORDER BY b.id DESC",
+                'ALL',
+                [$date, $cancha]
+            );
+                return $invoices;
         }
         public static function getTotalMiIngresos(){
             $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
             $cancha = Users::infoUser('id_field');
             
-            $condition = "DATE(v.date_create) = '$date'";
-
-            $total = query("SELECT
-                        Round(sum(CASE WHEN bs.name = 'Cancelado' THEN -p.transaction_amount ELSE p.transaction_amount END),2 ) as totalDia
-                    FROM
-                        booking b
-                    INNER JOIN vouchers v ON
-                        b.id = v.id_booking
-                    INNER JOIN booking_status bs ON
-                        bs.id = b.status
-                    INNER JOIN payment p ON
-                        p.payment_id = v.data_id 
-                    WHERE
-                        $condition;
-                   ",
-            'ALL');
-            return $total;
+            $total = query(
+                "SELECT ROUND(COALESCE(SUM(
+                    CASE
+                        WHEN b.payment_status = 'refunded' THEN -ABS(COALESCE(b.paid_amount, 0))
+                        ELSE COALESCE(b.paid_amount, 0)
+                    END
+                ), 0), 2) AS totalDia
+                FROM booking b
+                LEFT JOIN (
+                    SELECT id_booking, MAX(date_create) AS last_voucher_date
+                    FROM vouchers
+                    GROUP BY id_booking
+                ) v ON v.id_booking = b.id
+                WHERE DATE(COALESCE(b.paid_in_cash_at, v.last_voucher_date, b.date_booking)) = ?
+                  AND b.id_field = ?
+                  AND (
+                    COALESCE(b.paid_amount, 0) > 0
+                    OR b.payment_status = 'refunded'
+                  )",
+                'ARRAY',
+                [$date, $cancha]
+            );
+            return (float) ($total['totalDia'] ?? 0);
         }
         public static function getTotalIngresos(){
             $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
             $cancha = (isset($_GET['cancha'])) ? $_GET['cancha'] : '%';
         
-            $condition = "DATE(v.date_create) = '$date'";
-            if ($cancha !== '%') {
-                $condition .= " AND b.id_field = $cancha";
-            }
-        
-            $total = query("SELECT
-                        Round(sum(CASE WHEN bs.name = 'Cancelado' THEN -p.transaction_amount ELSE p.transaction_amount END),2 ) as totalDia
-                    FROM
-                        booking b
-                    INNER JOIN vouchers v ON
-                        b.id = v.id_booking
-                    INNER JOIN booking_status bs ON
-                        bs.id = b.status
-                    INNER JOIN payment p ON
-                        p.payment_id = v.data_id 
-                    WHERE
-                        $condition;
-                       ",
-            'ALL');
-        
-            return $total;
+            $total = query(
+                "SELECT ROUND(COALESCE(SUM(
+                    CASE
+                        WHEN b.payment_status = 'refunded' THEN -ABS(COALESCE(b.paid_amount, 0))
+                        ELSE COALESCE(b.paid_amount, 0)
+                    END
+                ), 0), 2) AS totalDia
+                FROM booking b
+                LEFT JOIN (
+                    SELECT id_booking, MAX(date_create) AS last_voucher_date
+                    FROM vouchers
+                    GROUP BY id_booking
+                ) v ON v.id_booking = b.id
+                WHERE DATE(COALESCE(b.paid_in_cash_at, v.last_voucher_date, b.date_booking)) = ?
+                  AND b.id_field LIKE ?
+                  AND (
+                    COALESCE(b.paid_amount, 0) > 0
+                    OR b.payment_status = 'refunded'
+                  )",
+                'ARRAY',
+                [$date, $cancha]
+            );
+            return (float) ($total['totalDia'] ?? 0);
         }
     }

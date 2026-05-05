@@ -1,7 +1,13 @@
 config.php
-.log/access.log
-.log/error.log
+.env
+.env.local
+.log/*
+phpMyAdmin/
 phpMyAdmin/*
+.ssh/*
+.ssh/id_rsa
+.ssh/id_rsa.pub
+.ssh/known_hosts
 app/upload/avatar/*jpg
 app/upload/avatar/*png
 app/upload/avatar/*jpeg

@@ -1,16 +1,62 @@
 <?php
 
-    function inc($file, $ruta = '', $extencion = '.php'){
-        $dir = 'inc/' . $ruta . $file . $extencion;
+    function generateRequestId(){
+        try {
+            return bin2hex(random_bytes(8));
+        } catch (Throwable $e) {
+            return uniqid('rid_', true);
+        }
+    }
 
+    function sanitizeRequestId($rid){
+        $rid = (string) $rid;
+        if ($rid === '') return '';
+        $rid = preg_replace('/[^a-zA-Z0-9._:-]/', '', $rid);
+        return substr($rid, 0, 64);
+    }
+
+    function initRequestContext(){
+        static $initialized = false;
+        if ($initialized) return $GLOBALS['REQUEST_ID'] ?? null;
+        $initialized = true;
+
+        $incoming = $_SERVER['HTTP_X_REQUEST_ID'] ?? '';
+        $requestId = sanitizeRequestId($incoming);
+        if ($requestId === '') $requestId = generateRequestId();
+
+        $GLOBALS['REQUEST_ID'] = $requestId;
+        $_SERVER['HTTP_X_REQUEST_ID'] = $requestId;
+        header('X-Request-ID: ' . $requestId);
+        return $requestId;
+    }
+
+    function getRequestId(){
+        return $GLOBALS['REQUEST_ID'] ?? initRequestContext();
+    }
+
+    function logWithRequestId($message, $context = []){
+        $prefix = '[request_id=' . getRequestId() . '] ';
+        if (!empty($context)) {
+            $ctx = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            error_log($prefix . $message . ' | context=' . $ctx);
+            return;
+        }
+        error_log($prefix . $message);
+    }
+
+    function inc($file, $ruta = '', $extencion = '.php'){
+        $dir = __DIR__ . '/../inc/' . $ruta . $file . $extencion;
         require $dir;
     }
-    function JSON($arr , $status = 200, $die = true){
+    // PHP-15: por defecto termina el script — evita doble JSON / headers ya enviados.
+    function JSON($arr, $status = 200, $die = true) {
+        $requestId = getRequestId();
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
+        header('X-Request-ID: ' . $requestId);
         print json_encode($arr);
 
-        if($die == true){
+        if ($die) {
             die();
         }
     }
@@ -93,7 +139,25 @@
     }
     function showLogoPaymetMethod($type){
         $type = str_replace(' ', '_', strtolower($type));
-        $img  = 'assets/img/payment_type/'.$type.'.png';
+        $map = [
+            'online' => 'mercado_pago',
+            'mixto' => 'mercado_pago',
+            'cash' => 'efectivo',
+            'cash_payment' => 'efectivo',
+        ];
+        $type = $map[$type] ?? $type;
+        $relative = 'assets/img/payment_type/'.$type.'.png';
+        $absolute = dirname(__DIR__) . '/' . $relative;
+        if (file_exists($absolute)) return $relative;
 
-        return $img;
+        return 'assets/img/payment_type/mercado_pago.png';
     }
+
+function audit($action, $target_type = null, $target_id = null, $payload = null) {
+    $actor_id = $_SESSION['canchero'] ?? null;
+    $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+    if (!is_array($payload)) $payload = $payload ? ['data' => $payload] : [];
+    $payload['_request_id'] = getRequestId();
+    $payload_json = json_encode($payload);
+    query('INSERT INTO audit_log (actor_user_id, actor_ip, action, target_type, target_id, payload) VALUES (?, ?, ?, ?, ?, ?)', '', [$actor_id, $ip, $action, $target_type, $target_id, $payload_json]);
+}

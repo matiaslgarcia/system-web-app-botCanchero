@@ -4,25 +4,23 @@ const fun = new Func;
 document.querySelectorAll('.btn-delete-cancha').forEach( btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
-        fun.swal({
+        fun.confirm({
             icon: 'warning',
             title: '¿Estas Seguro De Quieres Eliminar Esta Cancha?',
-            showConfirmButton: true,
-            confirmButtonText: 'SI',
-            showCancelButton: true,
-            cancelButtonText: 'NO',
-            timer: 0,
-            success: (_r) =>{
-                if(_r.isConfirmed){
-                    fun.xhr({
-                        url: 'deleteCancha',
-                        data: fun.setForm({id: btn.getAttribute('data-id')}),
-                        success: () =>{
-                            location.reload();
-                        }
-                    })
-                }
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'No, cancelar',
+            confirmVariant: 'danger',
+            cancelVariant: 'secondary',
+        }).then((_r) => {
+            if(_r.isConfirmed){
+                fun.xhr({
+                    url: 'deleteCancha',
+                    data: fun.setForm({id: btn.getAttribute('data-id')}),
+                    success: () =>{
+                        location.reload();
+                    }
+                })
             }
-        })
+        });
     })
 })
