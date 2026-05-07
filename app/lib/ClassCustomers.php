@@ -14,7 +14,8 @@
             return $customer;
         }
         private static function update($data, $id){
-            query("UPDATE customers SET full_name = ?, phone = ?, email = ? WHERE id = ?", '', [$data->full_name, $data->phone, $data->email, $id]);
+            $email = $data->email ?? '';
+            query("UPDATE customers SET full_name = ?, phone = ?, email = ? WHERE id = ?", '', [$data->full_name, $data->phone, $email, $id]);
         }
         public static function getByNumeroTelefono($phone){
             $customer = query("SELECT * FROM customers WHERE phone = ? LIMIT 1", '', [$phone]);
@@ -23,10 +24,11 @@
         }
         public static function add($data){
             $data->id = self::getIDNewCustomer();
+            $email = $data->email ?? '';
             query("INSERT INTO customers(
                     id, full_name, phone, email
                 ) VALUES (
-                    ?, ?, ?, ?)", '', [$data->id, $data->full_name, $data->phone, $data->email]);
+                    ?, ?, ?, ?)", '', [$data->id, $data->full_name, $data->phone, $email]);
             return self::getCustomerById($data->id);
         }
 

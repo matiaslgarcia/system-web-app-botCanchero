@@ -36,6 +36,7 @@
 									<div class="card-body py-3">
 										<!--begin::Table container-->
 										<div class="table-responsive">
+											<?php $canchas = Canchas::getAll(); ?>
 											<!--begin::Table-->
 											<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
 												<!--begin::Table head-->
@@ -50,7 +51,12 @@
 												<!--end::Table head-->
 												<!--begin::Table body-->
 												<tbody>
-													<?php foreach(Canchas::getAll() AS $cancha) { ?>
+													<?php if (empty($canchas)) { ?>
+														<tr>
+															<td colspan="4" class="text-center text-muted py-10">No hay canchas para mostrar.</td>
+														</tr>
+													<?php } ?>
+													<?php foreach($canchas AS $cancha) { ?>
 													<tr>
 														<td>
 															<div class="d-flex align-items-center">

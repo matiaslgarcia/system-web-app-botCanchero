@@ -1,7 +1,7 @@
 <?php
 
     require '../../int.php';
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) session_start();
 
     $user = Users::getById($_SESSION['canchero']);
     $status = $_POST['status'] ?? 'paused';

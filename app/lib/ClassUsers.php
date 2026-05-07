@@ -1,6 +1,48 @@
 <?php
 
     class Users{
+        private static function resolveAvatarPath($avatar, $default = 'assets/img/avatars/blank.png'){
+            $avatar = trim((string) $avatar);
+            if ($avatar === '') return $default;
+
+            // Already absolute URL or data URI
+            if (preg_match('/^(https?:)?\/\//i', $avatar) || str_starts_with($avatar, 'data:')) {
+                return $avatar;
+            }
+
+            // Already app-relative asset
+            if (str_starts_with($avatar, 'assets/')) {
+                return $avatar;
+            }
+
+            // upload path persisted in DB
+            if (str_starts_with($avatar, 'upload/')) {
+                $relative = ltrim($avatar, '/');
+                $absPath = __DIR__ . '/../' . $relative;
+                if (is_file($absPath)) {
+                    return $relative;
+                }
+                $decoded = urldecode($relative);
+                $absPathDecoded = __DIR__ . '/../' . $decoded;
+                if (is_file($absPathDecoded)) {
+                    return $decoded;
+                }
+                return $default;
+            }
+
+            // Legacy DB format storing only filename
+            $candidate = 'upload/avatar/' . $avatar;
+            $candidatePath = __DIR__ . '/../' . $candidate;
+            if (is_file($candidatePath)) {
+                return $candidate;
+            }
+            $decoded = 'upload/avatar/' . urldecode($avatar);
+            $decodedPath = __DIR__ . '/../' . $decoded;
+            if (is_file($decodedPath)) {
+                return $decoded;
+            }
+            return $default;
+        }
         public static function loginCheck($arr = []){
             if (session_status() === PHP_SESSION_NONE) session_start();
             if(!isset($_SESSION['canchero'])){
@@ -18,6 +60,17 @@
         public static function getCsrfToken(){
             if (session_status() === PHP_SESSION_NONE) session_start();
             return $_SESSION['csrf_token'] ?? '';
+        }
+        public static function isSuperAdmin(){
+            return self::infoUser('rol') === 'superAdmin';
+        }
+        public static function requireSuperAdmin($asJson = false){
+            if (self::isSuperAdmin()) return;
+            if ($asJson) {
+                JSON(['error' => 'No tenés permiso para esta acción'], 403, true);
+            }
+            header('Location: ' . URL);
+            die();
         }
 
         public static function login($email, $password){
@@ -74,7 +127,7 @@
             );
             if (!$user) return null;
             $user['token_id'] = !empty($user['token_id']) ? '******' . $user['token_id'] : '';
-            $user['avatar']   = !empty($user['avatar']) ? 'upload/avatar/' . $user['avatar'] : 'assets/img/avatars/avatar.png';
+            $user['avatar']   = self::resolveAvatarPath($user['avatar'] ?? '', 'assets/img/avatars/avatar.png');
             return $user[$param] ?? null;
         }
         public static function edit($data){
@@ -87,32 +140,54 @@
             if ($targetId === 0) {
                 JSON(['error' => 'ID de usuario no proporcionado'], 400, true);
             }
+            $sessionUser = self::getById($sessionId);
+            $isSuperAdmin = ($sessionUser && ($sessionUser->rol ?? '') === 'superAdmin');
 
             // Seguridad: Solo el propio usuario o admin puede editar
             if ($sessionId !== $targetId) {
-                $sessionUser = self::getById($sessionId);
-                if ($sessionUser->rol !== 'superAdmin') {
+                if (!$isSuperAdmin) {
                     JSON(['error' => 'No tenés permiso para editar este usuario'], 403, true);
                 }
             }
+            $targetUser = self::getById($targetId);
+            if (!$targetUser) {
+                JSON(['error' => 'Usuario no encontrado'], 404, true);
+            }
 
             // Procesar Avatar
-            $avatarUpdated = self::uploadAvatarUser($targetId);
+            self::uploadAvatarUser($targetId);
 
             // Actualizar campos permitidos
-            $full_name = $data->full_name ?? '';
-            $phone = $data->phone ?? '';
-            $email = $data->email ?? '';
+            $full_name = trim((string) ($data->full_name ?? ''));
+            $phone = trim((string) ($data->phone ?? ''));
+            $email = trim((string) ($data->email ?? ''));
 
             if (empty($full_name) || empty($email)) {
                 JSON(['error' => 'Nombre y Email son obligatorios'], 400, true);
             }
 
-            query(
-                "UPDATE users SET full_name = ?, phone = ?, email = ? WHERE id = ?",
-                '',
-                [$full_name, $phone, $email, $targetId]
-            );
+            if ($isSuperAdmin) {
+                $allowedRoles = ['canchero', 'superAdmin'];
+                $rol = trim((string) ($data->rol ?? $targetUser->rol ?? 'canchero'));
+                if (!in_array($rol, $allowedRoles, true)) {
+                    JSON(['error' => 'Rol inválido'], 400, true);
+                }
+                $idField = (int) ($data->id_field ?? $targetUser->id_field ?? 0);
+                if ($idField <= 0) {
+                    JSON(['error' => 'Cancha inválida para el usuario'], 400, true);
+                }
+                query(
+                    "UPDATE users SET full_name = ?, phone = ?, email = ?, rol = ?, id_field = ? WHERE id = ?",
+                    '',
+                    [$full_name, $phone, $email, $rol, $idField, $targetId]
+                );
+            } else {
+                query(
+                    "UPDATE users SET full_name = ?, phone = ?, email = ? WHERE id = ?",
+                    '',
+                    [$full_name, $phone, $email, $targetId]
+                );
+            }
             
             JSON([
                 'success' => true, 
@@ -122,33 +197,53 @@
         }
         public static function getById($id){
             $user = query("SELECT id, full_name AS name, email, avatar, rol, phone, id_field FROM users WHERE id = ?;", '', [$id]);
-            $user->avatar = (!empty($user->avatar)) ? 'upload/avatar/' .  $user->avatar : 'assets/img/avatars/blank.png';
+            if (!$user) {
+                return null;
+            }
+            $user->avatar = self::resolveAvatarPath($user->avatar ?? '', 'assets/img/avatars/blank.png');
             return $user;
         }
         public static function add($user){
             $user->CanchaAsignada = (empty($user->CanchaAsignada)) ? '0' : $user->CanchaAsignada;
-            $user->password = self::emcrytePassword($user->password);
+            $fullName = trim((string) ($user->full_name ?? ''));
+            $phone = trim((string) ($user->phone ?? ''));
+            $email = trim((string) ($user->email ?? ''));
+            $idField = (int) ($user->id_field ?? 0);
+            $role = trim((string) ($user->rol ?? 'canchero'));
+            $passwordRaw = (string) ($user->password ?? '');
+            $allowedRoles = ['canchero', 'superAdmin'];
+
+            if ($fullName === '' || $email === '' || $passwordRaw === '' || $idField <= 0 || !in_array($role, $allowedRoles, true)) {
+                JSON(['add_fail' => true, 'icon' => 'error', 'msg' => 'Datos de usuario inválidos'], 400, true);
+            }
+            $user->password = self::emcrytePassword($passwordRaw);
 
             query("INSERT INTO users
             (full_name, phone, id_field, password, email, rol)
                 VALUES
-            (?, ?, ?, ?, ?, ?)", '', [$user->full_name, $user->phone, $user->id_field, $user->password, $user->email, $user->rol]);
-            self::uploadAvatarUser($user->id);
+            (?, ?, ?, ?, ?, ?)", '', [$fullName, $phone, $idField, $user->password, $email, $role]);
+            $newUserId = (int) Db::pdo()->lastInsertId();
+            if ($newUserId <= 0) {
+                JSON(['add_fail' => true, 'icon' => 'error', 'msg' => 'No se pudo crear el usuario'], 500, true);
+            }
+            self::uploadAvatarUser($newUserId);
 
-            JSON(['succes' => true, 'user_id' => $user->id]);
+            JSON(['success' => true, 'succes' => true, 'user_id' => $newUserId]);
         }
         public static function getAll(){
             $users = query("SELECT u.id, u.full_name AS name, u.avatar, f.full_name AS cancha, f.id as id_cancha FROM users as u INNER JOIN soccer_field AS f ON f.id = u.id_field WHERE u.full_name != 'botCanchero' ", 'all');
 
             foreach($users as $user){
-                $user->avatar = (!empty($user->avatar)) ? 'upload/avatar/' .  $user->avatar : 'assets/img/avatars/avatar.png';
+                $user->avatar = self::resolveAvatarPath($user->avatar ?? '', 'assets/img/avatars/avatar.png');
             }
             
             return $users;
         }
         public static function delete($data){
+            self::requireSuperAdmin(true);
             audit('user_delete', 'user', $data->id);
             query("DELETE FROM users WHERE id = ?", '', [$data->id]);
+            JSON(['success' => true, 'icon' => 'success', 'msg' => 'Usuario eliminado']);
         }
         private static function showLogin($arr = []){
             $base = (isset($arr['base'])) ? $arr['base'] : '';
@@ -201,8 +296,20 @@
             return false;
         }
         public static function changePassword($password, $id){
+            if (!isset($_SESSION['canchero'])) {
+                JSON(['error' => 'Sesión inválida'], 401, true);
+            }
+            $sessionId = (int) $_SESSION['canchero'];
+            $targetId = (int) $id;
+            $isOwnPassword = $sessionId === $targetId;
+            if (!$isOwnPassword && !self::isSuperAdmin()) {
+                JSON(['error' => 'No tenés permiso para cambiar esta contraseña'], 403, true);
+            }
+            if (strlen(trim((string) $password)) < 6) {
+                JSON(['error' => 'La contraseña debe tener al menos 6 caracteres'], 400, true);
+            }
             $password = self::emcrytePassword($password);
-            query("UPDATE users SET password = ? WHERE id = ?", '', [$password, $id]);
+            query("UPDATE users SET password = ? WHERE id = ?", '', [$password, $targetId]);
             JSON(['success' => true, 'icon' => 'success', 'msg' => 'Contraseña actualizada']);
         }
         public static function validateByEmail($email){

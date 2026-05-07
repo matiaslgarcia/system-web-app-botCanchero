@@ -1,7 +1,7 @@
 <?php
 
     require '../../int.php';
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) session_start();
     Canchas::ensurePriceRangesStorage();
 
     $user = Users::getById($_SESSION['canchero']);

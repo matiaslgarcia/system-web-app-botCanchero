@@ -625,6 +625,18 @@ body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     border-radius: 1rem !important;
 }
+.select-img-input,
+#add-user-select-avatar {
+    width: 120px !important;
+    height: 120px !important;
+    max-width: 120px !important;
+    max-height: 120px !important;
+    border-radius: 1rem !important;
+    object-fit: cover !important;
+    cursor: pointer;
+    border: 2px solid #f1f1f4;
+    background-color: #fff;
+}
 .premium-footer {
     background: #fff !important;
     border-top: 1px solid #f1f4f9 !important;

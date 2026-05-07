@@ -5,4 +5,4 @@ Dockerfile
 docker-compose.yml
 phpMyAdmin
 temp.sql
-migrations
+# migrations (removed from ignore to allow running them in container)

@@ -1,3 +1,18 @@
+<?php
+    $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    $currentRoute = trim((string) basename((string) $requestPath), '/');
+    $currentRoute = preg_replace('/\.php$/', '', $currentRoute);
+    if ($currentRoute === '' || $currentRoute === 'app') {
+        $currentRoute = 'index';
+    }
+    $isRoute = function($routes) use ($currentRoute) {
+        return in_array($currentRoute, (array) $routes, true);
+    };
+    $isReservas = $isRoute(['index', 'reservas', 'reserva', 'add-booking']);
+    $isIngresos = $isRoute(['ingresos']);
+    $isUsuarios = $isRoute(['users-list', 'add-users', 'edit-user']);
+    $isCanchas = $isRoute(['canchas-list', 'add-cancha', 'edit-cancha']);
+?>
 <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
     <div class="menu-item">
         <div class="menu-content pt-8 pb-2">
@@ -5,7 +20,7 @@
         </div>
     </div>
     <div class="menu-item">
-        <a class="menu-link active" href="./">
+        <a class="menu-link <?php echo $isReservas ? 'active' : ''; ?>" href="./">
             <span class="menu-icon">
                 <i class="fa-solid fa-calendar-days fs-2"></i>
             </span>
@@ -13,7 +28,7 @@
         </a>
     </div>
     <div class="menu-item">
-        <a class="menu-link" href="ingresos">
+        <a class="menu-link <?php echo $isIngresos ? 'active' : ''; ?>" href="ingresos">
             <span class="menu-icon">
                 <i class="fa-solid fa-money-bill-trend-up fs-2"></i>
             </span>
@@ -21,7 +36,7 @@
         </a>
     </div>
     <!--end::Svg Icon-->
-    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+    <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?php echo $isUsuarios ? 'here show' : ''; ?>">
         <span class="menu-link">
             <span class="menu-icon">
                 <!--begin::Svg Icon | path: icons/duotune/ecommerce/ecm007.svg-->
@@ -38,7 +53,7 @@
         </span>
         <div class="menu-sub menu-sub-accordion menu-active-bg">
             <div class="menu-item">
-                <a class="menu-link" href="users-list">
+                <a class="menu-link <?php echo $isRoute(['users-list', 'edit-user']) ? 'active' : ''; ?>" href="users-list">
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>
@@ -46,7 +61,7 @@
                 </a>
             </div>
             <div class="menu-item">
-                <a class="menu-link" href="add-users">
+                <a class="menu-link <?php echo $isRoute(['add-users']) ? 'active' : ''; ?>" href="add-users">
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>
@@ -55,7 +70,7 @@
             </div>
         </div>
     </div>
-    <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+    <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?php echo $isCanchas ? 'here show' : ''; ?>">
         <span class="menu-link">
             <span class="menu-icon">
                 <!--begin::Svg Icon | path: icons/duotune/ecommerce/ecm007.svg-->
@@ -69,7 +84,7 @@
         </span>
         <div class="menu-sub menu-sub-accordion menu-active-bg">
             <div class="menu-item">
-                <a class="menu-link" href="canchas-list">
+                <a class="menu-link <?php echo $isRoute(['canchas-list', 'edit-cancha']) ? 'active' : ''; ?>" href="canchas-list">
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>
@@ -77,7 +92,7 @@
                 </a>
             </div>
             <div class="menu-item">
-                <a class="menu-link" href="add-cancha">
+                <a class="menu-link <?php echo $isRoute(['add-cancha']) ? 'active' : ''; ?>" href="add-cancha">
                     <span class="menu-bullet">
                         <span class="bullet bullet-dot"></span>
                     </span>

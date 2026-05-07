@@ -6,7 +6,7 @@
 
     Theme::header([
         'title' => 'Reserva',
-        'base'  => '../',
+        'base'  => URL,
         'css'   => [
             'plugins.bundle',
             'style.bundle',

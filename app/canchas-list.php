@@ -3,9 +3,10 @@
     require 'int.php';
 
     Users::loginCheck();
+    Users::requireSuperAdmin();
 
     Theme::header([
-        'title' => 'Dashboard',
+        'title' => 'Listado de Canchas',
         'css'   => [
             'plugins.bundle',
             'style.bundle',

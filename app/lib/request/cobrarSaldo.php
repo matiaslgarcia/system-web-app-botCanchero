@@ -13,26 +13,42 @@
     }
 
     if ($user->rol !== 'superAdmin') {
-        $owner = query(
-            "SELECT b.id
-               FROM booking b
-               INNER JOIN soccer_field sf ON sf.id = b.id_field
-               INNER JOIN soccer_field myf ON myf.id = :my_field
-              WHERE b.id = :id
-                AND (
-                    sf.id = :my_field
-                    OR (
-                        myf.establishment_id IS NOT NULL
-                        AND myf.establishment_id > 0
-                        AND sf.establishment_id = myf.establishment_id
-                    )
-                )
+        $userFieldId = (int) ($user->id_field ?? 0);
+        $myField = query(
+            "SELECT establishment_id
+               FROM soccer_field
+              WHERE id = ?
               LIMIT 1",
-            'ARRAY',
-            [':id' => $bookingId, ':my_field' => (int) $user->id_field]
+            '',
+            [$userFieldId]
         );
+        $userEstId = (int) ($myField->establishment_id ?? 0);
+
+        if ($userEstId > 0) {
+            $owner = query(
+                "SELECT b.id
+                   FROM booking b
+                   INNER JOIN soccer_field sf ON sf.id = b.id_field
+                  WHERE b.id = ?
+                    AND sf.establishment_id = ?
+                  LIMIT 1",
+                'ARRAY',
+                [$bookingId, $userEstId]
+            );
+        } else {
+            $owner = query(
+                "SELECT b.id
+                   FROM booking b
+                  WHERE b.id = ?
+                    AND b.id_field = ?
+                  LIMIT 1",
+                'ARRAY',
+                [$bookingId, $userFieldId]
+            );
+        }
+
         if (!$owner) {
-            JSON(['ok' => false, 'error' => 'Booking no pertenece a esta cancha'], 403);
+            JSON(['ok' => false, 'error' => 'No tienes permiso para cobrar esta reserva'], 403);
         }
     }
 

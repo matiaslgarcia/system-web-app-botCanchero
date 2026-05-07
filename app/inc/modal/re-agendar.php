@@ -45,7 +45,7 @@
                         <span class="input-group-text">
                             <i class="fa-solid fa-clock fs-4"></i>
                         </span>
-                        <select name="time_booking" id="time_booking" class="form-control ps-3 fs-6 fw-bold">
+                        <select name="time_booking" id="time_booking" class="form-select fs-6 fw-bold">
                             <option selected="true" disabled value="">--SELECCIONE--</option>
                         </select>
                     </div>
@@ -65,8 +65,44 @@
 </div>
 
 <style>
-/* Ajuste para que el icono no tape el texto en el select si no se usa select2 */
-#time_booking {
-    padding-left: 3rem !important;
+/* Unifica alturas de inputs/select e iconos del modal */
+#reagendar-reserva {
+    --ra-control-height: 43px;
+}
+
+#reagendar-reserva .input-group .input-group-text {
+    height: var(--ra-control-height);
+    min-height: var(--ra-control-height);
+    display: flex;
+    align-items: center;
+}
+
+#reagendar-reserva #date_booking {
+    height: var(--ra-control-height);
+    min-height: var(--ra-control-height);
+}
+
+/* Alinea select2 con el icono dentro del input-group */
+#reagendar-reserva .input-group .select2-container {
+    flex: 1 1 auto;
+    width: 1% !important;
+}
+
+#reagendar-reserva .input-group .select2-container .select2-selection--single {
+    height: var(--ra-control-height) !important;
+    border: 0 !important;
+    border-radius: 0 .475rem .475rem 0 !important;
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+}
+
+#reagendar-reserva .input-group .select2-container .select2-selection__rendered {
+    line-height: var(--ra-control-height) !important;
+    padding-left: .85rem !important;
+}
+
+#reagendar-reserva .input-group .select2-container .select2-selection__arrow {
+    height: var(--ra-control-height) !important;
 }
 </style>

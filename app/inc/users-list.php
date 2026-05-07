@@ -36,6 +36,7 @@
 									<div class="card-body py-3">
 										<!--begin::Table container-->
 										<div class="table-responsive">
+											<?php $users = Users::getAll(); ?>
 											<!--begin::Table-->
 											<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
 												<!--begin::Table head-->
@@ -49,7 +50,12 @@
 												<!--end::Table head-->
 												<!--begin::Table body-->
 												<tbody>
-													<?php foreach (Users::getAll() as $user) { ?>
+													<?php if (empty($users)) { ?>
+														<tr>
+															<td colspan="3" class="text-center text-muted py-10">No hay usuarios para mostrar.</td>
+														</tr>
+													<?php } ?>
+													<?php foreach ($users as $user) { ?>
 														<tr>
 															<td>
 																<div class="d-flex align-items-center">
@@ -76,7 +82,7 @@
 																		</span>
 																		<!--end::Svg Icon-->
 																	</a>
-																	<a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm btn-delete-user" data-user="<?php echo $user->id ?>">
+																	<a href="javascript:void(0)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm btn-delete-user" data-user="<?php echo $user->id ?>">
 																		<!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
 																		<span class="svg-icon svg-icon-3">
 																			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">

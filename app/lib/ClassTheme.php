@@ -1,6 +1,9 @@
 <?php
 
     class Theme{
+        private static function appUrl($path = ''){
+            return rtrim(URL, '/') . '/' . ltrim((string) $path, '/');
+        }
         public static function header($arr = []){
             $base   = self::base($arr);
             $title  = self::title($arr);
@@ -8,6 +11,7 @@
             $requestId = htmlspecialchars(getRequestId(), ENT_QUOTES);
             $css    = self::css($arr);
             $extra_css = self::extra_css($arr);
+            $favicon = self::appUrl('assets/img/logos/favicon.ico');
 
             // Heredoc evita el quote-hell del concat con HTML+JS.
             echo <<<HTML
@@ -21,7 +25,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{$csrf}">
     <meta name="request-id" content="{$requestId}">
-    <link rel="shortcut icon" href="assets/img/logos/favicon.ico" />
+    <link rel="shortcut icon" href="{$favicon}" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" />
     <style>body { font-family: "Outfit", sans-serif !important; }</style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -61,7 +65,7 @@ HTML;
             $css = '';
             if(isset($arr['css'])){
                 foreach($arr['css'] as $val){
-                    $css .= '<link rel="stylesheet" id="'.$val.'" type="text/css" href="assets/css/' . $val . '.css?ver='.VERSION.'" >';
+                    $css .= '<link rel="stylesheet" id="'.$val.'" type="text/css" href="' . self::appUrl('assets/css/' . $val . '.css?ver=' . VERSION) . '" >';
                 }
             }
 
@@ -81,7 +85,7 @@ HTML;
             $js = '';
             if(isset($arr['js']) or isset($arr['JS']) and is_array($arr['js'])){
                 foreach($arr['js'] as $val){
-                    $js .= '<script type="text/javascript" src="assets/js/' .$val . '.js?ver='.VERSION.'"></script>';
+                    $js .= '<script type="text/javascript" src="' . self::appUrl('assets/js/' . $val . '.js?ver=' . VERSION) . '"></script>';
                 }
             }
             return $js;
@@ -99,15 +103,20 @@ HTML;
             if(isset($arr['dataJS'])){
                 $js = '';
                 foreach($arr['dataJS'] as $val){
-                    $js .= '<script type="module" src="lib/dataJS/' .$val . '.js?ver='.VERSION.'"></script>';
+                    $js .= '<script type="module" src="' . self::appUrl('lib/dataJS/' . $val . '.js?ver=' . VERSION) . '"></script>';
                 }
                 return $js;
             }
         }
         private static function base($arr){
-            if(isset($arr['base'])){
-                return '<base href="' . $arr['base'] . '">';
+            $baseHref = URL;
+            if (isset($arr['base'])) {
+                $candidate = trim((string) $arr['base']);
+                if ($candidate !== '') {
+                    $baseHref = $candidate;
+                }
             }
+            return '<base href="' . htmlspecialchars($baseHref, ENT_QUOTES) . '">';
         }
 
         public static function sidebar(){

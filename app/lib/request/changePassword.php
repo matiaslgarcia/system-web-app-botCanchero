@@ -2,4 +2,10 @@
 
     require '../../int.php';
 
-    Users::changePassword($_POST['password'], $_POST['id']);
+    $id = (int) ($_POST['id'] ?? 0);
+    $password = (string) ($_POST['password'] ?? '');
+    if ($id <= 0 || $password === '') {
+        JSON(['error' => 'Datos inválidos para cambiar contraseña'], 400, true);
+    }
+
+    Users::changePassword($password, $id);

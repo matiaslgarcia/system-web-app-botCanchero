@@ -8,7 +8,8 @@ $("#kt_datatable_example_1").dataTable();
 
 document.querySelector('#form-filtro').addEventListener('submit', (e) => {
     e.preventDefault()
-    let url = 'ingresos?date=' + inputDate.value + '&cancha=' + inputIdField.value
+    const cancha = inputIdField.value || '%'
+    let url = 'ingresos?date=' + encodeURIComponent(inputDate.value) + '&cancha=' + encodeURIComponent(cancha)
     location.href = url
 })
 

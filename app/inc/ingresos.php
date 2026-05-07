@@ -1,107 +1,162 @@
 <?php
+	$selectedDate = isset($_GET['date']) ? trim((string) $_GET['date']) : date('d/m/Y');
+	$selectedField = isset($_GET['cancha']) ? (string) $_GET['cancha'] : '%';
+	$invoices = Invoices::getIngresos();
 	$totalDiario = Invoices::getTotalIngresos();
+
+	$countApproved = 0;
+	$countRefunded = 0;
+	$countPending = 0;
+	foreach ($invoices as $inv) {
+		if (($inv->estado ?? '') === 'approved') $countApproved++;
+		if (($inv->estado ?? '') === 'refunded') $countRefunded++;
+		if (($inv->estado ?? '') === 'pending') $countPending++;
+	}
 ?>
 <div class="d-flex flex-column flex-root">
-	<!--begin::Page-->
 	<div class="page d-flex flex-row flex-column-fluid">
-		<!--begin::Aside-->
 		<?php inc('sidebar') ?>
-		<!--end::Aside-->
-		<!--begin::Wrapper-->
 		<div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
-			<!--begin::Header-->
 			<?php inc('header') ?>
-
-			<!--end::Header-->
-			<!--begin::Content-->
-			<div class="content d-flex flex-column flex-column-fluid pt-5 pt-0" id="kt_content">
+			<div class="content d-flex flex-column flex-column-fluid pt-5" id="kt_content">
 				<div class="post d-flex flex-column-fluid" id="kt_post">
-					<!--begin::Container-->
 					<div id="kt_content_container" class="container-xxl">
-						<!--begin::Navbar-->
-						<div class="card mb-2">
+						<div class="row g-5 g-xl-8 mb-6">
+							<div class="col-md-4">
+								<div class="card card-flush h-md-100" style="background: linear-gradient(112.14deg, #00D2FF 0%, #3A7BD5 100%) !important;" data-bs-theme="dark">
+									<div class="card-header pt-5">
+										<div class="card-title d-flex flex-column">
+											<span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">$<?php echo number_format((float) $totalDiario, 2); ?></span>
+											<span class="text-white opacity-75 pt-1 fw-semibold fs-6">Ingresos del día</span>
+										</div>
+									</div>
+									<div class="card-body d-flex align-items-end pt-0">
+										<span class="text-white opacity-75 fs-7">Vista consolidada para superAdmin.</span>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="card card-flush h-md-100 shadow-sm">
+									<div class="card-header pt-5">
+										<div class="card-title d-flex flex-column">
+											<span class="fs-2hx fw-bold text-success me-2 lh-1 ls-n2"><?php echo $countApproved; ?></span>
+											<span class="text-gray-400 pt-1 fw-semibold fs-6">Pagos aprobados</span>
+										</div>
+									</div>
+									<div class="card-body d-flex align-items-end pt-0">
+										<span class="text-gray-500 fs-7">Operaciones cobradas correctamente.</span>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="card card-flush h-md-100 shadow-sm">
+									<div class="card-header pt-5">
+										<div class="card-title d-flex flex-column">
+											<span class="fs-2hx fw-bold text-danger me-2 lh-1 ls-n2"><?php echo $countRefunded; ?></span>
+											<span class="text-gray-400 pt-1 fw-semibold fs-6">Reembolsos</span>
+										</div>
+									</div>
+									<div class="card-body d-flex align-items-end pt-0">
+										<span class="text-gray-500 fs-7">Pendientes: <strong><?php echo $countPending; ?></strong></span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="card mb-6 shadow-sm">
 							<div class="card-body">
-								<form id="form-filtro" class="d-flex justify-content-between">
-									<div class="col-3">
-										<label for="id_field" class="form-label">Cancha</label>
-										<select class="form-control" name="id_field" id="id_field">
-											<option selected disabled value="%">--SELECIONE--</option>
+								<form id="form-filtro" class="row align-items-end g-4">
+									<div class="col-md-4">
+										<label for="id_field" class="form-label fw-bold text-gray-700">Cancha</label>
+										<select class="form-select form-select-solid" name="id_field" id="id_field">
+											<option value="%">Todas las canchas</option>
 											<?php foreach (Canchas::getAll() as $cancha) { ?>
-												<option value="<?php echo $cancha->id ?>"><?php echo $cancha->name ?></option>
+												<option value="<?php echo $cancha->id ?>" <?php echo ((string) $cancha->id === (string) $selectedField) ? 'selected' : ''; ?>>
+													<?php echo $cancha->name ?>
+												</option>
 											<?php } ?>
 										</select>
 									</div>
-									<div class="col-3">
-										<label for="date" class="form-label">Cancha</label>
-										<input type="text" name="date" id="date" class="form-control" value="<?php echo date('d/m/Y') ?>">
+									<div class="col-md-4">
+										<label for="date" class="form-label fw-bold text-gray-700">Fecha</label>
+										<input type="text" name="date" id="date" class="form-control form-control-solid" value="<?php echo htmlspecialchars($selectedDate, ENT_QUOTES); ?>">
 									</div>
-									<div class="col-3 align-self-center pt-6">
-										<button type="submit" class="btn btn-primary">Buscar</button>
+									<div class="col-md-4 d-flex gap-2">
+										<button type="submit" class="btn btn-primary flex-fill">
+											<i class="fa-solid fa-magnifying-glass me-2"></i>Aplicar filtros
+										</button>
+										<a href="ingresos" class="btn btn-light flex-fill">Limpiar</a>
 									</div>
 								</form>
 							</div>
 						</div>
-						<div class="card mb-5 mb-xl-10">
-							<div class="card-body pt-9 pb-0">
-								<table id="kt_datatable_example_1" class="table table-row-bordered gy-5">
+
+						<div class="card shadow-sm">
+							<div class="card-header border-0 pt-6">
+								<div class="card-title">
+									<h3 class="card-label fw-bolder text-dark">Detalle de ingresos</h3>
+								</div>
+							</div>
+							<div class="card-body pt-0">
+								<table id="kt_datatable_example_1" class="table align-middle table-row-dashed fs-6 gy-5">
 									<thead>
-										<tr class="fw-bold fs-6 text-muted">
+										<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
 											<th>N° Reserva</th>
 											<th>Fecha</th>
-											<th>Estado del Pago</th>
-											<th>Método de Pago</th>
-											<th>SubTotal</th>										
+											<th>Estado pago</th>
+											<th>Método</th>
+											<th class="text-end">Total</th>
 										</tr>
 									</thead>
-									<tbody>
-										<?php foreach (Invoices::getIngresos() as $invoice) { ?>
-										<tr>
-											<td><?php echo $invoice->nroReserva ?></td>
-											<td><?php echo date('d/m/Y', strtotime($invoice->date)) ?></td>
-											<td>
+									<tbody class="text-gray-700 fw-semibold">
+										<?php if (empty($invoices)) { ?>
+											<tr>
+												<td colspan="5" class="text-center text-muted py-10">No se encontraron ingresos con los filtros seleccionados.</td>
+											</tr>
+										<?php } ?>
+										<?php foreach ($invoices as $invoice) { ?>
+											<tr>
+												<td>#<?php echo $invoice->nroReserva ?></td>
+												<td><?php echo date('d/m/Y', strtotime($invoice->date)) ?></td>
+												<td>
+													<?php if ($invoice->estado === 'approved') { ?>
+														<span class="badge badge-light-success">Aprobado</span>
+													<?php } elseif ($invoice->estado === 'refunded') { ?>
+														<span class="badge badge-light-danger">Reembolsado</span>
+													<?php } else { ?>
+														<span class="badge badge-light-warning">Pendiente</span>
+													<?php } ?>
+												</td>
+												<td>
+													<div class="d-flex align-items-center">
+														<img class="logo-card-type me-2" src="<?php echo showLogoPaymetMethod($invoice->paymet_method) ?>" alt="Método de pago">
+														<span><?php echo ucfirst(str_replace('_', ' ', (string) $invoice->paymet_method)); ?></span>
+													</div>
+												</td>
+												<td class="text-end fw-bolder <?php echo ((float) $invoice->signed_total < 0) ? 'text-danger' : 'text-success'; ?>">
 													<?php
-														$estados = array(
-															"approved" => "Aprobado",
-															"refunded" => "Reembolsado",
-															"pending" => "Pendiente"
-														);
-
-														echo isset($estados[$invoice->estado]) ? $estados[$invoice->estado] : ucfirst($invoice->estado);
+														$value = (float) $invoice->signed_total;
+														$prefix = $value < 0 ? '-' : '';
+														echo $prefix . '$' . number_format(abs($value), 2);
 													?>
 												</td>
-											<td><img class="logo-card-type" src="<?php echo showLogoPaymetMethod($invoice->paymet_method) ?>" ></td>
-											<td style="color: <?php echo ((float)$invoice->signed_total < 0) ? 'red' : 'green'; ?>">
-													<?php echo '$' . number_format((float)$invoice->signed_total, 2); ?>
-												</td>
-										</tr>
+											</tr>
 										<?php } ?>
 									</tbody>
 								</table>
 							</div>
 						</div>
-						<div class="card mb-2">
-							<div class="card-body">
-								 <div class="d-flex justify-content-end">
-								 <span class="fw-bolder text-gray-800 text-hover-primary me-3 fs-4">
-									Total:
-								</span>
-								<span class="fw-bolder <?php echo (isset($totalDiario) && $totalDiario > 0) ? 'text-success' : 'text-danger'; ?> text-hover-primary me-3 fs-4">
-									<?php echo isset($totalDiario) ? '$' . $totalDiario : 'En este momento no hay Ingresos'; ?>
-								</span>
-								</div>
-							</div>
-						</div>
-						<!--end::Row-->
 					</div>
-					<!--end::Container-->
 				</div>
-				<!--end::Post-->
 			</div>
-			<!--end::Content-->
-			<!--begin::Footer-->
 			<?php inc('footer') ?>
-			<!--end::Footer-->
 		</div>
-		<!--end::Wrapper-->
 	</div>
 </div>
+
+<style>
+.logo-card-type { width: 28px; height: 28px; object-fit: contain; }
+.badge-light-success { background-color: #e8fff3 !important; color: #50cd89 !important; border: 1px solid #ccf6e4; }
+.badge-light-danger { background-color: #fff5f8 !important; color: #f1416c !important; border: 1px solid #ffd0db; }
+.badge-light-warning { background-color: #fff8dd !important; color: #ffc700 !important; border: 1px solid #ffecb5; }
+</style>

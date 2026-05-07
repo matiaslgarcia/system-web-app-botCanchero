@@ -18,7 +18,7 @@
 						<div class="card mb-5 mb-xl-10">
 							<div class="card-body pt-9 pb-0">
 								<div class="d-flex justify-content-center mb-4">
-									<img id="add-user-select-avatar" src="assets/img/avatars/blank.png">
+									<img id="add-user-select-avatar" src="assets/img/avatars/blank.png" style="width:120px;height:120px;max-width:120px;max-height:120px;object-fit:cover;border-radius:1rem;border:2px solid #f1f1f4;cursor:pointer;background:#fff;">
 								</div>
 								<form id="form-add-user" class="row pb-5">
 									<div class="d-none">
@@ -29,8 +29,8 @@
 										<input type="text" name="full_name" id="full_name" class="form-control" placeholder="Nombre">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
-										<label class="form-label" for="phone" >Telefono</label>
-										<input type="text" name="phone" id="phone" class="form-control" placeholder="Telefono">
+										<label class="form-label" for="phone" >Teléfono</label>
+										<input type="text" name="phone" id="phone" class="form-control" placeholder="Teléfono">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
 										<label class="form-label" for="email" >Correo</label>

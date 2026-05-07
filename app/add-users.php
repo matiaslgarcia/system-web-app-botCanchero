@@ -3,9 +3,10 @@
     require 'int.php';
 
     Users::loginCheck();
+    Users::requireSuperAdmin();
 
     Theme::header([
-        'title' => 'Dashboard',
+        'title' => 'Crear Usuario',
         'css'   => [
             'plugins.bundle',
             'style.bundle',

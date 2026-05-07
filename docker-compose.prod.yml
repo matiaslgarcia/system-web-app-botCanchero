@@ -1,12 +1,26 @@
 version: '3.8'
 
 services:
+  db:
+    image: mysql:8.0
+    container_name: botcanchero_db_prod
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-botcanchero}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-BC_Secure_Pwd_2026!}
+    volumes:
+      - db_data_prod:/var/lib/mysql
+    networks:
+      - botnet
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: botcanchero_app_prod
     restart: always
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-8080}:80"
     expose:
       - "80"
     env_file:
@@ -16,10 +30,14 @@ services:
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
+      DB_PASS: ${DB_PASS:-BC_Secure_Pwd_2026!}
       VIRTUAL_HOST: saas.botcanchero.com
       LETSENCRYPT_HOST: saas.botcanchero.com
       VIRTUAL_PORT: 80
+    depends_on:
+      - db
+    volumes:
+      - app_uploads_prod:/var/www/html/upload
     healthcheck:
       test: ["CMD-SHELL", "php -r \"exit((@file_get_contents('http://localhost/health.php')==='ok')?0:1);\""]
       interval: 30s
@@ -38,3 +56,7 @@ networks:
   botnet:
     external: true
     name: ${DOCKER_NETWORK_NAME:-systemwebbotcanchero_botcanchero_net}
+
+volumes:
+  db_data_prod:
+  app_uploads_prod:

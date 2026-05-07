@@ -2,26 +2,26 @@
 
     require 'int.php';
 
-    Users::loginCheck([
-        'base' => '../'
-    ]);
+    Users::loginCheck();
+    Users::requireSuperAdmin();
     $usuario = '';
     Theme::header([
-        'title' => 'Editar Usuario',
-        'base'  => '../',
+        'title' => 'Editar Cancha',
+        'base'  => URL,
         'css'   => [
             'plugins.bundle',
             'style.bundle',
             'FontAwesome',
             'theme'
-        ]
+        ],
+        'extra_css' => ['https://unpkg.com/leaflet@1.9.4/dist/leaflet.css']
     ]);
     inc('edit-cancha');
     Theme::footer([
         'js' => [
             'plugins.bundle',
-            'scripts.bundle',
-            'maps'
+            'scripts.bundle'
         ],
-        'dataJS' => ['edit-cancha']
+        'dataJS' => ['edit-cancha'],
+        'extra_js' => ['https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']
     ]);

@@ -108,61 +108,74 @@
 <!-- Modal Cobrar Saldo -->
 <div class="modal fade" id="modalCobrar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fa-solid fa-cash-register me-2"></i>Cobrar saldo presencial</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header pb-0 border-0 justify-content-end">
+                <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark fs-1"></i>
+                </div>
             </div>
-            <div class="modal-body">
-                <div class="mb-3 p-3 bg-light rounded">
-                    <div class="row">
-                        <div class="col-6">
-                            <small class="text-muted">Cliente</small>
-                            <div class="fw-bold" id="modal-cliente">—</div>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted">Cancha · Hora</small>
-                            <div class="fw-bold" id="modal-canchaHora">—</div>
-                        </div>
+            <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
+                <div class="mb-13 text-center">
+                    <h1 class="mb-3">Registrar Pago</h1>
+                    <div class="text-muted fw-bold fs-5">
+                        Cliente: <span class="text-gray-800 fw-bolder" id="modal-cliente">—</span>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col-4">
-                            <small class="text-muted">Total</small>
-                            <div class="fw-bold" id="modal-total">$0</div>
-                        </div>
-                        <div class="col-4">
-                            <small class="text-muted">Pagado</small>
-                            <div class="fw-bold text-success" id="modal-pagado">$0</div>
-                        </div>
-                        <div class="col-4">
-                            <small class="text-muted">Saldo</small>
-                            <div class="fw-bold text-warning" id="modal-saldo">$0</div>
+                    <div class="text-muted fw-bold fs-7 mt-1" id="modal-canchaHora">—</div>
+                </div>
+
+                <div class="fv-row mb-8">
+                    <div class="card card-bordered bg-light">
+                        <div class="card-body py-4 px-5">
+                            <div class="row g-3">
+                                <div class="col-4">
+                                    <div class="text-muted fs-8">Total</div>
+                                    <div class="fw-bolder fs-5" id="modal-total">$0</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-muted fs-8">Pagado</div>
+                                    <div class="fw-bolder fs-5 text-success" id="modal-pagado">$0</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-muted fs-8">Saldo</div>
+                                    <div class="fw-bolder fs-5 text-warning" id="modal-saldo">$0</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Monto que se cobra ahora</label>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" id="modal-monto" class="form-control" min="0" step="0.01" />
-                        <button type="button" id="modal-btn-saldo-completo" class="btn btn-light-primary">Saldo total</button>
+                <div class="fv-row mb-8">
+                    <label class="d-flex align-items-center fs-6 fw-bold mb-2">
+                        <span>Monto que se cobra ahora</span>
+                    </label>
+                    <div class="input-group input-group-solid">
+                        <span class="input-group-text fs-3 fw-bold text-gray-700">$</span>
+                        <input type="number" id="modal-monto" class="form-control ps-3 fs-3 fw-bolder" min="0" step="0.01" />
+                        <button type="button" id="modal-btn-saldo-completo" class="btn btn-light-primary fw-bold">Saldo total</button>
                     </div>
-                    <small class="text-muted">Si cobrás el saldo total, la reserva queda marcada como pagada.</small>
+                    <div class="text-muted fs-7 mt-2">Si cobrás el saldo total, la reserva queda marcada como pagada.</div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Nota (opcional)</label>
-                    <input type="text" id="modal-nota" class="form-control" placeholder="Ej: Pagó con efectivo" />
+                <div class="fv-row mb-10">
+                    <label class="d-flex align-items-center fs-6 fw-bold mb-2">
+                        <span>Nota (opcional)</span>
+                    </label>
+                    <div class="input-group input-group-solid">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-note-sticky fs-4"></i>
+                        </span>
+                        <input type="text" id="modal-nota" class="form-control ps-3 fw-bold" placeholder="Ej: Pagó con efectivo" />
+                    </div>
                 </div>
 
                 <input type="hidden" id="modal-bookingId" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" id="modal-btn-confirmar" class="btn btn-primary">
-                    <i class="fa-solid fa-check me-1"></i>Confirmar cobro
-                </button>
+
+                <div class="text-center">
+                    <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="modal-btn-confirmar" class="btn btn-success">
+                        <i class="fa-solid fa-check me-1"></i>Confirmar y Cerrar Pago
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -30,14 +30,21 @@ services:
       - DB_NAME=${DB_NAME:-botcanchero}
       - DB_USER=${DB_USER:-root}
       - DB_PASS=${DB_PASS:-BC_Secure_Pwd_2026!}
+      - VIRTUAL_HOST=botcanchero.com,saas.botcanchero.com
+      - LETSENCRYPT_HOST=botcanchero.com,saas.botcanchero.com
+      - LETSENCRYPT_EMAIL=admin@botcanchero.com
     depends_on:
       - db
     networks:
       - botcanchero_net
+      - proxy_net
 
 networks:
   botcanchero_net:
     driver: bridge
+  proxy_net:
+    external: true
+    name: ${DOCKER_NETWORK_NAME:-systemwebbotcanchero_botcanchero_net}
 
 volumes:
   db_data:

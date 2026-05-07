@@ -2,13 +2,12 @@
 
     require 'int.php';
 
-    Users::loginCheck([
-        'base' => '../'
-    ]);
+    Users::loginCheck();
+    Users::requireSuperAdmin();
     $usuario = '';
     Theme::header([
         'title' => 'Editar Usuario',
-        'base'  => '../',
+        'base'  => URL,
         'css'   => [
             'plugins.bundle',
             'style.bundle',

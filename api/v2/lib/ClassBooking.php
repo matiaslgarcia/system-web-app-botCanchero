@@ -526,7 +526,7 @@
             // Status 2 = Cancelado
             $sql = "UPDATE booking SET user = ?, status = '2' WHERE id = ?";
             query($sql, '', [1, $data->id_booking]);
-            self::addBookingLog((int) $data->id_booking, 'cancelar', 'Reserva cancelada desde API v2');
+            self::addBookingLog((int) $data->id_booking, 'cancelar', 'Reserva cancelada desde API v2', 1);
             
             audit('booking_cancel', 'booking', $data->id_booking);
             
@@ -632,15 +632,22 @@
         public static function listByPhone() {
             $phone = $_GET['phone'] ?? null;
             if (!$phone) Api::ApiError(['error' => 'phone is required'], 400);
-            $phone = str_replace(['+','-',' '], '', $phone);
+            $phoneDigits = preg_replace('/\D+/', '', (string) $phone);
+            if (!$phoneDigits) Api::ApiError(['error' => 'phone is invalid'], 400);
+            $last10 = strlen($phoneDigits) > 10 ? substr($phoneDigits, -10) : $phoneDigits;
 
             $boundEst = Auth::getEstablishmentId();
             $estFilter = '';
-            $params = [':phone' => $phone];
+            $params = [
+                ':phone_full' => $phoneDigits,
+                ':phone_last10' => $last10,
+            ];
             if ($boundEst) {
                 $estFilter = ' AND sf.establishment_id = :est ';
                 $params[':est'] = (int) $boundEst;
             }
+
+            $phoneExpr = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.phone, '+', ''), '-', ''), ' ', ''), '(', ''), ')', '')";
 
             $rows = query(
                 "SELECT
@@ -649,6 +656,7 @@
                     b.time_booking,
                     CASE b.status
                         WHEN 1 THEN 'Activo'
+                        WHEN 6 THEN 'Activo'
                         WHEN 2 THEN 'Cancelado'
                         WHEN 3 THEN 'Completado'
                         WHEN 7 THEN 'Pendiente'
@@ -671,7 +679,10 @@
                  LEFT JOIN schedules s ON s.id = b.time_booking
                  LEFT JOIN vouchers v ON v.id_booking = b.id
                  LEFT JOIN payment p ON p.payment_id = v.data_id
-                 WHERE c.phone = :phone
+                 WHERE (
+                    $phoneExpr = :phone_full
+                    OR RIGHT($phoneExpr, 10) = :phone_last10
+                 )
                  $estFilter
                  ORDER BY b.date_booking DESC, b.time_booking DESC",
                 'ARRAY_ALL',

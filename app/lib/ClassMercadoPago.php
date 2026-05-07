@@ -16,6 +16,14 @@
         public static function isOAuthConfigured() {
             return self::oauthClientId() !== '' && self::oauthClientSecret() !== '';
         }
+        public static function appUrl($path = '') {
+            $base = rtrim((string) URL, '/');
+            if (!preg_match('#/app$#', $base)) {
+                $base .= '/app';
+            }
+            $path = ltrim((string) $path, '/');
+            return $path === '' ? ($base . '/') : ($base . '/' . $path);
+        }
         private static function oauthRedirectUri() {
             $fromEnv = trim((string) ($_ENV['MP_OAUTH_REDIRECT_URI'] ?? ''));
             if ($fromEnv !== '') return $fromEnv;
@@ -30,15 +38,76 @@
                 return $scheme . '://' . $_SERVER['HTTP_HOST'] . '/app/mercadopago_OAuth';
             }
 
-            // Fallback final: usar BASE_URL configurada.
-            return rtrim(URL, '/') . '/mercadopago_OAuth';
+            // Fallback final: usar BASE_URL configurada normalizada a /app.
+            return self::appUrl('mercadopago_OAuth');
         }
 
         private static function getCurrentEstablishmentId() {
             $fieldId = (int) Users::infoUser('id_field');
             if ($fieldId <= 0) return null;
-            $row = query("SELECT establishment_id FROM soccer_field WHERE id = ? LIMIT 1", "ARRAY", [$fieldId]);
-            return (!empty($row['establishment_id'])) ? (int) $row['establishment_id'] : null;
+
+            $row = query(
+                "SELECT id, establishment_id, full_name, phone, address, latitude, `length`, tax_id, logo
+                   FROM soccer_field
+                  WHERE id = ?
+                  LIMIT 1",
+                "ARRAY",
+                [$fieldId]
+            );
+            if (!$row) return null;
+
+            $estId = (int) ($row['establishment_id'] ?? 0);
+            if ($estId > 0) return $estId;
+
+            $userId = (int) ($_SESSION['canchero'] ?? 0);
+            if ($userId <= 0) return null;
+
+            // Reusar establishment existente del owner.
+            $existing = query(
+                "SELECT id
+                   FROM establishment
+                  WHERE owner_user_id = ?
+                  ORDER BY id DESC
+                  LIMIT 1",
+                "ARRAY",
+                [$userId]
+            );
+            if (!empty($existing['id'])) {
+                $estId = (int) $existing['id'];
+            } else {
+                // Auto-provisión para entornos legacy sin migración completa.
+                query(
+                    "INSERT INTO establishment
+                        (owner_user_id, name, phone, address, latitude, longitude, tax_id, logo, active)
+                     VALUES
+                        (?, ?, ?, ?, ?, ?, ?, ?, 1)",
+                    '',
+                    [
+                        $userId,
+                        (string) ($row['full_name'] ?? ('Cancha ' . $fieldId)),
+                        $row['phone'] ?? null,
+                        $row['address'] ?? null,
+                        $row['latitude'] ?? null,
+                        $row['length'] ?? null,
+                        $row['tax_id'] ?? null,
+                        $row['logo'] ?? null
+                    ]
+                );
+                $estId = (int) query("SELECT LAST_INSERT_ID() AS id", "ARRAY")['id'];
+            }
+
+            if ($estId > 0) {
+                query(
+                    "UPDATE soccer_field
+                        SET establishment_id = ?
+                      WHERE id = ?",
+                    '',
+                    [$estId, $fieldId]
+                );
+                return $estId;
+            }
+
+            return null;
         }
 
         private static function buildState($establishmentId) {
@@ -57,7 +126,7 @@
 
         public static function getUrlOAuth(){
             if (!self::isOAuthConfigured()) {
-                return URL . 'account_settings?error=mp_oauth_not_configured';
+                return self::appUrl('account_settings?error=mp_oauth_not_configured');
             }
             $establishmentId = self::getCurrentEstablishmentId();
             $state = self::buildState($establishmentId ?: 0);
@@ -70,12 +139,12 @@
         }
         public static function createRefreshToken($code, $state = null){
             if (!self::isOAuthConfigured()) {
-                header('Location: ' . URL . 'account_settings?error=mp_oauth_not_configured');
+                header('Location: ' . self::appUrl('account_settings?error=mp_oauth_not_configured'));
                 die();
             }
             $establishmentId = self::parseState($state) ?: self::getCurrentEstablishmentId();
             if (!$establishmentId) {
-                header('Location: ' . URL . 'account_settings?error=mp_establishment_not_found');
+                header('Location: ' . self::appUrl('account_settings?error=mp_establishment_not_found'));
                 die();
             }
 
@@ -113,13 +182,13 @@
                     $mpError = 'oauth_token_exchange_failed';
                 }
 
-                header('Location: ' . URL . 'account_settings?error=mp_oauth_failed&mp_http=' . $httpCode . '&mp_error=' . rawurlencode(substr($mpError, 0, 240)));
+                header('Location: ' . self::appUrl('account_settings?error=mp_oauth_failed&mp_http=' . $httpCode . '&mp_error=' . rawurlencode(substr($mpError, 0, 240))));
                 die();
             }
 
             self::setAccessToken($establishmentId, $data);
 
-            header('Location: ' . URL . 'account_settings');
+            header('Location: ' . self::appUrl('account_settings'));
             die();
         }
 

@@ -1,9 +1,45 @@
 <?php
 
     class Booking{
+        private static function resolveScheduleId($timeBooking) {
+            if ($timeBooking === null || $timeBooking === '') return 0;
+            if (is_numeric($timeBooking)) return (int) $timeBooking;
+
+            $raw = trim((string) $timeBooking);
+            if ($raw === '') return 0;
+
+            $start = null;
+            if (preg_match('/^(\d{1,2}):(\d{2})/', $raw, $m)) {
+                $start = sprintf('%02d:%02d', (int) $m[1], (int) $m[2]);
+            } elseif (preg_match('/(\d{1,2}):(\d{2})/', $raw, $m)) {
+                $start = sprintf('%02d:%02d', (int) $m[1], (int) $m[2]);
+            }
+
+            if (!$start) return 0;
+
+            $row = query(
+                "SELECT id
+                   FROM schedules
+                  WHERE time = ?
+                     OR hour LIKE ?
+                  LIMIT 1",
+                'ARRAY',
+                [$start . ':00', $start . '%']
+            );
+
+            return (int) ($row['id'] ?? 0);
+        }
+
         private static function humanizeLogNote($action, $note) {
             $note = trim((string) $note);
             if ($note === '') return '';
+            $action = strtolower(trim((string) $action));
+
+            if ($note === 'Reserva actualizada') {
+                if ($action === 'cancelar' || $action === '2') return 'Reserva cancelada.';
+                if ($action === 'reagendar' || $action === '6') return 'Reserva re-agendada.';
+                if ($action === 'crear' || $action === '1') return 'Reserva creada.';
+            }
 
             if (preg_match('/Reserva creada desde bot\/webhook/i', $note)) {
                 return 'Reserva ingresada automáticamente desde WhatsApp.';
@@ -77,6 +113,12 @@
                 ':date_booking' => $dateBooking,
                 ':time_booking' => (int) $timeBooking,
                 ':dow' => $dow,
+                ':time_booking_2' => (int) $timeBooking,
+                ':id_field_2' => (int) $idField,
+                ':date_booking_2' => $dateBooking,
+                ':date_booking_3' => $dateBooking,
+                ':date_booking_4' => $dateBooking,
+                ':date_booking_5' => $dateBooking,
             ];
             if ($excludeBookingId) $params[':exclude_id'] = (int) $excludeBookingId;
 
@@ -93,26 +135,26 @@
                         +
                         (SELECT COUNT(*)
                            FROM recurring_booking rb
-                           INNER JOIN schedules s ON s.id = :time_booking
-                          WHERE rb.field_id = :id_field
+                           INNER JOIN schedules s ON s.id = :time_booking_2
+                          WHERE rb.field_id = :id_field_2
                             AND rb.day_of_week = :dow
                             AND rb.start_time <= s.hour
                             AND ADDTIME(rb.start_time, SEC_TO_TIME(rb.duration_min * 60)) > s.hour
                             AND rb.status = 'active'
-                            AND rb.valid_from <= :date_booking
-                            AND (rb.valid_until IS NULL OR rb.valid_until >= :date_booking)
+                            AND rb.valid_from <= :date_booking_2
+                            AND (rb.valid_until IS NULL OR rb.valid_until >= :date_booking_3)
                             AND NOT EXISTS (
                                 SELECT 1
                                   FROM recurring_booking_pause p
                                  WHERE p.recurring_booking_id = rb.id
                                    AND p.status = 'approved'
-                                   AND :date_booking BETWEEN p.from_date AND p.to_date
+                                   AND :date_booking_4 BETWEEN p.from_date AND p.to_date
                             )
                             AND NOT EXISTS (
                                 SELECT 1
                                   FROM booking b2
                                  WHERE b2.recurring_booking_id = rb.id
-                                   AND b2.date_booking = :date_booking
+                                   AND b2.date_booking = :date_booking_5
                                    AND b2.status <> 2
                             ))
                     ) AS occupied",
@@ -227,10 +269,28 @@
                             ORDER BY l.created_at DESC", "ALL", [$Id]);
             
             $formatted = [];
+            $recentActions = [];
             foreach($result as $l) {
-                // Normaliza timestamp de DB sin forzar UTC (la DB guarda en zona local del server).
+                // Evita duplicados gemelos (trigger + capa de aplicación) creados casi al mismo tiempo.
+                $action = strtolower((string) ($l->action ?? ''));
+                $keyUser = (int) ($l->id_user ?? 0);
+                if (in_array($action, ['cancelar', 'reagendar', 'crear'], true)) {
+                    $keyUser = -1;
+                }
+                $actionKey = $action . '|' . $keyUser;
+                $createdTs = strtotime((string) ($l->created_at ?? ''));
+                if ($createdTs !== false) {
+                    $lastTs = $recentActions[$actionKey] ?? null;
+                    if ($lastTs !== null && abs($lastTs - $createdTs) <= 3) {
+                        continue;
+                    }
+                    $recentActions[$actionKey] = $createdTs;
+                }
+
+                // booking_logs.created_at se persiste en UTC; lo mostramos en hora local AR (UTC-03).
                 try {
-                    $dt = new DateTime($l->created_at);
+                    $dt = new DateTime((string) $l->created_at, new DateTimeZone('UTC'));
+                    $dt->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
                     $f_fecha = $dt->format('d/m/Y');
                     $f_hora = $dt->format('H:i');
                 } catch (Exception $e) {
@@ -285,7 +345,11 @@
             if (!$idField) {
                 JSON(['ok' => false, 'error' => 'Reserva no encontrada'], 404);
             }
-            if (self::hasSlotConflict($idField, $data->date_booking, $data->time_booking, (int) $data->id)) {
+            $timeBooking = self::resolveScheduleId($data->time_booking ?? null);
+            if ($timeBooking <= 0) {
+                JSON(['ok' => false, 'error' => 'Horario inválido'], 400);
+            }
+            if (self::hasSlotConflict($idField, $data->date_booking, $timeBooking, (int) $data->id)) {
                 JSON([
                     'ok' => false,
                     'error' => 'El horario seleccionado ya está reservado',
@@ -298,11 +362,16 @@
                           time_booking = ?,
                           date_booking = ?,
                           user         = ?
-                    WHERE id = ?", '', [$data->day_booking, $data->time_booking, $data->date_booking, $data->user, $data->id]);
+                    WHERE id = ?", '', [$data->day_booking, $timeBooking, $data->date_booking, $data->user, $data->id]);
             JSON(['ok' => true]);
         }
         public static function add($data){
-            if (self::hasSlotConflict((int) $data->id_field, $data->date_booking, (int) $data->time_booking)) {
+            $timeBooking = self::resolveScheduleId($data->time_booking ?? null);
+            if ($timeBooking <= 0) {
+                JSON(['ok' => false, 'error' => 'Horario inválido'], 400);
+            }
+            $data->time_booking = $timeBooking;
+            if (self::hasSlotConflict((int) $data->id_field, $data->date_booking, $timeBooking)) {
                 JSON([
                     'ok' => false,
                     'error' => 'El horario seleccionado no tiene más cupos disponibles',
@@ -340,7 +409,11 @@
             if (!$idField) {
                 JSON(['ok' => false, 'error' => 'Reserva no encontrada'], 404);
             }
-            if (self::hasSlotConflict($idField, $data->date_booking, $data->time_booking, (int) $data->id)) {
+            $timeBooking = self::resolveScheduleId($data->time_booking ?? null);
+            if ($timeBooking <= 0) {
+                JSON(['ok' => false, 'error' => 'Horario inválido'], 400);
+            }
+            if (self::hasSlotConflict($idField, $data->date_booking, $timeBooking, (int) $data->id)) {
                 JSON([
                     'ok' => false,
                     'error' => 'El horario seleccionado ya está reservado',
@@ -354,7 +427,7 @@
                 date_booking = ?,
                 user         = ?,
                 status       = '6'
-            WHERE id = ?", '', [$data->day_booking, $data->time_booking, $data->date_booking, $data->user, $data->id]);
+            WHERE id = ?", '', [$data->day_booking, $timeBooking, $data->date_booking, $data->user, $data->id]);
             self::addLog($data->id, 'reagendar'); // 6 = Reagendada
             JSON(self::getById($data->id));
         }

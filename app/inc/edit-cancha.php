@@ -1,6 +1,7 @@
 <?php
-	$cancha = Canchas::getById($_GET['cancha']);
-	$priceRanges = Canchas::getPriceRangesByField($cancha->id);
+	$fieldId = (int) ($_GET['cancha'] ?? 0);
+	$cancha = $fieldId > 0 ? Canchas::getById($fieldId) : null;
+	$priceRanges = $cancha ? Canchas::getPriceRangesByField($cancha->id) : [];
 ?>
 <div class="d-flex flex-column flex-root">
 	<div class="page d-flex flex-row flex-column-fluid">
@@ -10,6 +11,14 @@
 			<div class="content d-flex flex-column flex-column-fluid pt-5 pt-0" id="kt_content">
 				<div class="post d-flex flex-column-fluid" id="kt_post">
 					<div id="kt_content_container" class="container-xxl">
+						<?php if (!$cancha) { ?>
+							<div class="card mb-5">
+								<div class="card-body py-10 text-center">
+									<div class="text-gray-700 fs-5 mb-5">La cancha solicitada no existe o no es válida.</div>
+									<a href="canchas-list" class="btn btn-primary">Volver al listado</a>
+								</div>
+							</div>
+						<?php } else { ?>
 						<div class="card mb-5 mb-xl-10">
 							<div class="card-header card-header-stretch">
 								<div class="card-toolbar">
@@ -27,7 +36,7 @@
 								<div class="tab-content" id="myTabContent">
 									<div class="tab-pane fade show active" id="config" role="tabpanel">
 										<div class="d-flex justify-content-center mb-4">
-											<img id="add-user-select-avatar" src="<?php echo $cancha->logo ?>">
+											<img id="add-user-select-avatar" src="<?php echo $cancha->logo ?>" style="width:120px;height:120px;max-width:120px;max-height:120px;object-fit:cover;border-radius:1rem;border:2px solid #f1f1f4;cursor:pointer;background:#fff;">
 										</div>
 										<form id="form-edit-cancha" class="row pb-5">
 											<div class="d-none">
@@ -43,14 +52,6 @@
 											<div class="col-12 col-md-6 mb-3">
 												<label class="form-label" for="phone">Teléfono</label>
 												<input type="text" name="phone" id="phone" class="form-control" placeholder="Celular" value="<?php echo $cancha->phone ?>" autocomplete="phone">
-											</div>
-											<div class="col-12 col-md-6 mb-3">
-												<label class="form-label" for="latitude">Latitud</label>
-												<input type="text" name="latitude" id="latitude" class="form-control" placeholder="Latitud" value="<?php echo $cancha->latitude ?>">
-											</div>
-											<div class="col-12 col-md-6 mb-3">
-												<label class="form-label" for="length">Longitud</label>
-												<input type="text" name="length" id="length" class="form-control" placeholder="Longitud" value="<?php echo $cancha->length ?>">
 											</div>
 											<div class="col-12 col-md-6 mb-3">
 												<label class="form-label" for="price_hour">Precio por Hora</label>
@@ -113,27 +114,32 @@
 												</div>
 												<script type="application/json" id="price-ranges-data"><?php echo json_encode($priceRanges, JSON_UNESCAPED_UNICODE); ?></script>
 											</div>
-											<div class="col-6 my-3">
-                                            	<label for="time_booking" class="form-label">Provincia</label>
-                                            	<select name="id_province" id="id_province" class="form-control" required>
-                                                	<option selected="true" disabled="" value="" data-select2-id="select2-data-2-ih0l">--Provincia--</option>
-													<?php foreach(Address::getProvincias() as $provincie) { ?>
-														<option <?php showArgument($cancha->id_province, $provincie->id, 'selected')?> value="<?php echo $provincie->id ?>"><?php echo $provincie->name ?></option>
-													<?php }  ?>
-                                            	</select>
-                                        	</div>
-											<div class="col-6 my-3">
-                                            	<label for="time_booking" class="form-label">Ciudad</label>
-                                            	<select name="id_city" id="id_city" class="form-control" required>
-                                                	<option selected="true" disabled="" value="" data-select2-id="select2-data-2-ih0l">--Ciudad--</option>
-													<?php foreach(Address::getCity() as $city) { ?>
-														<option data-id-province="<?php echo $city->id_provincia?>" <?php showArgument($cancha->id_city , $city->id, 'selected')?> value="<?php echo $city->id ?>"><?php echo $city->name ?></option>
-													<?php }  ?>
-                                            	</select>
-                                        	</div>
 											<div class="col-12 mb-3">
 												<label class="form-label" for="address">Dirección</label>
-												<textarea type="email" name="address" id="address" class="form-control" placeholder="Direccion" autocomplete="address"><?php echo $cancha->address ?></textarea>
+												<div class="input-group">
+													<input type="text" name="address" id="address" class="form-control" placeholder="Ej: Av. Rivadavia 1234, CABA" autocomplete="address" value="<?php echo $cancha->address ?>">
+													<button type="button" id="btn-search-address" class="btn btn-light-primary">
+														<i class="fa-solid fa-magnifying-glass"></i>
+													</button>
+												</div>
+												<small class="text-muted">Escribe una dirección y buscala, o elegí el punto directo en el mapa.</small>
+											</div>
+											<div class="col-12 mb-4">
+												<label class="form-label d-flex justify-content-between align-items-center">
+													Ubicación en el Mapa
+													<button type="button" id="btn-recenter" class="btn btn-sm btn-light-primary py-1 px-3 fs-8">
+														<i class="fa-solid fa-location-crosshairs me-1"></i>Mi ubicación actual
+													</button>
+												</label>
+												<div id="map-picker" style="height: 330px; border-radius: 1rem; border: 1.5px solid #f1f1f4; z-index: 1;"></div>
+											</div>
+											<div class="col-12 col-md-6 mb-3">
+												<label class="form-label text-muted fs-7" for="latitude">Latitud (No editable)</label>
+												<input type="text" name="latitude" id="latitude" class="form-control bg-light-dark border-dashed text-gray-600" placeholder="Latitud" value="<?php echo $cancha->latitude ?>" readonly tabindex="-1">
+											</div>
+											<div class="col-12 col-md-6 mb-3">
+												<label class="form-label text-muted fs-7" for="length">Longitud (No editable)</label>
+												<input type="text" name="length" id="length" class="form-control bg-light-dark border-dashed text-gray-600" placeholder="Longitud" value="<?php echo $cancha->length ?>" readonly tabindex="-1">
 											</div>
 											<div class="text-end">
 												<button type="submit" class="btn btn-primary">Guardar</button>
@@ -158,10 +164,10 @@
 															<div class="col-4">
 																<div class="form-check form-check-custom form-check-solid mb-5">
 																	<!--begin::Input-->
-																	<input class="form-check-input me-3" <?php echo $h->checked ?> name="horario[]" id="h_<?php echo $h->id ?>" type="checkbox" value="<?php echo $h->id ?>">
+																	<input class="form-check-input me-3" <?php echo $h->checked ?> name="horario[]" id="h_<?php echo $d->id ?>_<?php echo $h->id ?>" type="checkbox" value="<?php echo $h->id ?>">
 																	<!--end::Input-->
 																	<!--begin::Label-->
-																	<label class="form-check-label" for="h_<?php echo $h->id ?>">
+																	<label class="form-check-label" for="h_<?php echo $d->id ?>_<?php echo $h->id ?>">
 																		<div class="fw-bolder text-gray-800"><?php echo $h->hour12 ?></div>
 																	</label>
 																	<!--end::Label-->
@@ -180,6 +186,7 @@
 
 							</div>
 						</div>
+						<?php } ?>
 					</div>
 				</div>
 			</div>

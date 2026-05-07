@@ -1,6 +1,63 @@
 <?php
 
     class Canchas{
+        private static function getDefaultProvinceCityIds(){
+            $default = query(
+                "SELECT c.id AS city_id, c.id_provincia AS province_id
+                 FROM city c
+                 ORDER BY c.id ASC
+                 LIMIT 1",
+                ''
+            );
+
+            if (!$default) {
+                JSON(['success' => false, 'icon' => 'error', 'msg' => 'No hay provincias/ciudades configuradas para crear canchas'], 500);
+            }
+
+            return [
+                'id_province' => (int) $default->province_id,
+                'id_city' => (int) $default->city_id,
+            ];
+        }
+        private static function resolveLogoPath($logo){
+            $defaultLogo = 'assets/img/cancha.png';
+            $logo = trim((string) $logo);
+            if ($logo === '') return $defaultLogo;
+
+            // URL externa o data-uri
+            if (preg_match('/^(https?:)?\/\//i', $logo) || str_starts_with($logo, 'data:')) {
+                return $logo;
+            }
+
+            // Si ya es asset local, devolver directo
+            if (str_starts_with($logo, 'assets/')) {
+                return $logo;
+            }
+
+            // Normaliza distintos formatos guardados en DB
+            $fileName = $logo;
+            if (str_starts_with($logo, 'upload/cancha/')) {
+                $fileName = substr($logo, strlen('upload/cancha/'));
+            } elseif (str_starts_with($logo, 'upload/')) {
+                $fileName = basename($logo);
+            }
+
+            $fileName = trim((string) $fileName);
+            if ($fileName === '') return $defaultLogo;
+
+            $dir = __DIR__ . '/../upload/cancha/';
+            $pathRaw = $dir . $fileName;
+            $pathDecoded = $dir . urldecode($fileName);
+
+            if (is_file($pathRaw)) {
+                return 'upload/cancha/' . $fileName;
+            }
+            if (is_file($pathDecoded)) {
+                return 'upload/cancha/' . urldecode($fileName);
+            }
+
+            return $defaultLogo;
+        }
         private static function ensurePriceRangesTable(){
             query("CREATE TABLE IF NOT EXISTS price_ranges (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -122,7 +179,7 @@
             $canchas = query("SELECT id, full_name AS name, phone, latitude, length, logo, price_hour, tax_id FROM soccer_field WHERE status = 1", 'ALL');
 
             foreach($canchas AS $cancha){
-               $cancha->logo = (empty($cancha->logo)) ? 'assets/img/cancha.png' : 'upload/cancha/' . $cancha->logo; 
+               $cancha->logo = self::resolveLogoPath($cancha->logo ?? '');
             }
             
 
@@ -130,10 +187,17 @@
         }
         public static function add($data){
             $id = self::getIdNewCancha();
+            $idProvince = (int) ($data->id_province ?? 0);
+            $idCity = (int) ($data->id_city ?? 0);
+            if ($idProvince <= 0 || $idCity <= 0) {
+                $defaults = self::getDefaultProvinceCityIds();
+                $idProvince = $defaults['id_province'];
+                $idCity = $defaults['id_city'];
+            }
             query("INSERT INTO soccer_field
                 (full_name, phone, address, latitude, length, price_hour, threshold, id_province, id_city)
                     VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?)", '', [$data->full_name, $data->phone, $data->address, $data->latitude, $data->length, $data->price_hour, $data->limit, $data->id_province, $data->id_city]);
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)", '', [$data->full_name, $data->phone, $data->address, $data->latitude, $data->length, $data->price_hour, $data->limit, $idProvince, $idCity]);
             
             $data->logo = self::setLogo($id);
             JSON(['icon' => 'success', 'msg' => 'Cancha Agregada Correctamente']);
@@ -145,13 +209,19 @@
         }
         public static function getById($id){
             $cancha = query("SELECT id, full_name AS name, latitude, length, logo,  phone, address, price_hour, threshold, id_province, id_city  FROM soccer_field AS f WHERE id = ?", '', [$id]);
-               $cancha->logo = (empty($cancha->logo)) ? 'assets/img/cancha.png' : 'upload/cancha/' . $cancha->logo; 
+            if (!$cancha) {
+                return null;
+            }
+            $cancha->logo = self::resolveLogoPath($cancha->logo ?? '');
 
             return $cancha;
         }
         public static function edit($data){
             if (empty($data->id)) {
                 JSON(['success' => false, 'icon' => 'error', 'msg' => 'Cancha inválida'], 400);
+            }
+            if (!self::canManageField($data->id)) {
+                JSON(['success' => false, 'icon' => 'error', 'msg' => 'No tenés permisos para editar esta cancha'], 403);
             }
 
             $fullName = trim((string) ($data->full_name ?? ''));
@@ -229,11 +299,13 @@
                 INNER JOIN soccer_field AS f 
                     ON u.id_field = f.id
                 WHERE u.id = ? LIMIT 1", '', [$id]);
-            $cancha->logo = (empty($cancha->logo)) ? 'assets/img/cancha.png' : 'upload/cancha/' . $cancha->logo;
+            $cancha->logo = self::resolveLogoPath($cancha->logo ?? '');
             return $cancha;
         }
         public static function deleteCancha($data){
+            Users::requireSuperAdmin(true);
             query("UPDATE soccer_field SET status = 0 WHERE id = ?", '', [$data->id]);
+            JSON(['success' => true, 'icon' => 'success', 'msg' => 'Cancha eliminada']);
         }
         public static function getByIdUser(){
             $id_user = $_SESSION['canchero'];

@@ -1,4 +1,7 @@
-<?php $usuario = Users::getById($_GET['usuario']); ?>
+<?php
+    $userId = (int) ($_GET['usuario'] ?? 0);
+    $usuario = $userId > 0 ? Users::getById($userId) : null;
+?>
 
 <div class="d-flex flex-column flex-root">
 	<!--begin::Page-->
@@ -17,11 +20,19 @@
 				<div class="post d-flex flex-column-fluid" id="kt_post">
 					<!--begin::Container-->
 					<div id="kt_content_container" class="container-xxl">
+						<?php if (!$usuario) { ?>
+							<div class="card mb-5">
+								<div class="card-body py-10 text-center">
+									<div class="text-gray-700 fs-5 mb-5">El usuario solicitado no existe o no es válido.</div>
+									<a href="users-list" class="btn btn-primary">Volver al listado</a>
+								</div>
+							</div>
+						<?php } else { ?>
 						<!--begin::Navbar-->
 						<div class="card mb-5 mb-xl-10">
 							<div class="card-body pt-9 pb-0">
 								<div class="d-flex justify-content-center mb-4">
-									<img id="add-user-select-avatar" src="<?php echo $usuario->avatar ?>">
+									<img id="add-user-select-avatar" src="<?php echo $usuario->avatar ?>" style="width:120px;height:120px;max-width:120px;max-height:120px;object-fit:cover;border-radius:1rem;border:2px solid #f1f1f4;cursor:pointer;background:#fff;">
 								</div>
 								<form id="form-edit-user" class="row pb-5">
 									<div class="d-none">
@@ -34,7 +45,7 @@
 									</div>
 									<div class="col-12 col-md-6 mb-3">
 										<label class="form-label" for="phone" >Teléfono</label>
-										<input type="text" name="phone" id="phone" class="form-control" placeholder="Telefono" value="<?php echo $usuario->phone ?>" autocomplete="off">
+										<input type="text" name="phone" id="phone" class="form-control" placeholder="Teléfono" value="<?php echo $usuario->phone ?>" autocomplete="off">
 									</div>
 									<div class="col-12 col-md-6 mb-3">
 										<label class="form-label" for="email" >Correo Electrónico</label>
@@ -43,7 +54,7 @@
 									<div class="col-12 col-md-6 mb-3">
 										<label class="form-label" for="rol" >Rol</label>
 										<select name="rol" id="rol" class="form-select">
-											<option <?php showSelected('cancero', $usuario->rol) ?> value="canchero" >Canchero</option>
+											<option <?php showSelected('canchero', $usuario->rol) ?> value="canchero" >Canchero</option>
 											<option <?php showSelected('superAdmin', $usuario->rol) ?> value="superAdmin" >SuperAdmin</option>
 										</select>
 									</div>
@@ -62,6 +73,7 @@
 								</form>
 							</div>
 						</div>
+						<?php } ?>
 						<!--end::Row-->
 					</div>
 					<!--end::Container-->
