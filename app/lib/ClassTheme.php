@@ -12,6 +12,11 @@
             $css    = self::css($arr);
             $extra_css = self::extra_css($arr);
             $favicon = self::appUrl('assets/img/logos/favicon.ico');
+            $manifest = self::appUrl('manifest.webmanifest');
+            $icon192 = self::appUrl('assets/img/logos/pwa/icon-192.png');
+            $icon512 = self::appUrl('assets/img/logos/pwa/icon-512.png');
+            $appleIcon = self::appUrl('assets/img/logos/pwa/icon-180.png');
+            $appleIconIpad = self::appUrl('assets/img/logos/pwa/icon-152.png');
 
             // Heredoc evita el quote-hell del concat con HTML+JS.
             echo <<<HTML
@@ -23,9 +28,19 @@
     <meta name="description" content="" />
     <meta name="keywords" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0F172A" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="botCanchero" />
     <meta name="csrf-token" content="{$csrf}">
     <meta name="request-id" content="{$requestId}">
     <link rel="shortcut icon" href="{$favicon}" />
+    <link rel="icon" type="image/png" sizes="192x192" href="{$icon192}" />
+    <link rel="icon" type="image/png" sizes="512x512" href="{$icon512}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{$appleIcon}" />
+    <link rel="apple-touch-icon" sizes="152x152" href="{$appleIconIpad}" />
+    <link rel="manifest" href="{$manifest}" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" />
     <style>body { font-family: "Outfit", sans-serif !important; }</style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,7 +118,10 @@ HTML;
             if(isset($arr['dataJS'])){
                 $js = '';
                 foreach($arr['dataJS'] as $val){
-                    $js .= '<script type="module" src="' . self::appUrl('lib/dataJS/' . $val . '.js?ver=' . VERSION) . '"></script>';
+                    $relativePath = 'lib/dataJS/' . $val . '.js';
+                    $absolutePath = __DIR__ . '/' . $relativePath;
+                    $cacheBuster = file_exists($absolutePath) ? filemtime($absolutePath) : VERSION;
+                    $js .= '<script type="module" src="' . self::appUrl($relativePath . '?ver=' . $cacheBuster) . '"></script>';
                 }
                 return $js;
             }

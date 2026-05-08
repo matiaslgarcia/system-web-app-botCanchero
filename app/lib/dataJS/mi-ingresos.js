@@ -1,5 +1,10 @@
-import { Func } from './function.js';
-const fun = new Func;
+function exportarIngresosPDF(inputDate) {
+    const dateLabel = inputDate?.value || '';
+    const params = new URLSearchParams({ scope: 'mi' });
+    if (dateLabel) params.set('date', dateLabel);
+    const url = `fetch/exportIngresosPdf?${params.toString()}`;
+    window.open(url, '_blank');
+}
 
 const initMiIngresos = () => {
     console.log('Iniciando Mi Ingresos v1.0.11');
@@ -60,6 +65,10 @@ const initMiIngresos = () => {
             }
         });
     }
+
+    document.querySelector('#btnExportarIngresosPDF')?.addEventListener('click', () => {
+        exportarIngresosPDF(inputDate);
+    });
 };
 
 // Cargar cuando el DOM esté listo

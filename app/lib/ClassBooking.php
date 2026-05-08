@@ -171,6 +171,8 @@
             $reserva = query("SELECT
             b.id,
             b.id_field,
+            COALESCE(b.is_fixed, 0) AS is_fixed,
+            b.recurring_booking_id,
             f.full_name AS cancha,
             b.time_booking,
             b.date_booking AS fecha,

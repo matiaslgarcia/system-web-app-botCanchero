@@ -1,4 +1,5 @@
 <?php 
+    $selectedDate = isset($_GET['date']) ? trim((string) $_GET['date']) : date('d/m/Y');
 	$totalDiario = Invoices::getTotalMiIngresos();
     $invoices = Invoices::getMiIngresos();
     
@@ -94,7 +95,7 @@
 										<label for="date" class="form-label fw-bold text-gray-700">Filtrar por Fecha</label>
                                         <div class="position-relative d-flex align-items-center">
                                             <i class="fa-solid fa-calendar position-absolute ms-4 fs-4 text-gray-500"></i>
-                                            <input type="text" name="date" id="date" class="form-control form-control-solid ps-12 fs-6 fw-semibold" value="<?php echo date('d/m/Y') ?>" style="padding-left: 3.25rem !important;">
+                                            <input type="text" name="date" id="date" class="form-control form-control-solid ps-12 fs-6 fw-semibold" value="<?php echo htmlspecialchars($selectedDate, ENT_QUOTES); ?>" style="padding-left: 3.25rem !important;">
                                         </div>
 									</div>
 									<div class="col-md-2">
@@ -113,6 +114,9 @@
                                     <h3 class="card-label fw-bolder text-dark">Detalle de Ingresos</h3>
                                 </div>
                                 <div class="card-toolbar">
+                                    <button type="button" id="btnExportarIngresosPDF" class="btn btn-light-danger btn-sm me-2">
+                                        <i class="fa-solid fa-file-pdf me-2"></i>Exportar PDF
+                                    </button>
                                     <button type="button" class="btn btn-light-primary btn-sm" onclick="window.print()">
                                         <i class="fa-solid fa-print me-2"></i>Imprimir Reporte
                                     </button>

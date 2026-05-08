@@ -1,8 +1,15 @@
-import {Func} from  './function.js';
-const fun = new Func;
-
 let inputDate = document.querySelector('#date')
 let inputIdField = document.querySelector('#id_field')
+
+function exportarIngresosPDF() {
+    const dateLabel = inputDate?.value || '';
+    const cancha = inputIdField?.value || '%';
+    const params = new URLSearchParams({ scope: 'admin' });
+    if (dateLabel) params.set('date', dateLabel);
+    if (cancha) params.set('cancha', cancha);
+    const url = `fetch/exportIngresosPdf?${params.toString()}`;
+    window.open(url, '_blank');
+}
 
 $("#kt_datatable_example_1").dataTable();
 
@@ -19,3 +26,5 @@ $(inputDate).daterangepicker({
         format: 'DD/MM/YYYY'
     }
 });
+
+document.querySelector('#btnExportarIngresosPDF')?.addEventListener('click', exportarIngresosPDF);

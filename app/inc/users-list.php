@@ -35,7 +35,7 @@
 									<!--begin::Body-->
 									<div class="card-body py-3">
 										<!--begin::Table container-->
-										<div class="table-responsive">
+										<div class="table-responsive d-none d-md-block">
 											<?php $users = Users::getAll(); ?>
 											<!--begin::Table-->
 											<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
@@ -111,6 +111,30 @@
 												<!--end::Table body-->
 											</table>
 											<!--end::Table-->
+										</div>
+										<div class="d-block d-md-none px-2">
+											<?php if (empty($users)) { ?>
+												<div class="bc-mobile-card text-center text-muted py-8">No hay usuarios para mostrar.</div>
+											<?php } ?>
+											<?php foreach ($users as $user) { ?>
+												<div class="bc-mobile-card mb-3">
+													<div class="d-flex align-items-center mb-3">
+														<div class="symbol symbol-45px me-3">
+															<img src="<?php echo $user->avatar ?>" alt="" />
+														</div>
+														<div class="fw-bolder fs-6"><?php echo $user->name ?></div>
+													</div>
+													<div class="mb-3">
+														<div class="text-muted fs-8">Cancha</div>
+														<a href="edit-cancha/<?php echo $user->id_cancha ?>" class="text-dark fw-bolder text-hover-primary d-block fs-6"><?php echo $user->cancha ?></a>
+													</div>
+													<div class="d-flex flex-wrap gap-2">
+														<a href="edit-user/<?php echo $user->id ?>" class="btn btn-sm btn-light-primary">Editar</a>
+														<button type="button" class="btn btn-sm btn-light btn-change-password" data-user="<?php echo $user->id ?>">Contraseña</button>
+														<a href="javascript:void(0)" class="btn btn-sm btn-light-danger btn-delete-user" data-user="<?php echo $user->id ?>">Eliminar</a>
+													</div>
+												</div>
+											<?php } ?>
 										</div>
 										<!--end::Table container-->
 									</div>

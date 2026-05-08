@@ -14,7 +14,7 @@
                                     <span class="text-muted fw-bold fs-7">Gestiona los compromisos semanales de tus clientes</span>
                                 </div>
                                 <div class="card-toolbar">
-                                    <div class="d-flex align-items-center gap-3">
+                                    <div class="d-flex align-items-center gap-3 recurring-toolbar">
                                         <select id="filtroEstado" class="form-select form-select-sm w-150px h-40px">
                                             <option value="active">Activas</option>
                                             <option value="paused">Pausadas</option>
@@ -31,7 +31,8 @@
 
                         <div class="card">
                             <div class="card-body p-0">
-                                <div class="table-responsive">
+                                <div id="recurring-mobile-list" class="p-3"></div>
+                                <div id="recurring-table-wrapper" class="table-responsive">
                                     <table class="table table-row-dashed table-row-gray-300 align-middle gs-3 gy-4">
                                         <thead>
                                             <tr class="fw-bold text-muted bg-light">

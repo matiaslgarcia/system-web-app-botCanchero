@@ -35,7 +35,7 @@
 									<!--begin::Body-->
 									<div class="card-body py-3">
 										<!--begin::Table container-->
-										<div class="table-responsive">
+										<div class="table-responsive d-none d-md-block">
 											<?php $canchas = Canchas::getAll(); ?>
 											<!--begin::Table-->
 											<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
@@ -106,6 +106,33 @@
 												<!--end::Table body-->
 											</table>
 											<!--end::Table-->
+										</div>
+										<div class="d-block d-md-none px-2">
+											<?php if (empty($canchas)) { ?>
+												<div class="bc-mobile-card text-center text-muted py-8">No hay canchas para mostrar.</div>
+											<?php } ?>
+											<?php foreach($canchas AS $cancha) { ?>
+												<div class="bc-mobile-card mb-3">
+													<div class="d-flex align-items-center mb-3">
+														<div class="symbol symbol-45px me-3">
+															<img src="<?php echo $cancha->logo ?>" alt="">
+														</div>
+														<div class="fw-bolder fs-6"><?php echo $cancha->name ?></div>
+													</div>
+													<div class="mb-1">
+														<div class="text-muted fs-8">Latitud</div>
+														<div class="fw-bold"><?php echo $cancha->latitude ?></div>
+													</div>
+													<div class="mb-3">
+														<div class="text-muted fs-8">Longitud</div>
+														<div class="fw-bold"><?php echo $cancha->length ?></div>
+													</div>
+													<div class="d-flex flex-wrap gap-2">
+														<a href="edit-cancha/<?php echo $cancha->id ?>" class="btn btn-sm btn-light-primary">Editar</a>
+														<button type="button" class="btn btn-sm btn-light-danger btn-delete-cancha" data-id="<?php echo $cancha->id ?>">Eliminar</button>
+													</div>
+												</div>
+											<?php } ?>
 										</div>
 										<!--end::Table container-->
 									</div>

@@ -1,7 +1,7 @@
 <?php
 	date_default_timezone_set('America/Argentina/Buenos_Aires');
 
-    define('VERSION', '1.0.32');
+    define('VERSION', '1.0.34');
     
     require 'config.php';
     require 'lib/function.php';

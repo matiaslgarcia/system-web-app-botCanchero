@@ -96,6 +96,11 @@
 								<div class="card-title">
 									<h3 class="card-label fw-bolder text-dark">Detalle de ingresos</h3>
 								</div>
+								<div class="card-toolbar">
+									<button type="button" id="btnExportarIngresosPDF" class="btn btn-light-danger btn-sm">
+										<i class="fa-solid fa-file-pdf me-2"></i>Exportar PDF
+									</button>
+								</div>
 							</div>
 							<div class="card-body pt-0">
 								<table id="kt_datatable_example_1" class="table align-middle table-row-dashed fs-6 gy-5">

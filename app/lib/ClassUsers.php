@@ -312,6 +312,205 @@
             query("UPDATE users SET password = ? WHERE id = ?", '', [$password, $targetId]);
             JSON(['success' => true, 'icon' => 'success', 'msg' => 'Contraseña actualizada']);
         }
+        private static function appEnv(){
+            return strtolower(trim((string) ($_ENV['APP_ENV'] ?? 'production')));
+        }
+        private static function issuePasswordResetToken($userId){
+            $token = bin2hex(random_bytes(32));
+            $tokenHash = hash('sha256', $token);
+            $userId = (int) $userId;
+            $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+            if ($ip === '') {
+                $ip = null;
+            }
+
+            query("DELETE FROM password_resets WHERE expires_at < NOW()", '', []);
+            query("UPDATE password_resets SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL", '', [$userId]);
+            query(
+                "INSERT INTO password_resets (user_id, token_hash, expires_at, requested_ip)
+                 VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 MINUTE), ?)",
+                '',
+                [$userId, $tokenHash, $ip]
+            );
+
+            return $token;
+        }
+        private static function sendPasswordResetEmail($email, $fullName, $resetUrl){
+            $to = trim((string) $email);
+            if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+                return false;
+            }
+            $safeName = trim((string) $fullName);
+            if ($safeName === '') {
+                $safeName = 'usuario';
+            }
+            $subject = COMPANY . ' - Recuperar contraseña';
+            $message = "Hola {$safeName},\n\n"
+                . "Recibimos una solicitud para restablecer tu contraseña.\n"
+                . "Usá este enlace para crear una nueva (expira en 30 minutos):\n\n"
+                . "{$resetUrl}\n\n"
+                . "Si no solicitaste este cambio, ignorá este mensaje.\n";
+
+            // 1) Intentar envio por Resend API (recomendado para prod en contenedor).
+            if (self::sendPasswordResetEmailViaResend($to, $safeName, $resetUrl)) {
+                return true;
+            }
+
+            // 2) Fallback legacy con mail()/sendmail (si estuviera configurado).
+            $headers = "MIME-Version: 1.0\r\n";
+            $headers .= "Content-type: text/plain; charset=UTF-8\r\n";
+            $headers .= "From: no-reply@" . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "\r\n";
+
+            return @mail($to, $subject, $message, $headers);
+        }
+        private static function sendPasswordResetEmailViaResend($to, $safeName, $resetUrl){
+            $apiKey = trim((string) ($_ENV['RESEND_API_KEY'] ?? ''));
+            $from = trim((string) ($_ENV['RESEND_FROM'] ?? 'onboarding@resend.dev'));
+            if ($apiKey === '' || $from === '') {
+                return false;
+            }
+
+            $subject = COMPANY . ' - Recuperar contraseña';
+            $html = '<p>Hola ' . htmlspecialchars($safeName, ENT_QUOTES, 'UTF-8') . ',</p>'
+                . '<p>Recibimos una solicitud para restablecer tu contraseña.</p>'
+                . '<p>Usá este enlace para crear una nueva (expira en 30 minutos):</p>'
+                . '<p><a href="' . htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8') . '</a></p>'
+                . '<p>Si no solicitaste este cambio, ignorá este mensaje.</p>';
+
+            $payload = json_encode([
+                'from' => $from,
+                'to' => [$to],
+                'subject' => $subject,
+                'html' => $html
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            $options = [
+                'http' => [
+                    'method' => 'POST',
+                    'header' => "Authorization: Bearer {$apiKey}\r\n"
+                        . "Content-Type: application/json\r\n",
+                    'content' => $payload,
+                    'timeout' => 15
+                ]
+            ];
+            $context = stream_context_create($options);
+            $response = @file_get_contents('https://api.resend.com/emails', false, $context);
+            $statusCode = 0;
+            if (!empty($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
+                $statusCode = (int) $m[1];
+            }
+            if ($statusCode >= 200 && $statusCode < 300) {
+                return true;
+            }
+
+            logWithRequestId('Resend send fail', [
+                'status' => $statusCode,
+                'response' => is_string($response) ? substr($response, 0, 250) : null
+            ]);
+            return false;
+        }
+        public static function requestPasswordReset($email){
+            $rawEmail = trim((string) $email);
+
+            // Respuesta deliberadamente genérica para evitar enumeración de usuarios.
+            $genericResponse = [
+                'success' => true,
+                'icon' => 'success',
+                'msg' => 'Si el email existe, te enviamos instrucciones para recuperar tu contraseña.'
+            ];
+
+            if (!filter_var($rawEmail, FILTER_VALIDATE_EMAIL)) {
+                JSON($genericResponse);
+            }
+
+            $user = query(
+                "SELECT id, full_name, email, status
+                   FROM users
+                  WHERE email = ?
+                  LIMIT 1",
+                '',
+                [$rawEmail]
+            );
+
+            if (!$user || (int) ($user->status ?? 0) !== 1) {
+                JSON($genericResponse);
+            }
+
+            $token = self::issuePasswordResetToken($user->id);
+            $resetUrl = rtrim(URL, '/') . '/?reset_token=' . urlencode($token);
+            $mailSent = self::sendPasswordResetEmail($user->email, $user->full_name, $resetUrl);
+            audit('password_reset_request', 'user', (int) $user->id, ['mail_sent' => $mailSent ? 1 : 0]);
+
+            $response = $genericResponse;
+            if (!$mailSent && self::appEnv() !== 'production') {
+                // En development facilita testear el flujo sin SMTP.
+                $response['dev_reset_url'] = $resetUrl;
+                $response['msg'] = 'No se pudo enviar el email. Enlace de recuperación generado para entorno local.';
+                $response['icon'] = 'info';
+            }
+            JSON($response);
+        }
+        public static function validatePasswordResetToken($token){
+            $rawToken = trim((string) $token);
+            if ($rawToken === '') {
+                return false;
+            }
+
+            $tokenHash = hash('sha256', $rawToken);
+            $tokenRow = query(
+                "SELECT pr.id, pr.user_id, pr.expires_at, pr.used_at, u.status
+                   FROM password_resets pr
+                   INNER JOIN users u ON u.id = pr.user_id
+                  WHERE pr.token_hash = ?
+                  LIMIT 1",
+                '',
+                [$tokenHash]
+            );
+
+            if (!$tokenRow) {
+                return false;
+            }
+            if (!empty($tokenRow->used_at)) {
+                return false;
+            }
+            if (strtotime((string) $tokenRow->expires_at) < time()) {
+                return false;
+            }
+            if ((int) ($tokenRow->status ?? 0) !== 1) {
+                return false;
+            }
+            return $tokenRow;
+        }
+        public static function resetPasswordByToken($token, $password, $passwordConfirm){
+            $pass = trim((string) $password);
+            $confirm = trim((string) $passwordConfirm);
+            if ($pass === '' || $confirm === '') {
+                JSON(['error' => 'Debés completar ambos campos'], 400, true);
+            }
+            if ($pass !== $confirm) {
+                JSON(['error' => 'Las contraseñas no coinciden'], 400, true);
+            }
+            if (strlen($pass) < 6) {
+                JSON(['error' => 'La contraseña debe tener al menos 6 caracteres'], 400, true);
+            }
+
+            $tokenMeta = self::validatePasswordResetToken($token);
+            if (!$tokenMeta) {
+                JSON(['error' => 'El enlace de recuperación no es válido o está vencido'], 400, true);
+            }
+
+            $passwordHash = self::emcrytePassword($pass);
+            $userId = (int) $tokenMeta->user_id;
+            query("UPDATE users SET password = ?, login_attempts = 0 WHERE id = ?", '', [$passwordHash, $userId]);
+            query("UPDATE password_resets SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL", '', [$userId]);
+            audit('password_reset_success', 'user', $userId);
+
+            JSON([
+                'success' => true,
+                'icon' => 'success',
+                'msg' => 'Contraseña actualizada correctamente. Ya podés iniciar sesión.'
+            ]);
+        }
         public static function validateByEmail($email){
             $result = query("SELECT * FROM users WHERE email = ?", '', [$email]);
             

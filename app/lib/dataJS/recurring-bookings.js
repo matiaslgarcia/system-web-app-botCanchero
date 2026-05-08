@@ -8,6 +8,31 @@ const state = {
     filtroEstado: 'active',
     hasAvailableSlots: false,
 };
+const isUltraMobile = () => window.matchMedia('(max-width: 767.98px)').matches;
+
+function nextDateForDow(dayOfWeek) {
+    const target = Number(dayOfWeek || 0); // 1..7
+    if (target < 1 || target > 7) return new Date().toLocaleDateString('en-CA');
+    const today = new Date();
+    const todayDow = ((today.getDay() + 6) % 7) + 1; // JS Sunday=0 -> 7
+    const diff = (target - todayDow + 7) % 7;
+    const next = new Date(today);
+    next.setDate(today.getDate() + diff);
+    return next.toLocaleDateString('en-CA');
+}
+
+function syncUltraMobileLayout() {
+    const mobileList = document.getElementById('recurring-mobile-list');
+    const tableWrapper = document.getElementById('recurring-table-wrapper');
+    if (!mobileList || !tableWrapper) return;
+    if (isUltraMobile()) {
+        mobileList.style.display = 'block';
+        tableWrapper.style.display = 'none';
+    } else {
+        mobileList.style.display = 'none';
+        tableWrapper.style.display = 'block';
+    }
+}
 
 function badgeStatus(s) {
     const map = {
@@ -26,24 +51,52 @@ function vigenciaTxt(rb) {
     return `${from} → ${until}`;
 }
 
+function bindRowNavigation(containerSelector) {
+    document.querySelectorAll(containerSelector).forEach((row) => {
+        row.addEventListener('click', (event) => {
+            const interactive = event.target.closest('a, button, input, select, textarea, label');
+            if (interactive) return;
+            const url = row.dataset.detailUrl;
+            if (url) window.location.href = url;
+        });
+    });
+}
+
+window.bcRowNavigate = function bcRowNavigate(event, row) {
+    if (event.target.closest('a, button, input, select, textarea, label')) return;
+    const recurringId = Number(row?.dataset?.recurringId || 0);
+    const dow = Number(row?.dataset?.dow || 0);
+    if (recurringId > 0) {
+        openRecurringDetail(recurringId, dow);
+    }
+};
+
 function renderTabla() {
     const body = document.getElementById('tabla-fijas-body');
+    const mobileList = document.getElementById('recurring-mobile-list');
+    syncUltraMobileLayout();
     if (!state.items.length) {
         body.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-muted">No hay reservas fijas</td></tr>';
+        if (mobileList) {
+            mobileList.innerHTML = '<div class="text-center py-8 text-muted">No hay reservas fijas</div>';
+        }
         return;
     }
     body.innerHTML = state.items.map((rb) => `
-        <tr>
+        <tr class="cursor-pointer" data-recurring-id="${rb.id}" data-dow="${rb.day_of_week}" onclick="bcRowNavigate(event, this)">
             <td class="ps-4 fw-bold">${DAYS[rb.day_of_week] || rb.day_of_week}</td>
             <td>${(rb.start_time || '').slice(0, 5)}</td>
             <td>${rb.duration_min} min</td>
             <td>${rb.field_name || ''}</td>
-            <td>${rb.customer_name || ''}</td>
+            <td><button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${rb.id}" data-dow="${rb.day_of_week}">${rb.customer_name || ''}</button></td>
             <td><a href="https://wa.me/${(rb.customer_phone || '').replace(/\D/g, '')}" target="_blank" class="text-muted">${rb.customer_phone || ''}</a></td>
             <td>${vigenciaTxt(rb)}</td>
             <td class="text-center">${badgeStatus(rb.status)}</td>
             <td class="text-end pe-4">
                 <div class="d-flex justify-content-end flex-wrap gap-2">
+                    <button class="btn btn-sm btn-light-info btn-open-recurring-detail" data-recurring-id="${rb.id}" data-dow="${rb.day_of_week}">
+                        <i class="fa-solid fa-eye me-1"></i>Ver detalle
+                    </button>
                     ${rb.status === 'active' ? `
                         <button class="btn btn-sm btn-light-primary btn-mover" data-id="${rb.id}" data-dow="${rb.day_of_week}" data-start="${(rb.start_time || '').slice(0,5)}" data-dur="${rb.duration_min}">
                             <i class="fa-solid fa-arrow-right-arrow-left me-1"></i>Mover Horario
@@ -67,15 +120,85 @@ function renderTabla() {
         </tr>
     `).join('');
 
+    if (mobileList) {
+        mobileList.innerHTML = state.items.map((rb) => `
+            <div class="bc-mobile-card mb-3 cursor-pointer" data-recurring-id="${rb.id}" data-dow="${rb.day_of_week}" onclick="bcRowNavigate(event, this)">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="fw-bolder">${DAYS[rb.day_of_week] || rb.day_of_week}</div>
+                    <div>${badgeStatus(rb.status)}</div>
+                </div>
+                <div class="mb-1"><span class="text-muted fs-8">Hora:</span> ${(rb.start_time || '').slice(0, 5)} · ${rb.duration_min} min</div>
+                <div class="mb-1"><span class="text-muted fs-8">Cancha:</span> ${rb.field_name || ''}</div>
+                <div class="mb-1"><span class="text-muted fs-8">Cliente:</span> <button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${rb.id}" data-dow="${rb.day_of_week}">${rb.customer_name || ''}</button></div>
+                <div class="mb-1"><span class="text-muted fs-8">Teléfono:</span> <a href="https://wa.me/${(rb.customer_phone || '').replace(/\D/g, '')}" target="_blank" class="text-muted">${rb.customer_phone || ''}</a></div>
+                <div class="mb-3"><span class="text-muted fs-8">Vigencia:</span> ${vigenciaTxt(rb)}</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-sm btn-light-info btn-open-recurring-detail" data-recurring-id="${rb.id}" data-dow="${rb.day_of_week}">
+                        <i class="fa-solid fa-eye me-1"></i>Ver detalle
+                    </button>
+                    ${rb.status === 'active' ? `
+                        <button class="btn btn-sm btn-light-primary btn-mover" data-id="${rb.id}" data-dow="${rb.day_of_week}" data-start="${(rb.start_time || '').slice(0,5)}" data-dur="${rb.duration_min}">
+                            <i class="fa-solid fa-arrow-right-arrow-left me-1"></i>Mover Horario
+                        </button>
+                        <button class="btn btn-sm btn-light-warning btn-pausar" data-id="${rb.id}">
+                            <i class="fa-solid fa-pause me-1"></i>Pausar
+                        </button>
+                    ` : ''}
+                    ${rb.status === 'paused' ? `
+                        <button class="btn btn-sm btn-light-success btn-reactivar" data-id="${rb.id}">
+                            <i class="fa-solid fa-play me-1"></i>Reactivar
+                        </button>
+                    ` : ''}
+                    ${rb.status !== 'cancelled' ? `
+                        <button class="btn btn-sm btn-light-danger btn-cancelar" data-id="${rb.id}">
+                            <i class="fa-solid fa-trash me-1"></i>Cancelar
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
     document.querySelectorAll('.btn-mover').forEach((b) => b.addEventListener('click', () => abrirMover(b)));
     document.querySelectorAll('.btn-pausar').forEach((b) => b.addEventListener('click', () => cambiarEstado(b.dataset.id, 'paused')));
     document.querySelectorAll('.btn-reactivar').forEach((b) => b.addEventListener('click', () => cambiarEstado(b.dataset.id, 'active')));
     document.querySelectorAll('.btn-cancelar').forEach((b) => b.addEventListener('click', () => abrirCancelar(b.dataset.id)));
+    document.querySelectorAll('.btn-open-recurring-detail').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openRecurringDetail(Number(btn.dataset.recurringId || 0), Number(btn.dataset.dow || 0));
+        });
+    });
+    bindRowNavigation('#tabla-fijas-body tr[data-recurring-id]');
+    bindRowNavigation('#recurring-mobile-list .bc-mobile-card[data-recurring-id]');
+}
+
+function openRecurringDetail(recurringId, dayOfWeek) {
+    if (!recurringId) return;
+    const dateBooking = nextDateForDow(dayOfWeek);
+    fun.xhr({
+        url: 'generateRecurringBookingForDate',
+        method: 'POST',
+        data: fun.setForm({ recurring_booking_id: recurringId, date_booking: dateBooking }),
+        success: (resp) => {
+            if (resp && resp.ok && resp.booking_id) {
+                window.location.href = `reserva/${resp.booking_id}`;
+            } else {
+                fun.swal({ icon: 'error', title: resp?.error || 'No se pudo abrir el detalle' });
+            }
+        },
+        error: () => fun.swal({ icon: 'error', title: 'Error de red' }),
+    });
 }
 
 function cargar() {
     const body = document.getElementById('tabla-fijas-body');
+    const mobileList = document.getElementById('recurring-mobile-list');
     body.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-muted"><span class="spinner-border spinner-border-sm align-middle me-2"></span>Cargando...</td></tr>';
+    if (mobileList) {
+        mobileList.innerHTML = '<div class="text-center py-8 text-muted"><span class="spinner-border spinner-border-sm align-middle me-2"></span>Cargando...</div>';
+    }
     fun.xhr({
         url: 'getRecurringBookings',
         method: 'POST',
@@ -86,6 +209,9 @@ function cargar() {
         },
         error: () => {
             body.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-danger">Error al cargar datos</td></tr>';
+            if (mobileList) {
+                mobileList.innerHTML = '<div class="text-center py-8 text-danger">Error al cargar datos</div>';
+            }
         },
     });
 }
@@ -379,5 +505,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cargarHorarios();
         }
     });
+    window.addEventListener('resize', renderTabla);
     cargar();
 });

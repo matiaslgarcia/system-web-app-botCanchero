@@ -3,6 +3,7 @@ const fun = new Func;
 const formReagendar = document.querySelector('#form-reagendar');
 const formCerrarPago = document.querySelector('#form-cerrar-pago');
 let btnCancelarReserva = document.querySelector('#btn-action-cancelar-reserva');
+let btnPausarFija = document.querySelector('#btn-action-pausar-fija');
 let time_booking = document.querySelector('#time_booking');
 let id_field = document.querySelector('#id_field');
 
@@ -35,6 +36,43 @@ if (btnCancelarReserva) {
                             location.href = 'reservas';
                         }
                     });
+                }
+            });
+        });
+    });
+}
+
+// Pausar Reserva Fija
+if (btnPausarFija) {
+    btnPausarFija.addEventListener('click', () => {
+        const recurringId = btnPausarFija.getAttribute('data-recurring-id');
+        fun.confirm({
+            icon: 'warning',
+            title: '¿Pausar reserva fija?',
+            text: 'No se generarán nuevos turnos mientras esté pausada.',
+            confirmButtonText: 'Sí, pausar',
+            cancelButtonText: 'No, volver',
+            confirmVariant: 'warning',
+            cancelVariant: 'secondary',
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            fun.xhr({
+                url: 'updateRecurringBookingStatus',
+                method: 'POST',
+                data: fun.setForm({ id: recurringId, status: 'paused' }),
+                success: (resp) => {
+                    if (resp && resp.ok) {
+                        fun.swal({
+                            icon: 'success',
+                            title: 'Reserva fija pausada',
+                            willClose: () => location.reload()
+                        });
+                    } else {
+                        fun.swal({ icon: 'error', title: resp?.error || 'No se pudo pausar la reserva fija' });
+                    }
+                },
+                error: () => {
+                    fun.swal({ icon: 'error', title: 'No se pudo pausar la reserva fija' });
                 }
             });
         });
@@ -145,3 +183,152 @@ if (time_booking) {
 $('#date_booking')?.on('change', () => {
     limpiarHorarios();
 });
+
+// --- Acciones para detalle de reserva fija (RB-*) ---
+const btnRbMover = document.querySelector('.btn-rb-mover');
+const btnRbPausar = document.querySelector('.btn-rb-pausar');
+const btnRbReactivar = document.querySelector('.btn-rb-reactivar');
+const btnRbCancelar = document.querySelector('.btn-rb-cancelar');
+const rbMoverConfirmar = document.getElementById('mover-confirmar');
+const rbCancelarConfirmar = document.getElementById('cancelar-confirmar');
+
+if (btnRbMover) {
+    btnRbMover.addEventListener('click', () => {
+        document.getElementById('mover-id').value = btnRbMover.dataset.id || '';
+        document.getElementById('mover-dow').value = btnRbMover.dataset.dow || '1';
+        document.getElementById('mover-start').value = btnRbMover.dataset.start || '';
+        document.getElementById('mover-dur').value = btnRbMover.dataset.dur || '60';
+        new bootstrap.Modal(document.getElementById('modalMover')).show();
+    });
+}
+
+if (rbMoverConfirmar) {
+    rbMoverConfirmar.addEventListener('click', () => {
+        const payload = {
+            id: document.getElementById('mover-id')?.value || '',
+            day_of_week: document.getElementById('mover-dow')?.value || '',
+            start_time: `${document.getElementById('mover-start')?.value || ''}:00`,
+            duration_min: document.getElementById('mover-dur')?.value || '60',
+        };
+        fun.xhr({
+            url: 'moveRecurringBooking',
+            method: 'POST',
+            data: fun.setForm(payload),
+            success: (resp) => {
+                if (resp && resp.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalMover'))?.hide();
+                    fun.swal({
+                        icon: 'success',
+                        title: 'Horario actualizado',
+                        willClose: () => location.reload()
+                    });
+                } else {
+                    fun.swal({ icon: 'error', title: resp?.error || 'Error al mover' });
+                }
+            },
+            error: () => fun.swal({ icon: 'error', title: 'Error de red' }),
+        });
+    });
+}
+
+if (btnRbPausar) {
+    btnRbPausar.addEventListener('click', () => {
+        const id = btnRbPausar.dataset.id;
+        fun.confirm({
+            title: '¿Estás seguro de pausar esta reserva?',
+            text: 'No se generarán nuevos turnos mientras esté pausada.',
+            confirmButtonText: 'Sí, pausar',
+            cancelButtonText: 'No, cancelar',
+            confirmVariant: 'warning',
+            cancelVariant: 'secondary',
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            fun.xhr({
+                url: 'updateRecurringBookingStatus',
+                method: 'POST',
+                data: fun.setForm({ id, status: 'paused' }),
+                success: (resp) => {
+                    if (resp && resp.ok) {
+                        fun.swal({
+                            icon: 'success',
+                            title: 'Reserva fija pausada',
+                            willClose: () => location.reload()
+                        });
+                    } else {
+                        fun.swal({ icon: 'error', title: resp?.error || 'Error' });
+                    }
+                },
+                error: () => fun.swal({ icon: 'error', title: 'No se pudo pausar la reserva' }),
+            });
+        });
+    });
+}
+
+if (btnRbReactivar) {
+    btnRbReactivar.addEventListener('click', () => {
+        const id = btnRbReactivar.dataset.id;
+        fun.confirm({
+            title: '¿Estás seguro de reactivar esta reserva?',
+            text: 'Se volverán a generar turnos semanales.',
+            confirmButtonText: 'Sí, reactivar',
+            cancelButtonText: 'No, cancelar',
+            confirmVariant: 'success',
+            cancelVariant: 'secondary',
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            fun.xhr({
+                url: 'updateRecurringBookingStatus',
+                method: 'POST',
+                data: fun.setForm({ id, status: 'active' }),
+                success: (resp) => {
+                    if (resp && resp.ok) {
+                        fun.swal({
+                            icon: 'success',
+                            title: 'Reserva fija reactivada',
+                            willClose: () => location.reload()
+                        });
+                    } else {
+                        fun.swal({ icon: 'error', title: resp?.error || 'Error' });
+                    }
+                },
+                error: () => fun.swal({ icon: 'error', title: 'No se pudo reactivar la reserva' }),
+            });
+        });
+    });
+}
+
+if (btnRbCancelar) {
+    btnRbCancelar.addEventListener('click', () => {
+        document.getElementById('cancelar-id').value = btnRbCancelar.dataset.id || '';
+        document.getElementById('cancelar-reason').value = '';
+        new bootstrap.Modal(document.getElementById('modalCancelar')).show();
+    });
+}
+
+if (rbCancelarConfirmar) {
+    rbCancelarConfirmar.addEventListener('click', () => {
+        const payload = {
+            id: document.getElementById('cancelar-id')?.value || '',
+            reason: document.getElementById('cancelar-reason')?.value || '',
+            status: 'cancelled',
+        };
+        fun.xhr({
+            url: 'updateRecurringBookingStatus',
+            method: 'POST',
+            data: fun.setForm(payload),
+            success: (resp) => {
+                if (resp && resp.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalCancelar'))?.hide();
+                    fun.swal({
+                        icon: 'success',
+                        title: 'Reserva fija cancelada',
+                        willClose: () => location.reload()
+                    });
+                } else {
+                    fun.swal({ icon: 'error', title: resp?.error || 'Error al cancelar' });
+                }
+            },
+            error: () => fun.swal({ icon: 'error', title: 'Error de red' }),
+        });
+    });
+}

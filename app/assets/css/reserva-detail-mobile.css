@@ -1,0 +1,131 @@
+.reserva-mobile-page .reserva-page-title,
+.reserva-mobile-page .badge,
+.reserva-mobile-page .fw-bolder,
+.reserva-mobile-page .fw-bold {
+    overflow-wrap: anywhere;
+}
+
+.reserva-mobile-page .reserva-details-list .reserva-detail-row span:last-child {
+    text-align: right;
+    max-width: 68%;
+}
+
+.reserva-mobile-page .reserva-actions-grid .btn {
+    white-space: normal;
+    line-height: 1.25;
+}
+
+@media (max-width: 991.98px) {
+    .reserva-mobile-page .reserva-page-header {
+        margin-bottom: 1rem !important;
+    }
+
+    .reserva-mobile-page .reserva-header-main {
+        align-items: flex-start !important;
+    }
+
+    .reserva-mobile-page .reserva-page-title {
+        font-size: 1.25rem !important;
+        line-height: 1.25 !important;
+        margin-right: 0.5rem !important;
+    }
+
+    .reserva-mobile-page .fs-2hx {
+        font-size: 1.6rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .reserva-mobile-page .reserva-customer-card {
+        gap: 0.75rem;
+        align-items: flex-start !important;
+    }
+
+    .reserva-mobile-page .reserva-customer-meta {
+        text-align: left !important;
+        width: 100%;
+    }
+
+    .reserva-mobile-page .reserva-actions-grid .btn {
+        min-height: 84px !important;
+        height: auto !important;
+        padding-top: 0.8rem !important;
+        padding-bottom: 0.8rem !important;
+    }
+
+    .reserva-mobile-page .reserva-actions-grid .btn i {
+        margin-bottom: 0.45rem !important;
+    }
+
+    .reserva-mobile-page .reserva-timeline .timeline-label {
+        min-width: 40px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .reserva-mobile-page #kt_content_container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .reserva-mobile-page .reserva-header-main {
+        width: 100%;
+    }
+
+    .reserva-mobile-page .reserva-header-main .symbol {
+        display: none !important;
+    }
+
+    .reserva-mobile-page .reserva-badges-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .reserva-mobile-page .reserva-badges-wrap .badge {
+        margin-right: 0 !important;
+    }
+
+    .reserva-mobile-page .reserva-page-subtitle {
+        font-size: 0.9rem !important;
+        line-height: 1.35 !important;
+    }
+
+    .reserva-mobile-page .card-body.py-8 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    .reserva-mobile-page .reserva-customer-card .symbol {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .reserva-mobile-page .reserva-customer-card .symbol-label {
+        font-size: 1rem !important;
+    }
+
+    .reserva-mobile-page .reserva-details-list .reserva-detail-row {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.15rem;
+    }
+
+    .reserva-mobile-page .reserva-details-list .reserva-detail-row span:last-child {
+        text-align: left;
+        max-width: 100%;
+    }
+
+    .reserva-mobile-page .timeline-label:before {
+        left: 38px !important;
+    }
+}
+
+@media (max-width: 359.98px) {
+    .reserva-mobile-page .reserva-page-title {
+        font-size: 1.1rem !important;
+    }
+
+    .reserva-mobile-page .fs-2hx {
+        font-size: 1.3rem !important;
+    }
+}

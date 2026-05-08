@@ -241,6 +241,39 @@ body {
 }
 
 /* Login UI Fix */
+.login-bg {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.login-page-content {
+    padding: 2rem 1.25rem 2.5rem;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    padding: 2.5rem;
+}
+
+.login-logo {
+    width: auto;
+    max-height: 92px;
+}
+
+.login-subtitle {
+    max-width: 34ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.login-actions {
+    align-items: center;
+}
+
 .input-floting-label {
     position: relative;
     display: flex;
@@ -250,7 +283,10 @@ body {
 .input-password-show {
     position: absolute;
     right: 15px;
-    bottom: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
     cursor: pointer;
     z-index: 10;
     color: #a1a5b7;
@@ -582,8 +618,35 @@ body {
 
     /* Login card más robusta en pantallas chicas */
     .w-lg-500px {
-        width: min(420px, calc(100vw - 24px)) !important;
+        width: min(460px, calc(100vw - 24px)) !important;
         margin: 0 auto !important;
+    }
+
+    .login-page-content {
+        padding: 1rem 0.75rem 1.5rem;
+        justify-content: flex-start !important;
+    }
+
+    .login-card {
+        padding: 1.25rem;
+        border-radius: 1rem !important;
+    }
+
+    .login-logo {
+        max-height: 64px;
+    }
+
+    .login-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .login-actions {
+        flex-direction: column;
+    }
+
+    .login-actions .btn {
+        width: 100%;
     }
 }
 
@@ -653,4 +716,33 @@ body {
 
 #dia-mobile-list {
     display: none;
+}
+
+#recurring-mobile-list {
+    display: none;
+}
+
+.bc-mobile-card {
+    background: #fff;
+    border: 1px solid #f1f1f4;
+    border-radius: 0.85rem;
+    padding: 0.85rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 767px) {
+    .recurring-toolbar {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .recurring-toolbar #filtroEstado,
+    .recurring-toolbar .btn {
+        width: 100% !important;
+    }
+
+    .bc-mobile-card .btn {
+        flex: 1 1 auto;
+    }
 }

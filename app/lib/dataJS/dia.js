@@ -9,6 +9,20 @@ const state = {
 
 const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const isUltraMobile = () => window.matchMedia('(max-width: 767.98px)').matches;
+const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+const normalizeDateForFilename = (rawDate) => {
+    const value = String(rawDate || '').trim();
+    let match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+    match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+    return new Date().toISOString().slice(0, 10);
+};
 
 function syncUltraMobileLayout() {
     const mobileList = document.getElementById('dia-mobile-list');
@@ -22,6 +36,39 @@ function syncUltraMobileLayout() {
         tableWrapper.style.display = 'block';
     }
 }
+
+function bindRowNavigation(containerSelector) {
+    document.querySelectorAll(containerSelector).forEach((row) => {
+        row.addEventListener('click', (event) => {
+            const interactive = event.target.closest('a, button, input, select, textarea, label');
+            if (interactive) return;
+            const url = row?.dataset?.detailUrl || '';
+            const recurringId = Number(row?.dataset?.recurringId || 0);
+            const dateBooking = row?.dataset?.dateBooking || state.fecha;
+            if (url) {
+                window.location.href = url;
+                return;
+            }
+            if (recurringId > 0) {
+                openOrCreateRecurringDetail(recurringId, dateBooking);
+            }
+        });
+    });
+}
+
+window.bcRowNavigate = function bcRowNavigate(event, row) {
+    if (event.target.closest('a, button, input, select, textarea, label')) return;
+    const url = row?.dataset?.detailUrl || '';
+    const recurringId = Number(row?.dataset?.recurringId || 0);
+    const dateBooking = row?.dataset?.dateBooking || state.fecha;
+    if (url) {
+        window.location.href = url;
+        return;
+    }
+    if (recurringId > 0) {
+        openOrCreateRecurringDetail(recurringId, dateBooking);
+    }
+};
 
 function getDecoratedBookings() {
     const slotUsage = new Map();
@@ -46,14 +93,22 @@ function getDecoratedBookings() {
         const badge =
             saldo <= 0 ? '<span class="badge badge-light-success">Pagada</span>' :
             (paid > 0 ? '<span class="badge badge-light-warning">Parcial</span>' : '<span class="badge badge-light-danger">Pendiente</span>');
-        const btn = (saldo > 0 && canCharge)
+        const isPlannedRecurring = !isRealBooking && String(b.source || '') === 'recurring_planned' && Number(b.recurring_booking_id || 0) > 0;
+        const recurringId = Number(b.recurring_booking_id || 0);
+        const bookingLink = isRealBooking ? `reserva/${b.id}` : '';
+        const chargeControl = (saldo > 0 && canCharge)
             ? `<button class="btn btn-sm btn-primary btn-cobrar" data-id="${b.id}"><i class="fa-solid fa-cash-register me-1"></i> Cobrar</button>`
             : (saldo <= 0
                 ? '<span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Cobrado</span>'
-                : '<span class="badge badge-light-secondary">Sin turno generado</span>');
+                : (isPlannedRecurring
+                    ? `<button class="btn btn-sm btn-primary btn-cobrar-planned" data-recurring-id="${b.recurring_booking_id}"><i class="fa-solid fa-cash-register me-1"></i> Cobrar</button>`
+                    : '<span class="badge badge-light-secondary">Sin turno generado</span>'));
+        const detailBtn = isRealBooking
+            ? `<a href="${bookingLink}" class="btn btn-sm btn-light-info"><i class="fa-solid fa-eye me-1"></i> Ver detalle</a>`
+            : `<button class="btn btn-sm btn-light-info btn-open-recurring-detail" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}"><i class="fa-solid fa-eye me-1"></i> Ver detalle</button>`;
+        const btn = `<div class="d-inline-flex flex-wrap justify-content-end gap-2">${detailBtn}${chargeControl}</div>`;
         const recurringTag = esFija ? ' <span class="badge badge-light-info ms-1">♻️ Fija</span>' : '';
         const customerName = b.customer_name || 'Cliente sin nombre';
-        const bookingLink = isRealBooking ? `reserva/${b.id}` : '';
         const slotKey = `${b.id_field || ''}|${b.hour_label || ''}`;
         const slotInfo = slotUsage.get(slotKey);
         const nextIndex = (slotRowIndex.get(slotKey) || 0) + 1;
@@ -62,7 +117,7 @@ function getDecoratedBookings() {
             ? `<span class="badge badge-light-primary" title="Cupo ${nextIndex} de ${slotInfo.threshold}">Cancha ${nextIndex}</span>`
             : '<span class="text-muted">-</span>';
 
-        return { b, total, paid, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking };
+        return { b, total, paid, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking, recurringId };
     });
 }
 
@@ -77,12 +132,14 @@ function renderTabla() {
         return;
     }
     const decorated = getDecoratedBookings();
-    body.innerHTML = decorated.map(({ b, total, paid, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking }) => {
-        return `<tr>
+    body.innerHTML = decorated.map(({ b, total, paid, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking, recurringId }) => {
+        return `<tr class="cursor-pointer" data-detail-url="${bookingLink}" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}" onclick="bcRowNavigate(event, this)">
             <td class="ps-4 fw-bold">${b.hour_label || ''}</td>
             <td>${numeroCancha}</td>
             <td>${b.cancha || ''}${recurringTag}</td>
-            <td>${isRealBooking ? `<a href="${bookingLink}" class="fw-bold text-hover-primary">${customerName}</a>` : customerName}</td>
+            <td>${isRealBooking
+                ? `<a href="${bookingLink}" class="fw-bold text-hover-primary">${customerName}</a>`
+                : `<button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}">${customerName}</button>`}</td>
             <td><a href="https://wa.me/${(b.customer_phone || '').replace(/\D/g, '')}" target="_blank" class="text-muted">${b.customer_phone || ''}</a></td>
             <td class="text-end">${fmtMoney(total)}</td>
             <td class="text-end text-success">${fmtMoney(paid)}</td>
@@ -92,14 +149,16 @@ function renderTabla() {
         </tr>`;
     }).join('');
 
-    mobileList.innerHTML = decorated.map(({ b, total, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking }) => `
-        <div class="dia-mobile-card mb-3">
+    mobileList.innerHTML = decorated.map(({ b, total, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking, recurringId }) => `
+        <div class="dia-mobile-card mb-3 cursor-pointer" data-detail-url="${bookingLink}" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}" onclick="bcRowNavigate(event, this)">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="fw-bolder">${b.hour_label || ''}</div>
                 <div>${numeroCancha}</div>
             </div>
             <div class="fw-bold mb-1">${b.cancha || ''}${recurringTag}</div>
-            <div class="mb-2">${isRealBooking ? `<a href="${bookingLink}" class="fw-bold text-hover-primary">${customerName}</a>` : customerName}</div>
+            <div class="mb-2">${isRealBooking
+                ? `<a href="${bookingLink}" class="fw-bold text-hover-primary">${customerName}</a>`
+                : `<button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}">${customerName}</button>`}</div>
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted fs-8">Total</span>
                 <span class="fw-bold">${fmtMoney(total)}</span>
@@ -118,6 +177,18 @@ function renderTabla() {
     document.querySelectorAll('.btn-cobrar').forEach((btn) => {
         btn.addEventListener('click', () => abrirModalCobrar(btn.dataset.id));
     });
+    document.querySelectorAll('.btn-cobrar-planned').forEach((btn) => {
+        btn.addEventListener('click', () => generarYcobrar(btn));
+    });
+    document.querySelectorAll('.btn-open-recurring-detail').forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            openOrCreateRecurringDetail(Number(btn.dataset.recurringId || 0), btn.dataset.dateBooking || state.fecha);
+        });
+    });
+    bindRowNavigation('#tabla-dia-body tr[data-detail-url]');
+    bindRowNavigation('#dia-mobile-list .dia-mobile-card[data-detail-url]');
 }
 
 function renderKPIs() {
@@ -133,7 +204,7 @@ function renderKPIs() {
 }
 
 // --- Cargar bookings del día ---
-function cargarDia() {
+function cargarDia(afterLoad) {
     document.getElementById('tabla-dia-body').innerHTML = '<tr><td colspan="10" class="text-center py-10 text-muted">Cargando...</td></tr>';
     document.getElementById('dia-mobile-list').innerHTML = '<div class="text-center py-8 text-muted">Cargando...</div>';
     fun.xhr({
@@ -147,11 +218,57 @@ function cargarDia() {
             state.bookings = resp.bookings || [];
             renderKPIs();
             renderTabla();
+            if (typeof afterLoad === 'function') afterLoad();
         },
         error: (err) => {
             document.getElementById('tabla-dia-body').innerHTML = '<tr><td colspan="10" class="text-center py-10 text-danger">Error al cargar</td></tr>';
             document.getElementById('dia-mobile-list').innerHTML = '<div class="text-center py-8 text-danger">Error al cargar</div>';
             console.error(err);
+        },
+    });
+}
+
+function generarYcobrar(btn) {
+    const recurringId = Number(btn.dataset.recurringId || 0);
+    if (!recurringId) return;
+    btn.disabled = true;
+    btn.setAttribute('data-kt-indicator', 'on');
+    fun.xhr({
+        url: 'generateRecurringBookingForDate',
+        method: 'POST',
+        data: fun.setForm({ recurring_booking_id: recurringId, date_booking: state.fecha }),
+        success: (resp) => {
+            btn.removeAttribute('data-kt-indicator');
+            btn.disabled = false;
+            if (resp && resp.ok && resp.booking_id) {
+                cargarDia(() => abrirModalCobrar(resp.booking_id));
+            } else {
+                fun.swal({ icon: 'error', title: resp?.error || 'No se pudo generar el turno' });
+            }
+        },
+        error: () => {
+            btn.removeAttribute('data-kt-indicator');
+            btn.disabled = false;
+            fun.swal({ icon: 'error', title: 'Error de red' });
+        },
+    });
+}
+
+function openOrCreateRecurringDetail(recurringId, dateBooking) {
+    if (!recurringId) return;
+    fun.xhr({
+        url: 'generateRecurringBookingForDate',
+        method: 'POST',
+        data: fun.setForm({ recurring_booking_id: recurringId, date_booking: dateBooking || state.fecha }),
+        success: (resp) => {
+            if (resp && resp.ok && resp.booking_id) {
+                window.location.href = `reserva/${resp.booking_id}`;
+            } else {
+                fun.swal({ icon: 'error', title: resp?.error || 'No se pudo abrir el detalle' });
+            }
+        },
+        error: () => {
+            fun.swal({ icon: 'error', title: 'Error de red' });
         },
     });
 }
@@ -212,37 +329,13 @@ document.getElementById('modal-btn-confirmar').addEventListener('click', () => {
 
 // --- Exportar PDF ---
 function exportarPDF() {
-    const element = document.getElementById('kt_content_container');
-    const fechaText = document.getElementById('filtroFecha').value;
-    
-    // Configuración de html2pdf
-    const opt = {
-        margin:       [0.5, 0.5],
-        filename:     `Reservas_${fechaText}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
+    const fecha = document.getElementById('filtroFecha')?.value || new Date().toISOString().slice(0, 10);
+    const fieldId = document.getElementById('filtroCancha')?.value || '';
+    const params = new URLSearchParams({ fecha });
+    if (fieldId) params.set('field_id', fieldId);
 
-    // Ocultar elementos que no queremos en el PDF
-    const toolbars = document.querySelectorAll('.card-toolbar, .btn-cobrar, .pe-4');
-    toolbars.forEach(el => el.style.visibility = 'hidden');
-
-    fun.swal({
-        title: 'Generando PDF...',
-        text: 'Por favor espera un momento',
-        icon: 'info',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        toolbars.forEach(el => el.style.visibility = 'visible');
-        Swal.close();
-    });
+    const url = `fetch/exportDiaPdf?${params.toString()}`;
+    window.open(url, '_blank');
 }
 
 // --- Init ---
