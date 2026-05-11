@@ -663,6 +663,8 @@
                         ELSE 'Otro'
                     END AS status,
                     b.is_fixed,
+                    b.recurring_booking_id,
+                    b.source,
                     DATE_FORMAT(b.date_booking, '%d/%m/%Y') AS fecha,
                     b.day_booking AS day,
                     s.hour AS time,

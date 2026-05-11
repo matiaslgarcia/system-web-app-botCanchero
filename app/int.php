@@ -19,6 +19,7 @@
     require 'lib/ClassInvoices.php';
     require 'lib/ClassMercadoPago.php';
     require 'lib/ClassServices.php';
+    require 'lib/ClassWhatsApp.php';
 
     if (!defined('SKIP_AUTH')) {
         Users::loginCheck();

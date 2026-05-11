@@ -10,6 +10,7 @@
     };
     $isReservas = $isRoute(['index', 'reservas', 'reserva', 'add-booking']);
     $isIngresos = $isRoute(['ingresos']);
+    $isMensaje  = $isRoute(['enviar-mensaje']);
     $isUsuarios = $isRoute(['users-list', 'add-users', 'edit-user']);
     $isCanchas = $isRoute(['canchas-list', 'add-cancha', 'edit-cancha']);
 ?>
@@ -33,6 +34,14 @@
                 <i class="fa-solid fa-money-bill-trend-up fs-2"></i>
             </span>
             <span class="menu-title">Ingresos</span>
+        </a>
+    </div>
+    <div class="menu-item">
+        <a class="menu-link <?php echo $isMensaje ? 'active' : ''; ?>" href="enviar-mensaje">
+            <span class="menu-icon">
+                <i class="fa-brands fa-whatsapp fs-2"></i>
+            </span>
+            <span class="menu-title">Enviar Mensaje</span>
         </a>
     </div>
     <!--end::Svg Icon-->

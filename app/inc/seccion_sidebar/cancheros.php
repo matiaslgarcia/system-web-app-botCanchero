@@ -87,6 +87,15 @@
     </div>
 
     <div class="menu-item">
+        <a class="menu-link" href="enviar-mensaje">
+            <span class="menu-icon">
+                <i class="fa-brands fa-whatsapp fs-4"></i>
+            </span>
+            <span class="menu-title">Enviar Mensaje</span>
+        </a>
+    </div>
+
+    <div class="menu-item">
         <div class="menu-content">
             <div class="separator mx-1 my-4"></div>
         </div>

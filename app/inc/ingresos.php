@@ -2,7 +2,8 @@
 	$selectedDate = isset($_GET['date']) ? trim((string) $_GET['date']) : date('d/m/Y');
 	$selectedField = isset($_GET['cancha']) ? (string) $_GET['cancha'] : '%';
 	$invoices = Invoices::getIngresos();
-	$totalDiario = Invoices::getTotalIngresos();
+	$extraIngresos = Invoices::getExtraIngresos();
+	$totalDiario = Invoices::getTotalIngresos() + Invoices::getTotalExtraIngresos();
 
 	$countApproved = 0;
 	$countRefunded = 0;
@@ -96,7 +97,10 @@
 								<div class="card-title">
 									<h3 class="card-label fw-bolder text-dark">Detalle de ingresos</h3>
 								</div>
-								<div class="card-toolbar">
+								<div class="card-toolbar gap-2">
+									<button type="button" id="btnAgregarIngresoExtra" class="btn btn-light-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalExtraIngreso">
+										<i class="fa-solid fa-plus me-2"></i>Ingreso extra
+									</button>
 									<button type="button" id="btnExportarIngresosPDF" class="btn btn-light-danger btn-sm">
 										<i class="fa-solid fa-file-pdf me-2"></i>Exportar PDF
 									</button>
@@ -106,20 +110,16 @@
 								<table id="kt_datatable_example_1" class="table align-middle table-row-dashed fs-6 gy-5">
 									<thead>
 										<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">
-											<th>N° Reserva</th>
+											<th>Concepto</th>
 											<th>Fecha</th>
-											<th>Estado pago</th>
+											<th>Estado / Tipo</th>
 											<th>Método</th>
 											<th class="text-end">Total</th>
+											<th></th>
 										</tr>
 									</thead>
 									<tbody class="text-gray-700 fw-semibold">
-										<?php if (empty($invoices)) { ?>
-											<tr>
-												<td colspan="5" class="text-center text-muted py-10">No se encontraron ingresos con los filtros seleccionados.</td>
-											</tr>
-										<?php } ?>
-										<?php foreach ($invoices as $invoice) { ?>
+														<?php foreach ($invoices as $invoice) { ?>
 											<tr>
 												<td>#<?php echo $invoice->nroReserva ?></td>
 												<td><?php echo date('d/m/Y', strtotime($invoice->date)) ?></td>
@@ -145,6 +145,23 @@
 														echo $prefix . '$' . number_format(abs($value), 2);
 													?>
 												</td>
+												<td></td>
+											</tr>
+										<?php } ?>
+										<?php foreach ($extraIngresos as $extra) { ?>
+											<tr class="bg-light-success bg-opacity-25">
+												<td>
+													<span class="fw-bold text-gray-800"><?php echo htmlspecialchars($extra->description, ENT_QUOTES) ?></span>
+												</td>
+												<td><?php echo date('d/m/Y', strtotime($extra->date_income)) ?></td>
+												<td><span class="badge badge-light-info">Ingreso extra</span></td>
+												<td><?php echo ucfirst(str_replace('_', ' ', $extra->method_payment)) ?></td>
+												<td class="text-end fw-bolder text-success">$<?php echo number_format((float) $extra->amount, 2) ?></td>
+												<td class="text-end">
+													<button class="btn btn-icon btn-sm btn-light-danger btn-delete-extra" data-id="<?php echo $extra->id ?>" title="Eliminar">
+														<i class="fa-solid fa-trash fs-7"></i>
+													</button>
+												</td>
 											</tr>
 										<?php } ?>
 									</tbody>
@@ -159,9 +176,67 @@
 	</div>
 </div>
 
+<!-- Modal: Agregar Ingreso Extra -->
+<div class="modal fade" id="modalExtraIngreso" tabindex="-1" aria-labelledby="modalExtraIngresoLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title fw-bolder" id="modalExtraIngresoLabel"><i class="fa-solid fa-plus-circle text-success me-2"></i>Agregar ingreso extra</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+			</div>
+			<form id="formExtraIngreso" autocomplete="off">
+				<div class="modal-body">
+					<div class="mb-4">
+						<label class="form-label fw-bold required">Descripción</label>
+						<input type="text" name="description" class="form-control form-control-solid" placeholder="Ej: Alquiler de equipamiento, cuota mensual..." maxlength="255" required>
+					</div>
+					<div class="row g-3 mb-4">
+						<div class="col-6">
+							<label class="form-label fw-bold required">Monto ($)</label>
+							<input type="number" name="amount" class="form-control form-control-solid" placeholder="0.00" min="0.01" step="0.01" required>
+						</div>
+						<div class="col-6">
+							<label class="form-label fw-bold required">Fecha</label>
+							<input type="text" name="date_income" id="extraIngresoDate" class="form-control form-control-solid" value="<?php echo htmlspecialchars($selectedDate, ENT_QUOTES) ?>" required>
+						</div>
+					</div>
+					<div class="mb-4">
+						<label class="form-label fw-bold required">Método de cobro</label>
+						<select name="method_payment" class="form-select form-select-solid" required>
+							<option value="efectivo">Efectivo</option>
+							<option value="transferencia">Transferencia</option>
+							<option value="mercado_pago">Mercado Pago</option>
+							<option value="otro">Otro</option>
+						</select>
+					</div>
+					<div class="mb-2">
+						<label class="form-label fw-bold required">Cancha</label>
+						<select name="id_field" class="form-select form-select-solid" required>
+							<?php foreach (Canchas::getAll() as $cancha) { ?>
+								<option value="<?php echo $cancha->id ?>" <?php echo ((string) $cancha->id === (string) $selectedField || $selectedField === '%') ? 'selected' : '' ?>>
+									<?php echo htmlspecialchars($cancha->name, ENT_QUOTES) ?>
+								</option>
+							<?php } ?>
+						</select>
+					</div>
+					<div id="extraIngresoError" class="alert alert-danger d-none mt-3 py-2"></div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+					<button type="submit" class="btn btn-success" id="btnGuardarExtra">
+						<span class="indicator-label"><i class="fa-solid fa-check me-2"></i>Guardar</span>
+						<span class="indicator-progress d-none"><span class="spinner-border spinner-border-sm me-2"></span>Guardando...</span>
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
 <style>
 .logo-card-type { width: 28px; height: 28px; object-fit: contain; }
 .badge-light-success { background-color: #e8fff3 !important; color: #50cd89 !important; border: 1px solid #ccf6e4; }
 .badge-light-danger { background-color: #fff5f8 !important; color: #f1416c !important; border: 1px solid #ffd0db; }
 .badge-light-warning { background-color: #fff8dd !important; color: #ffc700 !important; border: 1px solid #ffecb5; }
+.badge-light-info { background-color: #f0f9ff !important; color: #009ef7 !important; border: 1px solid #b8e6ff; }
 </style>

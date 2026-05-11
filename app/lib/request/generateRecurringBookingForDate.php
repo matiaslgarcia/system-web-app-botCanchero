@@ -171,7 +171,7 @@
         [':field' => (int) $rb['field_id'], ':hour' => $hour, ':hour2' => $hour]
     );
     $fieldPrice = query(
-        "SELECT COALESCE(NULLIF(price_hour, 0), NULLIF(price_per_hour, 0), 0) AS price
+        "SELECT COALESCE(NULLIF(price_hour, 0), 0) AS price
            FROM soccer_field
           WHERE id = :id
           LIMIT 1",

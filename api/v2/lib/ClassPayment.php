@@ -107,7 +107,7 @@
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?
              )", '', [
                 $data->client_id, $data->collector_id, $data->coupon_code, $data->coupon_labels, $data->date_created,
                 $data->date_of_expiration, $data->expiration_date_from, $data->expiration_date_to, $data->expires, $data->external_reference,

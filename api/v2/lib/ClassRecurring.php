@@ -58,7 +58,7 @@ class Recurring {
                 AND day_of_week = :dow
                 AND status IN ('active','pending_payment')
                 AND (:start < ADDTIME(start_time, SEC_TO_TIME(duration_min*60)))
-                AND (ADDTIME(:start, SEC_TO_TIME(:dur*60)) > start_time)
+                AND (ADDTIME(:start2, SEC_TO_TIME(:dur*60)) > start_time)
                 AND (valid_until IS NULL OR valid_until >= :vfrom)",
             'ARRAY',
             [
@@ -66,6 +66,7 @@ class Recurring {
                 ':field' => (int) $d->field_id,
                 ':dow'   => (int) $d->day_of_week,
                 ':start' => $d->start_time,
+                ':start2'=> $d->start_time,
                 ':dur'   => (int) $d->duration_min,
                 ':vfrom' => $d->valid_from,
             ]
@@ -118,7 +119,7 @@ class Recurring {
         $where = [];
         $params = [];
         if (isset($_GET['customer_id'])) {
-            $where[] = 'customer_id = :cust';
+            $where[] = 'rb.customer_id = :cust';
             $params[':cust'] = (int) $_GET['customer_id'];
         }
         if (isset($_GET['establishment_id']) || Auth::getEstablishmentId()) {
@@ -126,11 +127,11 @@ class Recurring {
             $params[':est'] = Auth::getEstablishmentId() ?? (int) $_GET['establishment_id'];
         }
         if (isset($_GET['field_id'])) {
-            $where[] = 'field_id = :field';
+            $where[] = 'rb.field_id = :field';
             $params[':field'] = (int) $_GET['field_id'];
         }
         if (isset($_GET['status'])) {
-            $where[] = 'status = :st';
+            $where[] = 'rb.status = :st';
             $params[':st'] = $_GET['status'];
         }
         $whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -205,7 +206,7 @@ class Recurring {
         // Cancelar bookings futuros NO pagados generados por esta fija
         query(
             "UPDATE booking
-                SET status = 3
+                SET status = 2
               WHERE recurring_booking_id = :id
                 AND date_booking >= CURDATE()
                 AND (paid_amount IS NULL OR paid_amount = 0)",
@@ -238,7 +239,7 @@ class Recurring {
         // Cancelar también bookings futuros generados, pagados o no — el cliente decidió cortar.
         query(
             "UPDATE booking
-                SET status = 3
+                SET status = 2
               WHERE recurring_booking_id = :id
                 AND date_booking >= CURDATE()",
             '',
@@ -333,7 +334,7 @@ class Recurring {
             query(
                 "UPDATE booking b
                    JOIN recurring_booking_pause p ON p.id = :id
-                    SET b.status = 3
+                    SET b.status = 2
                   WHERE b.recurring_booking_id = p.recurring_booking_id
                     AND b.date_booking BETWEEN p.from_date AND p.to_date
                     AND (b.paid_amount IS NULL OR b.paid_amount = 0)",
@@ -442,11 +443,11 @@ class Recurring {
 
                 // Precio de la cancha
                 $field = query(
-                    "SELECT price_per_hour FROM soccer_field WHERE id = :id",
+                    "SELECT price_hour FROM soccer_field WHERE id = :id",
                     'ARRAY',
                     [':id' => $rb['field_id']]
                 );
-                $price = $field ? (float) ($field['price_per_hour'] ?? 0) : 0;
+                $price = $field ? (float) ($field['price_hour'] ?? 0) : 0;
 
                 query(
                     "INSERT INTO booking

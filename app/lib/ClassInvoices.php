@@ -161,6 +161,30 @@
             );
             return (float) ($total['totalDia'] ?? 0);
         }
+        public static function getExtraIngresos($date = null, $idField = null) {
+            $date = $date ?: ((isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d'));
+            if ($idField === null) {
+                $idField = (isset($_GET['cancha']) && $_GET['cancha'] !== '%') ? (int) $_GET['cancha'] : null;
+            }
+            if ($idField) {
+                return query("SELECT * FROM extra_income WHERE date_income = ? AND id_field = ? ORDER BY id DESC", 'ALL', [$date, $idField]);
+            }
+            return query("SELECT * FROM extra_income WHERE date_income = ? ORDER BY id DESC", 'ALL', [$date]);
+        }
+
+        public static function getTotalExtraIngresos($date = null, $idField = null) {
+            $date = $date ?: ((isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d'));
+            if ($idField === null) {
+                $idField = (isset($_GET['cancha']) && $_GET['cancha'] !== '%') ? (int) $_GET['cancha'] : null;
+            }
+            if ($idField) {
+                $row = query("SELECT COALESCE(SUM(amount), 0) AS total FROM extra_income WHERE date_income = ? AND id_field = ?", 'ARRAY', [$date, $idField]);
+            } else {
+                $row = query("SELECT COALESCE(SUM(amount), 0) AS total FROM extra_income WHERE date_income = ?", 'ARRAY', [$date]);
+            }
+            return (float) ($row['total'] ?? 0);
+        }
+
         public static function getTotalIngresos(){
             $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
             $cancha = (isset($_GET['cancha'])) ? $_GET['cancha'] : '%';
