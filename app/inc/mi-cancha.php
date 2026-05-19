@@ -81,7 +81,7 @@
 														<button type="button" id="btn-add-price-range" class="btn btn-light btn-sm">Agregar Franja</button>
 													</div>
 												</div>
-												<div class="table-responsive border rounded p-3">
+												<div class="table-responsive border rounded p-3 price-ranges-table-wrap">
 													<table class="table align-middle table-row-dashed mb-0">
 														<thead>
 															<tr class="text-muted fw-bold">
@@ -276,3 +276,62 @@
 		</div>
 	</div>
 </div>
+
+<style>
+@media (max-width: 576px) {
+    .price-ranges-table-wrap { overflow: hidden !important; }
+    .price-ranges-table-wrap table,
+    .price-ranges-table-wrap tbody { display: block; width: 100%; }
+    /* Ocultar encabezado de tabla */
+    .price-ranges-table-wrap thead { display: none; }
+    /* Cada fila como flex */
+    .price-ranges-table-wrap .price-range-row {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px dashed #e1e3ea;
+    }
+    .price-ranges-table-wrap .price-range-row td {
+        display: block;
+        padding: 0;
+        border: none;
+        flex: 1;
+        min-width: 0;
+    }
+    /* Botón quitar: ancho fijo */
+    .price-ranges-table-wrap .price-range-row td:last-child {
+        flex: 0 0 36px;
+    }
+    /* Labels encima de cada input */
+    .price-ranges-table-wrap .price-range-row td:nth-child(1)::before { content: 'Desde'; }
+    .price-ranges-table-wrap .price-range-row td:nth-child(2)::before { content: 'Hasta'; }
+    .price-ranges-table-wrap .price-range-row td:nth-child(3)::before { content: 'Precio ($)'; }
+    .price-ranges-table-wrap .price-range-row td::before {
+        display: block;
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: #a1a5b7;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.15rem;
+    }
+    .price-ranges-table-wrap .range-start,
+    .price-ranges-table-wrap .range-end,
+    .price-ranges-table-wrap .range-price {
+        width: 100%;
+        min-width: 0;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.3rem;
+        color: #181c32 !important;
+        -webkit-text-fill-color: #181c32 !important;
+        opacity: 1 !important;
+    }
+    .price-ranges-table-wrap .btn-remove-range {
+        width: 36px;
+        height: 36px;
+        padding: 0.25rem;
+        margin-top: 1.1rem;
+    }
+}
+</style>

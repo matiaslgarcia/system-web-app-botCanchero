@@ -439,8 +439,8 @@
                                         </div>
                                         <div class="d-flex flex-column flex-grow-1">
                                             <span class="text-gray-800 fs-4 fw-bolder"><?php echo $reserva->customer_name ?></span>
-                                            <a href="https://wa.me/<?php echo $reserva->customer_phone ?>" target="_blank" class="text-muted fw-bold text-hover-primary d-flex align-items-center">
-                                                <i class="fa-brands fa-whatsapp text-success me-2"></i><?php echo $reserva->customer_phone ?>
+                                            <a href="https://wa.me/<?php echo preg_replace('/\D/', '', trim((string) $reserva->customer_phone)) ?>" target="_blank" class="text-muted fw-bold text-hover-primary d-flex align-items-center text-nowrap">
+                                                <i class="fa-brands fa-whatsapp text-success me-2"></i><?php echo trim((string) $reserva->customer_phone) ?>
                                             </a>
                                         </div>
                                         <div class="text-end reserva-customer-meta">

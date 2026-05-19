@@ -92,13 +92,19 @@ function clearRangeErrors() {
     priceRangesBody.querySelectorAll('input').forEach(input => input.classList.remove('is-invalid'));
 }
 
+const isMobileDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+const timeInputType = isMobileDevice ? 'text' : 'time';
+const timeInputAttrs = isMobileDevice
+    ? 'placeholder="HH:MM" pattern="[0-9]{2}:[0-9]{2}" maxlength="5"'
+    : '';
+
 function createPriceRangeRow(range = {}) {
     if (!priceRangesBody) return;
     const tr = document.createElement('tr');
     tr.className = 'price-range-row';
     tr.innerHTML = `
-        <td><input type="time" class="form-control form-control-sm range-start" value="${padTime(range.start_time || '08:00')}"></td>
-        <td><input type="time" class="form-control form-control-sm range-end" value="${padTime(range.end_time || '18:00')}"></td>
+        <td><input type="${timeInputType}" ${timeInputAttrs} class="form-control form-control-sm range-start" value="${padTime(range.start_time || '08:00')}"></td>
+        <td><input type="${timeInputType}" ${timeInputAttrs} class="form-control form-control-sm range-end" value="${padTime(range.end_time || '18:00')}"></td>
         <td><input type="number" min="1" step="0.01" class="form-control form-control-sm range-price" value="${range.price ?? ''}" placeholder="0.00"></td>
         <td class="text-end"><button type="button" class="btn btn-icon btn-sm btn-light-danger btn-remove-range"><i class="fa-solid fa-trash"></i></button></td>
     `;

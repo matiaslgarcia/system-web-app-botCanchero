@@ -201,8 +201,8 @@
                     SELECT pr.price
                     FROM price_ranges pr
                     WHERE pr.id_field = f.id
-                      AND h.hour >= pr.start_time
-                      AND h.hour < pr.end_time
+                      AND CAST(LEFT(h.hour, 5) AS TIME) >= pr.start_time
+                      AND CAST(LEFT(h.hour, 5) AS TIME) < pr.end_time
                     ORDER BY pr.start_time DESC
                     LIMIT 1
                 ),
@@ -238,8 +238,8 @@
                                         FROM price_ranges pr
                                         INNER JOIN schedules hs ON hs.id = b.time_booking
                                         WHERE pr.id_field = f.id
-                                          AND hs.hour >= pr.start_time
-                                          AND hs.hour < pr.end_time
+                                          AND CAST(LEFT(hs.hour, 5) AS TIME) >= pr.start_time
+                                          AND CAST(LEFT(hs.hour, 5) AS TIME) < pr.end_time
                                         ORDER BY pr.start_time DESC
                                         LIMIT 1
                                     ),
@@ -497,6 +497,28 @@
                     JSON(['ok' => false, 'error' => 'Booking no pertenece a la cancha indicada'], 403);
                 }
 
+                // Effective price: from price_ranges for the booking's time slot, or field default
+                $priceRow = query(
+                    "SELECT COALESCE(
+                        (SELECT pr.price
+                           FROM price_ranges pr
+                           INNER JOIN schedules s ON s.id = bk.time_booking
+                          WHERE pr.id_field = bk.id_field
+                            AND CAST(LEFT(s.hour, 5) AS TIME) >= pr.start_time
+                            AND CAST(LEFT(s.hour, 5) AS TIME) < pr.end_time
+                          ORDER BY pr.start_time DESC
+                          LIMIT 1),
+                        f.price_hour
+                    ) AS effective_price
+                     FROM booking bk
+                     INNER JOIN soccer_field f ON f.id = bk.id_field
+                    WHERE bk.id = ?
+                    LIMIT 1",
+                    'ARRAY',
+                    [$bookingId]
+                );
+                $effectivePrice = (float) ($priceRow['effective_price'] ?? 0);
+
                 $insert = $pdo->prepare(
                     "INSERT INTO payment_app_web (
                         payment_date,
@@ -514,7 +536,7 @@
                 ]);
 
                 $newPaid = (float) ($b['paid_amount'] ?? 0) + $amount;
-                $total = (float) ($b['total_amount'] ?? 0);
+                $total = $effectivePrice > 0 ? $effectivePrice : (float) ($b['total_amount'] ?? 0);
                 $newStatus = ($total > 0 && $newPaid >= $total) ? 'paid' : 'partial';
                 $paidInCashAt = $newStatus === 'paid' ? date('Y-m-d H:i:s') : null;
 

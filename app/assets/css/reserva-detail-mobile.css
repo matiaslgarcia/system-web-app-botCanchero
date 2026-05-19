@@ -96,12 +96,7 @@
     }
 
     .reserva-mobile-page .reserva-customer-card .symbol {
-        width: 48px !important;
-        height: 48px !important;
-    }
-
-    .reserva-mobile-page .reserva-customer-card .symbol-label {
-        font-size: 1rem !important;
+        display: none !important;
     }
 
     .reserva-mobile-page .reserva-details-list .reserva-detail-row {
