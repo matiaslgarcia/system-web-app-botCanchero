@@ -19,9 +19,31 @@
     $duration_min = (int)($_POST['duration_min'] ?? 60);
     $valid_from = $_POST['valid_from'] ?? date('Y-m-d');
     $valid_until = $_POST['valid_until'] ?? null;
+    $customerPhone = preg_replace('/\D+/', '', (string) ($_POST['customer_phone'] ?? ''));
+    $customerName = trim((string) ($_POST['customer_name'] ?? ''));
 
-    if (!$field_id || !$customer_id || !$day_of_week || !$start_time) {
+    if (!$field_id || !$day_of_week || !$start_time) {
         JSON(['error' => 'Faltan campos obligatorios'], 400);
+    }
+
+    if ($customer_id <= 0) {
+        if ($customerPhone === '' || $customerName === '') {
+            JSON(['error' => 'Seleccioná un cliente existente o cargá teléfono y nombre'], 400);
+        }
+        if (strlen($customerPhone) < 8) {
+            JSON(['error' => 'El teléfono del cliente es inválido'], 400);
+        }
+
+        $customer = Customers::checkExitCustomerOCreate((object) [
+            'phone' => $customerPhone,
+            'full_name' => $customerName,
+            'email' => '',
+        ]);
+        $customer_id = (int) ($customer->id ?? 0);
+    }
+
+    if ($customer_id <= 0) {
+        JSON(['error' => 'No se pudo resolver el cliente para la reserva fija'], 400);
     }
 
     // Normalizar start_time:

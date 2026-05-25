@@ -26,6 +26,30 @@
             die();
         }
 
+        public static function requireFeatureForCurrentAction(){
+            $actionName = (string) ($_GET['action'] ?? '');
+            if ($actionName === '') return;
+
+            $featureMap = self::getFeatureMap();
+            if (!array_key_exists($actionName, $featureMap)) {
+                return;
+            }
+
+            FeatureGate::requireApi($featureMap[$actionName]);
+        }
+
+        private static function getFeatureMap(){
+            return [
+                'recurring_pauseRequest' => 'mod_recurring_self_service',
+                'recurring_pauseReview' => 'mod_recurring_self_service',
+                'recurring_listPauses' => 'mod_recurring_self_service',
+                'recurring_skipOccurrence' => 'mod_recurring_self_service',
+                'rules_get' => 'mod_operational_rules',
+                'rules_update' => 'mod_operational_rules',
+                'rules_validateAction' => 'mod_operational_rules',
+            ];
+        }
+
         private static function ActionList(){
             $action = array(
                 // Canchas
@@ -70,8 +94,14 @@
                 'recurring_pauseRequest',
                 'recurring_pauseReview',
                 'recurring_listPauses',
+                'recurring_skipOccurrence',
                 'recurring_generateWeek',
                 'recurring_updatePayment',
+
+                // Rules
+                'rules_get',
+                'rules_update',
+                'rules_validateAction',
 
                 // Calendario
                 'calendar_view',

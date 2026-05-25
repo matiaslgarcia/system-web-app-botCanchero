@@ -16,6 +16,9 @@ $mpInfo = query(
 $mpConnected = !empty($mpInfo['mp_access_token']);
 $maskedUserId = !empty($mpInfo['mp_user_id']) ? '***' . substr((string) $mpInfo['mp_user_id'], -4) : '';
 $oauthConfigured = MercadoPago::isOAuthConfigured();
+$currentEstablishmentId = (int) (FeatureGate::currentEstablishmentId() ?? 0);
+$showOperationalRules = Users::isSuperAdmin()
+    || FeatureGate::isEnabled($currentEstablishmentId, 'mod_operational_rules', true);
 $oauthError = $_GET['error'] ?? '';
 $oauthErrorMsg = '';
 if ($oauthError === 'mp_oauth_failed') {
@@ -85,6 +88,11 @@ if ($oauthError === 'mp_oauth_failed') {
                                     <li class="nav-item">
                                         <a class="nav-link text-active-primary py-5 me-10" data-bs-toggle="tab" href="#kt_user_payments_tab">Pagos (MP)</a>
                                     </li>
+                                    <?php if ($showOperationalRules) : ?>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-active-primary py-5 me-10" data-bs-toggle="tab" href="#kt_user_operational_tab">Configuración Operativa</a>
+                                    </li>
+                                    <?php endif; ?>
                                 </ul>
                             </div>
                         </div>
@@ -236,6 +244,17 @@ if ($oauthError === 'mp_oauth_failed') {
                                     </div>
                                 </div>
                             </div>
+
+                            <?php if ($showOperationalRules) : ?>
+                            <div class="tab-pane fade" id="kt_user_operational_tab" role="tabpanel">
+                                <?php
+                                $configuracionOperativaEmbedded = true;
+                                $configuracionOperativaRedirectUrl = 'account_settings';
+                                include __DIR__ . '/configuracion-operativa.php';
+                                unset($configuracionOperativaEmbedded, $configuracionOperativaRedirectUrl);
+                                ?>
+                            </div>
+                            <?php endif; ?>
                             
                         </div>
                     </div>

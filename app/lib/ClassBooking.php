@@ -166,6 +166,101 @@
             return $occupied >= $threshold;
         }
 
+        private static function getActionContext($bookingId) {
+            $row = query(
+                "SELECT b.id,
+                        b.status,
+                        b.date_booking,
+                        s.hour,
+                        f.establishment_id
+                   FROM booking b
+                   INNER JOIN schedules s ON s.id = b.time_booking
+                   INNER JOIN soccer_field f ON f.id = b.id_field
+                  WHERE b.id = ?
+                  LIMIT 1",
+                'ARRAY',
+                [(int) $bookingId]
+            );
+            return $row ?: null;
+        }
+
+        private static function buildBookingDateTime($context) {
+            if (!$context) return null;
+            $date = (string) ($context['date_booking'] ?? '');
+            $hour = substr((string) ($context['hour'] ?? ''), 0, 5);
+            if ($date === '' || $hour === '') return null;
+            $dateTime = strtotime($date . ' ' . $hour . ':00');
+            return $dateTime ? date('Y-m-d H:i:s', $dateTime) : null;
+        }
+
+        public static function getActionPolicy($bookingId) {
+            $context = self::getActionContext((int) $bookingId);
+            $base = [
+                'can_cancel' => true,
+                'cancel_reason' => '',
+                'can_reschedule' => true,
+                'reschedule_reason' => '',
+                'booking_datetime' => null,
+                'establishment_id' => 0,
+                'rules' => BusinessRules::defaults(),
+                'is_past' => false,
+            ];
+            if (!$context) {
+                $base['can_cancel'] = false;
+                $base['can_reschedule'] = false;
+                $base['cancel_reason'] = 'Reserva no encontrada.';
+                $base['reschedule_reason'] = 'Reserva no encontrada.';
+                return $base;
+            }
+
+            $establishmentId = (int) ($context['establishment_id'] ?? 0);
+            $bookingDateTime = self::buildBookingDateTime($context);
+            $isPast = $bookingDateTime ? strtotime($bookingDateTime) < time() : false;
+            $statusId = (int) ($context['status'] ?? 0);
+            $rules = BusinessRules::getByEstablishment($establishmentId);
+
+            $base['booking_datetime'] = $bookingDateTime;
+            $base['establishment_id'] = $establishmentId;
+            $base['rules'] = $rules;
+            $base['is_past'] = $isPast;
+
+            if ($statusId === 2) {
+                $base['can_cancel'] = false;
+                $base['can_reschedule'] = false;
+                $base['cancel_reason'] = 'La reserva ya está cancelada.';
+                $base['reschedule_reason'] = 'La reserva ya está cancelada.';
+                return $base;
+            }
+            if ($statusId === 3) {
+                $base['can_cancel'] = false;
+                $base['can_reschedule'] = false;
+                $base['cancel_reason'] = 'La reserva ya fue completada.';
+                $base['reschedule_reason'] = 'La reserva ya fue completada.';
+                return $base;
+            }
+            if ($isPast) {
+                $base['can_cancel'] = false;
+                $base['can_reschedule'] = false;
+                $base['cancel_reason'] = 'La reserva ya pasó su horario de juego.';
+                $base['reschedule_reason'] = 'La reserva ya pasó su horario de juego.';
+                return $base;
+            }
+            if (Users::isSuperAdmin()) {
+                return $base;
+            }
+
+            if (!BusinessRules::canCustomerCancelAt($establishmentId, $bookingDateTime)) {
+                $base['can_cancel'] = false;
+                $base['cancel_reason'] = 'La política del establecimiento solo permite cancelar con al menos ' . (int) ($rules['customer_cancel_min_hours'] ?? 0) . ' horas de anticipación.';
+            }
+            if (!BusinessRules::canCustomerRescheduleAt($establishmentId, $bookingDateTime)) {
+                $base['can_reschedule'] = false;
+                $base['reschedule_reason'] = 'La política del establecimiento solo permite re-agendar con al menos ' . (int) ($rules['customer_reschedule_min_hours'] ?? 0) . ' horas de anticipación.';
+            }
+
+            return $base;
+        }
+
         public static function getById($id){
             Canchas::ensurePriceRangesStorage();
             $reserva = query("SELECT
@@ -407,6 +502,17 @@
             JSON($data);
         }
         public static function reagendar($data) {
+            $policy = self::getActionPolicy((int) $data->id);
+            if (!$policy['can_reschedule']) {
+                JSON(['ok' => false, 'error' => $policy['reschedule_reason'] ?: 'La reserva no se puede re-agendar'], 409);
+            }
+            if (!BusinessRules::canScheduleDate((int) ($policy['establishment_id'] ?? 0), (string) ($data->date_booking ?? ''))) {
+                $rules = $policy['rules'] ?? BusinessRules::defaults();
+                JSON([
+                    'ok' => false,
+                    'error' => 'La nueva fecha supera el máximo permitido de ' . (int) ($rules['max_future_booking_days'] ?? 30) . ' días.'
+                ], 409);
+            }
             $idField = self::getFieldByBookingId((int) $data->id);
             if (!$idField) {
                 JSON(['ok' => false, 'error' => 'Reserva no encontrada'], 404);

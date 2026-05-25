@@ -18,3 +18,4 @@ app/upload/avatar/*jpeg
 
 # Dependencias third-party instaladas manualmente
 app/lib/third_party/tcpdf/
+vendor/

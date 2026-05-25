@@ -2,6 +2,25 @@ import { Func } from './function.js';
 const fun = new Func;
 
 const init = () => {
+    const activateTabFromHash = () => {
+        const hash = window.location.hash || '';
+        if (!hash || !window.bootstrap?.Tab) return;
+        const trigger = document.querySelector(`a[data-bs-toggle="tab"][href="${hash}"]`);
+        if (!trigger) return;
+        window.bootstrap.Tab.getOrCreateInstance(trigger).show();
+    };
+
+    document.querySelectorAll('a[data-bs-toggle="tab"]').forEach((trigger) => {
+        trigger.addEventListener('shown.bs.tab', (event) => {
+            const href = event.target.getAttribute('href') || '';
+            if (href.startsWith('#')) {
+                history.replaceState(null, '', href);
+            }
+        });
+    });
+
+    activateTabFromHash();
+
     // Avatar Preview
     const avatarInput = document.getElementById('avatar-input');
     if (avatarInput) {

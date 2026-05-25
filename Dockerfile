@@ -1,5 +1,7 @@
 FROM php:8.2-apache
 
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     libpng-dev \
@@ -23,6 +25,14 @@ WORKDIR /var/www/html
 
 # Copiar código de la aplicación (modo producción sin bind mounts)
 COPY . /var/www/html
+
+# Instalar dependencias PHP de producción.
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
+    --no-dev \
+    --prefer-dist \
+    --no-interaction \
+    --optimize-autoloader \
+    --working-dir=/var/www/html
 
 # Ajustar permisos de runtime para Apache/PHP
 RUN chown -R www-data:www-data /var/www/html

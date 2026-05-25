@@ -233,6 +233,13 @@
           AND (rb.valid_until IS NULL OR d.d <= rb.valid_until)
           AND NOT EXISTS (
                 SELECT 1
+                  FROM recurring_booking_pause p
+                 WHERE p.recurring_booking_id = rb.id
+                   AND p.status = 'approved'
+                   AND DATE_FORMAT(d.d, '%Y-%m-%d') BETWEEN p.from_date AND p.to_date
+          )
+          AND NOT EXISTS (
+                SELECT 1
                   FROM booking b2
                  WHERE b2.recurring_booking_id = rb.id
                    AND b2.date_booking = DATE_FORMAT(d.d, '%Y-%m-%d')
@@ -255,7 +262,10 @@
 
         // Pintar fijas en naranja, sueltas con color del status (mantener original)
         $isRecurringBooking = !empty($reserva->recurring_booking_id) && (int)$reserva->recurring_booking_id > 0;
-        if ($reserva->source === 'recurring' || $reserva->source === 'recurring_planned' || $reserva->is_fixed == 1 || $isRecurringBooking) {
+        $isCancelled = (int) ($reserva->id_status ?? 0) === 2;
+        if ($isCancelled && ($reserva->is_fixed == 1 || $isRecurringBooking)) {
+            $reserva->color = '#f1416c'; // fija cancelada
+        } elseif ($reserva->source === 'recurring' || $reserva->source === 'recurring_planned' || $reserva->is_fixed == 1 || $isRecurringBooking) {
             $reserva->color = '#fd7e14'; // naranja
         }
 

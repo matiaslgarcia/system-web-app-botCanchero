@@ -4,6 +4,9 @@
 
     if (session_status() === PHP_SESSION_NONE) session_start();
 
+    $_POST['phone'] = preg_replace('/\D+/', '', (string) ($_POST['phone'] ?? ''));
+    $_POST['full_name'] = trim((string) ($_POST['full_name'] ?? ''));
+
     $error = array();
     if(empty($_POST['phone'])){
         array_push($error, array('key' => 'phone'));

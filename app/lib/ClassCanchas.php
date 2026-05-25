@@ -327,4 +327,66 @@
                 return query("SELECT id, full_name AS name FROM soccer_field WHERE id = ? AND status = 1", 'ALL', [$user->id_field]);
             }
         }
+        public static function getBookingFieldSummariesByUser(){
+            if (empty($_SESSION['canchero'])) {
+                return [];
+            }
+
+            $idUser = (int) $_SESSION['canchero'];
+            $user = query("SELECT id_field, rol FROM users WHERE id = ?", '', [$idUser]);
+            if (!$user) {
+                return [];
+            }
+
+            if (($user->rol ?? '') === 'superAdmin') {
+                $fields = query(
+                    "SELECT id,
+                            full_name AS name,
+                            COALESCE(NULLIF(threshold, 0), 1) AS threshold
+                       FROM soccer_field
+                      WHERE status = 1
+                      ORDER BY id ASC",
+                    'ALL'
+                );
+            } else {
+                $field = query("SELECT establishment_id FROM soccer_field WHERE id = ?", '', [$user->id_field]);
+                $estId = (int) ($field->establishment_id ?? 0);
+
+                if ($estId > 0) {
+                    $fields = query(
+                        "SELECT id,
+                                full_name AS name,
+                                COALESCE(NULLIF(threshold, 0), 1) AS threshold
+                           FROM soccer_field
+                          WHERE establishment_id = ?
+                            AND status = 1
+                          ORDER BY id ASC",
+                        'ALL',
+                        [$estId]
+                    );
+                } else {
+                    $fields = query(
+                        "SELECT id,
+                                full_name AS name,
+                                COALESCE(NULLIF(threshold, 0), 1) AS threshold
+                           FROM soccer_field
+                          WHERE id = ?
+                            AND status = 1
+                          ORDER BY id ASC",
+                        'ALL',
+                        [$user->id_field]
+                    );
+                }
+            }
+
+            if (!is_array($fields)) {
+                return [];
+            }
+
+            foreach ($fields as $fieldItem) {
+                $fieldItem->threshold = max(1, (int) ($fieldItem->threshold ?? 1));
+            }
+
+            return $fields;
+        }
     }

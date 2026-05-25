@@ -1,3 +1,10 @@
+<?php
+    $bookingFields = Canchas::getBookingFieldSummariesByUser();
+    $fieldCount = count($bookingFields);
+    $defaultField = $fieldCount > 0 ? $bookingFields[0] : null;
+    $showFieldSelector = $fieldCount > 1;
+    $showSlotSelector = !$showFieldSelector && $defaultField && (int) ($defaultField->threshold ?? 1) > 1;
+?>
 <div class="d-flex flex-column flex-root">
     <div class="page d-flex flex-row flex-column-fluid">
         <?php inc('sidebar') ?>
@@ -75,21 +82,52 @@
                 <form id="form-nueva-fija">
                     <div class="row">
                         <div class="col-md-6 mb-4">
-                            <label class="form-label required">Cliente</label>
-                            <select id="nueva-cliente" class="form-select" data-control="select2" data-placeholder="Buscar cliente...">
+                            <label class="form-label">Cliente existente</label>
+                            <select id="nueva-cliente" class="form-select" data-placeholder="Buscar cliente...">
                                 <option></option>
                             </select>
+                            <div class="form-text">Opcional. Si no existe, completá teléfono y nombre debajo.</div>
                         </div>
                         <div class="col-md-6 mb-4">
-                            <label class="form-label required">Cancha</label>
-                            <select id="nueva-cancha" class="form-select" data-control="select2" data-placeholder="Selecciona cancha...">
-                                <option value="">Selecciona cancha...</option>
-                                <?php 
-                                    foreach(Canchas::getByIdUser() as $c){
-                                        echo "<option value='{$c->id}'>{$c->name}</option>";
-                                    }
-                                ?>
-                            </select>
+                            <label class="form-label <?php echo $showFieldSelector ? 'required' : ''; ?>">
+                                <?php echo $showFieldSelector ? 'Cancha' : 'Teléfono'; ?>
+                            </label>
+                            <?php if ($showFieldSelector) : ?>
+                                <select id="nueva-cancha" class="form-select" data-placeholder="Selecciona cancha...">
+                                    <option value="">Selecciona cancha...</option>
+                                    <?php foreach ($bookingFields as $c) : ?>
+                                        <option value="<?php echo (int) $c->id; ?>"><?php echo htmlspecialchars($c->name); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php else : ?>
+                                <input type="hidden" id="nueva-cancha" value="<?php echo $defaultField ? (int) $defaultField->id : 0; ?>">
+                                <input type="text" id="nueva-customer-phone" class="form-control" placeholder="Ej: 5491122334455" autocomplete="tel">
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label <?php echo $showFieldSelector ? '' : 'required'; ?>">Nombre</label>
+                            <input type="text" id="nueva-customer-name" class="form-control" placeholder="Nombre del cliente" autocomplete="name">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <?php if ($showFieldSelector) : ?>
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" id="nueva-customer-phone" class="form-control" placeholder="Ej: 5491122334455" autocomplete="tel">
+                            <?php elseif ($showSlotSelector) : ?>
+                                <label class="form-label">Cupo</label>
+                                <select id="nueva-slot" class="form-select">
+                                    <?php for ($slot = 1; $slot <= (int) $defaultField->threshold; $slot++) : ?>
+                                        <option value="<?php echo $slot; ?>">Cupo <?php echo $slot; ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <div class="form-text">Referencia visual. El sistema asigna el cupo automáticamente según disponibilidad.</div>
+                            <?php else : ?>
+                                <div class="h-100 d-flex align-items-end">
+                                    <div class="form-text mb-0">Completá un cliente existente o cargá uno nuevo para crear la reserva fija.</div>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -112,7 +150,7 @@
                                 <option value="">Selecciona horario...</option>
                             </select>
                             <div id="nueva-start-helper" class="form-text text-muted mt-2">
-                                Seleccioná cancha y día para habilitar horarios.
+                                Seleccioná el día y, si corresponde, la cancha para habilitar horarios.
                             </div>
                         </div>
                     </div>

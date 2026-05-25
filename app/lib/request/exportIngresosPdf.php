@@ -2,8 +2,25 @@
 
 require '../../int.php';
 
-$tcpdfPath = __DIR__ . '/../third_party/tcpdf/tcpdf.php';
-if (!file_exists($tcpdfPath)) {
+function resolveTcpdfPath()
+{
+    $candidates = [
+        __DIR__ . '/../third_party/tcpdf/tcpdf.php',
+        __DIR__ . '/../../../vendor/tecnickcom/tcpdf/tcpdf.php',
+        '/usr/share/php/tcpdf/tcpdf.php',
+    ];
+
+    foreach ($candidates as $candidate) {
+        if (is_file($candidate)) {
+            return $candidate;
+        }
+    }
+
+    return null;
+}
+
+$tcpdfPath = resolveTcpdfPath();
+if ($tcpdfPath === null) {
     http_response_code(500);
     die('TCPDF no esta instalado en el servidor.');
 }

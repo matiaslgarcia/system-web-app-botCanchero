@@ -1,4 +1,14 @@
 <?php if(Users::infoUser('rol') == 'canchero') : ?>
+<?php
+    $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    $currentRoute = trim((string) basename((string) $requestPath), '/');
+    $currentRoute = preg_replace('/\.php$/', '', $currentRoute);
+    if ($currentRoute === '' || $currentRoute === 'app') {
+        $currentRoute = 'index';
+    }
+    $currentEstablishmentId = (int) (FeatureGate::currentEstablishmentId() ?? 0);
+    $showCRM = FeatureGate::isEnabled($currentEstablishmentId, 'mod_crm', true);
+?>
 <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
     <div class="menu-item">
         <div class="menu-content pt-8 pb-2">
@@ -76,6 +86,17 @@
             <span class="menu-title">Servicios</span>
         </a>
     </div>
+
+    <?php if ($showCRM) : ?>
+    <div class="menu-item">
+        <a class="menu-link <?php echo in_array($currentRoute, ['clientes', 'cliente'], true) ? 'active' : ''; ?>" href="clientes">
+            <span class="menu-icon">
+                <i class="fa-solid fa-address-book fs-4"></i>
+            </span>
+            <span class="menu-title">Clientes</span>
+        </a>
+    </div>
+    <?php endif; ?>
 
     <div class="menu-item">
         <a class="menu-link" href="mi-ingresos">

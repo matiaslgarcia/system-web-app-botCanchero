@@ -189,21 +189,19 @@ function initCalendar(events) {
             const classes = ['shadow-sm'];
             const isFija = isFixedBooking(arg.event.extendedProps || {});
             const origin = getBookingOrigin(arg.event.extendedProps || {});
+            const status = Number(arg.event.extendedProps?.id_status ?? arg.event.extendedProps?.status ?? 0);
             classes.push(origin === 'bot' ? 'fc-event-source-bot' : 'fc-event-source-web');
             
             // Lógica de "Reserva Pasada"
             if (arg.event.end && arg.event.end < now) {
                 classes.push('fc-event-past', 'opacity-50', 'grayscale');
             } else {
-                if (isFija) {
+                if (status === 2) {
+                    classes.push(isFija ? 'fc-event-fixed-cancelled' : 'fc-event-danger');
+                } else if (isFija) {
                     classes.push('fc-event-fixed');
                 } else {
-                    const status = arg.event.extendedProps.status;
-                    if (status == 2) {
-                        classes.push('fc-event-danger');
-                    } else {
-                        classes.push('fc-event-primary');
-                    }
+                    classes.push('fc-event-primary');
                 }
             }
             
@@ -213,6 +211,7 @@ function initCalendar(events) {
             const ev = info.event.extendedProps;
             const isFija = isFixedBooking(ev);
             const origin = getBookingOrigin(ev);
+            const status = Number(ev.id_status ?? ev.status ?? 0);
             const total = Number(ev.total_amount) || 0;
             const paid = Number(ev.paid_amount) || 0;
             const balance = Number(ev.balance_due) || Math.max(0, total - paid);
@@ -225,7 +224,11 @@ function initCalendar(events) {
             if (slotInfo) lines.push(`Cupos: <strong>${slotInfo.occupied}/${slotInfo.threshold}</strong>`);
             if (canchaNumero) lines.push(`N° Cancha: <strong>${canchaNumero}</strong>`);
             lines.push(`Origen: <strong>${origin === 'bot' ? 'Bot' : 'Web'}</strong>`);
-            if (isFija) lines.push('<span style="color:#fd7e14">♻️ RESERVA FIJA</span>');
+            if (isFija && status === 2) {
+                lines.push('<span style="color:#f1416c"><strong>♻️ RESERVA FIJA CANCELADA</strong></span>');
+            } else if (isFija) {
+                lines.push('<span style="color:#fd7e14">♻️ RESERVA FIJA</span>');
+            }
             if (total > 0) {
                 lines.push(`Total: ${fmtMoney(total)}`);
                 lines.push(`Pagado: ${fmtMoney(paid)}`);

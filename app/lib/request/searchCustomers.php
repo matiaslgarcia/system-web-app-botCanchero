@@ -12,7 +12,7 @@
     if (empty($q)) {
         // Por defecto traer los 10 más recientes
         $customers = query(
-            "SELECT id, full_name as text, phone 
+            "SELECT id, full_name as text, full_name, phone 
              FROM customers 
              ORDER BY id DESC
              LIMIT 10",
@@ -20,7 +20,7 @@
         );
     } else {
         $customers = query(
-            "SELECT id, full_name as text, phone 
+            "SELECT id, full_name as text, full_name, phone 
              FROM customers 
              WHERE full_name LIKE :q OR phone LIKE :q 
              LIMIT 20",

@@ -318,6 +318,15 @@
 
             $boundEst = Auth::getEstablishmentId();
             self::assertBookingOwnership($bookingId, $boundEst);
+            $policy = class_exists('Rules') && method_exists('Rules', 'getBookingActionPolicy')
+                ? Rules::getBookingActionPolicy($bookingId)
+                : null;
+            if ($policy && !(bool) ($policy['can_view_balance'] ?? true)) {
+                Api::ApiError([
+                    'error' => (string) ($policy['view_balance_reason'] ?? 'La consulta de saldo no está habilitada'),
+                    'code' => 'BALANCE_NOT_ALLOWED',
+                ], 403);
+            }
             $total = (float) $b['total_amount'];
             $paid = (float) $b['paid_amount'];
             JSON([
@@ -522,6 +531,15 @@
 
             $boundEst = Auth::getEstablishmentId();
             self::assertBookingOwnership($data->id_booking, $boundEst);
+            $policy = class_exists('Rules') && method_exists('Rules', 'getBookingActionPolicy')
+                ? Rules::getBookingActionPolicy((int) $data->id_booking)
+                : null;
+            if ($policy && !(bool) ($policy['can_cancel'] ?? true)) {
+                Api::ApiError([
+                    'error' => (string) ($policy['cancel_reason'] ?? 'La cancelación no está permitida para esta reserva'),
+                    'code' => 'CANCEL_NOT_ALLOWED',
+                ], 409);
+            }
             
             // Status 2 = Cancelado
             $sql = "UPDATE booking SET user = ?, status = '2' WHERE id = ?";
@@ -546,6 +564,22 @@
 
             $boundEst = Auth::getEstablishmentId();
             self::assertBookingOwnership($bookingId, $boundEst);
+            $policy = class_exists('Rules') && method_exists('Rules', 'getBookingActionPolicy')
+                ? Rules::getBookingActionPolicy($bookingId)
+                : null;
+            if ($policy && !(bool) ($policy['can_reschedule'] ?? true)) {
+                Api::ApiError([
+                    'error' => (string) ($policy['reschedule_reason'] ?? 'La re-agenda no está permitida para esta reserva'),
+                    'code' => 'RESCHEDULE_NOT_ALLOWED',
+                ], 409);
+            }
+            if ($policy && !BusinessRules::canScheduleDate((int) ($policy['establishment_id'] ?? 0), $dateBooking)) {
+                $rules = $policy['rules'] ?? BusinessRules::defaults();
+                Api::ApiError([
+                    'error' => 'La nueva fecha supera el máximo permitido de ' . (int) ($rules['max_future_booking_days'] ?? 30) . ' días.',
+                    'code' => 'DATE_NOT_ALLOWED',
+                ], 409);
+            }
 
             $booking = query(
                 "SELECT id, id_field, status, is_fixed

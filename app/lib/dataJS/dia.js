@@ -246,10 +246,10 @@ function generarYcobrar(btn) {
                 fun.swal({ icon: 'error', title: resp?.error || 'No se pudo generar el turno' });
             }
         },
-        error: () => {
+        error: (err) => {
             btn.removeAttribute('data-kt-indicator');
             btn.disabled = false;
-            fun.swal({ icon: 'error', title: 'Error de red' });
+            fun.swal({ icon: 'error', title: err?.error || 'Error de red' });
         },
     });
 }
@@ -267,8 +267,8 @@ function openOrCreateRecurringDetail(recurringId, dateBooking) {
                 fun.swal({ icon: 'error', title: resp?.error || 'No se pudo abrir el detalle' });
             }
         },
-        error: () => {
-            fun.swal({ icon: 'error', title: 'Error de red' });
+        error: (err) => {
+            fun.swal({ icon: 'error', title: err?.error || 'Error de red' });
         },
     });
 }

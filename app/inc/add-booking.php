@@ -1,3 +1,10 @@
+<?php
+    $bookingFields = Canchas::getBookingFieldSummariesByUser();
+    $fieldCount = count($bookingFields);
+    $defaultField = $fieldCount > 0 ? $bookingFields[0] : null;
+    $showFieldSelector = $fieldCount > 1;
+    $showSlotSelector = !$showFieldSelector && $defaultField && (int) ($defaultField->threshold ?? 1) > 1;
+?>
 <div class="d-flex flex-column flex-root">
     <!--begin::Page-->
     <div class="page d-flex flex-row flex-column-fluid">
@@ -27,19 +34,38 @@
                                             <label for="full_name" class="form-label">Nombre</label>
                                             <input type="text" name="full_name" id="full_name" class="form-control">
                                         </div>
-                                        <div class="col-6 my-3">
-                                            <label for="id_label" >Cancha</label>
-                                            <select class="form-control" name="id_field" id="id_field">
-                                                <option selected disabled value="" >--SELECCIONE--</option>
-                                                <?php foreach(Canchas::getByIdUser() AS $cancha)  {?>
-                                                    <option value="<?php echo $cancha->id ?>" ><?php echo $cancha->name ?></option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
+                                        <?php if ($showFieldSelector) : ?>
+                                            <div class="col-6 my-3">
+                                                <label for="id_field" class="form-label">Cancha</label>
+                                                <select class="form-control" name="id_field" id="id_field">
+                                                    <option selected disabled value="">--SELECCIONE--</option>
+                                                    <?php foreach ($bookingFields as $cancha) : ?>
+                                                        <option value="<?php echo (int) $cancha->id; ?>"><?php echo htmlspecialchars($cancha->name); ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                        <?php elseif ($defaultField) : ?>
+                                            <input type="hidden" name="id_field" id="id_field" value="<?php echo (int) $defaultField->id; ?>">
+                                        <?php else : ?>
+                                            <div class="col-12 my-3">
+                                                <div class="alert alert-danger mb-0">No hay canchas activas configuradas para crear reservas.</div>
+                                            </div>
+                                        <?php endif; ?>
                                         <div class="col-6 my-3">
                                             <label for="date_booking" class="form-label input-datepiker">Fecha Reserva</label>
                                             <input autocomplete="off" type="text" name="date_booking" id="date_booking" class="form-control" placeholder="dd/mm/yyyy" data-min-date="<?php echo date('d/m/Y')?>" >
                                         </div>
+                                        <?php if ($showSlotSelector) : ?>
+                                            <div class="col-6 my-3">
+                                                <label for="slot_display" class="form-label">Cupo</label>
+                                                <select class="form-control" id="slot_display">
+                                                    <?php for ($slot = 1; $slot <= (int) $defaultField->threshold; $slot++) : ?>
+                                                        <option value="<?php echo $slot; ?>">Cupo <?php echo $slot; ?></option>
+                                                    <?php endfor; ?>
+                                                </select>
+                                                <div class="form-text">Referencia visual. El sistema asigna el cupo automáticamente según disponibilidad.</div>
+                                            </div>
+                                        <?php endif; ?>
                                         
                                         <div class="col-6 my-3">
                                             <label for="time_booking" class="form-label">Hora Reserva</label>

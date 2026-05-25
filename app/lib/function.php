@@ -161,3 +161,8 @@ function audit($action, $target_type = null, $target_id = null, $payload = null)
     $payload_json = json_encode($payload);
     query('INSERT INTO audit_log (actor_user_id, actor_ip, action, target_type, target_id, payload) VALUES (?, ?, ?, ?, ?, ?)', '', [$actor_id, $ip, $action, $target_type, $target_id, $payload_json]);
 }
+
+function domain_event($event_name, $entity_type = null, $entity_id = null, $payload = null, $options = []) {
+    if (!class_exists('DomainEvents')) return false;
+    return DomainEvents::record($event_name, $entity_type, $entity_id, $payload, $options);
+}

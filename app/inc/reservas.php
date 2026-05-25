@@ -52,6 +52,9 @@
                                     <span class="badge badge-light-warning d-flex align-items-center gap-2">
                                         <span class="bc-origin-dot bc-origin-dot-fixed"></span> Reserva Fija
                                     </span>
+                                    <span class="badge badge-light-danger d-flex align-items-center gap-2">
+                                        <span class="bc-origin-dot bc-origin-dot-fixed-cancelled"></span> Fija Cancelada
+                                    </span>
                                 </div>
                                 <!--begin::Calendar-->
                                 <div id="reservas"></div>
