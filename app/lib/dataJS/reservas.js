@@ -134,6 +134,23 @@ function getScrollTimeForRange(rangeStart, rangeEnd) {
     return getDefaultScrollTime();
 }
 
+// This grid renders with contentHeight:'auto' (no fixed height), which
+// means FullCalendar never creates its own internal scroller — the browser
+// scrolls the page itself. calendar.scrollToTime()/the `scrollTime` option
+// only move FullCalendar's *internal* scroller, so on this config they're a
+// silent no-op. Scroll the actual target row into view natively instead,
+// which works no matter who owns the scrolling.
+function scrollGridToTime(hhmmss) {
+    if (!calendarEl) return;
+    requestAnimationFrame(() => {
+        const slot = calendarEl.querySelector(`.fc-timegrid-slot-lane[data-time="${hhmmss}"]`)
+            || calendarEl.querySelector(`.fc-timegrid-slot[data-time="${hhmmss}"]`);
+        if (slot && typeof slot.scrollIntoView === 'function') {
+            slot.scrollIntoView({ block: 'start', behavior: 'auto' });
+        }
+    });
+}
+
 function initCalendar(events) {
     const mobile = isMobileViewport();
     calendar = new FullCalendar.Calendar(calendarEl, {
@@ -202,7 +219,9 @@ function initCalendar(events) {
                 scheduleReservasPolling();
             }
             if (calendar && info?.view?.type !== 'dayGridMonth') {
-                calendar.scrollToTime(getScrollTimeForRange(info?.view?.currentStart, info?.view?.currentEnd));
+                const target = getScrollTimeForRange(info?.view?.currentStart, info?.view?.currentEnd);
+                calendar.scrollToTime(target);
+                scrollGridToTime(target);
             }
         },
         windowResize: function () {

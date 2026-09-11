@@ -140,7 +140,7 @@
             // Disponibilidad unificada: bookings puntuales + reservas fijas activas para esa fecha/hora.
             $result = query("SELECT
                     s.id AS id,
-                    s.hour12 AS text,
+                    s.hour AS text,
                     (
                         (SELECT COUNT(*)
                            FROM booking
