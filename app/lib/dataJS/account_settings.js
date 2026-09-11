@@ -62,11 +62,17 @@ const init = () => {
     if (passwordForm) {
         passwordForm.onsubmit = function(e) {
             e.preventDefault();
+            const current = document.getElementById('current_password').value;
             const pass = document.getElementById('new_password').value;
             const confirm = document.getElementById('confirm_password').value;
 
-            if (pass.length < 6) {
-                fun.swal({ icon: 'error', title: 'La contraseña debe tener al menos 6 caracteres' });
+            if (!current) {
+                fun.swal({ icon: 'error', title: 'Ingresá tu contraseña actual' });
+                return false;
+            }
+
+            if (pass.length < 8 || !/[A-Za-z]/.test(pass) || !/[0-9]/.test(pass)) {
+                fun.swal({ icon: 'error', title: 'La contraseña debe tener al menos 8 caracteres, con letras y números' });
                 return false;
             }
 

@@ -10,6 +10,22 @@ const forgotPanel = document.getElementById('forgot-panel');
 const resetPanel = document.getElementById('reset-panel');
 const invalidResetPanel = document.getElementById('invalid-reset-panel');
 
+const headingTitle = document.getElementById('login-heading-title');
+const headingSubtitle = document.getElementById('login-heading-subtitle');
+
+const HEADINGS = {
+    login: { title: 'Bienvenido', subtitle: 'Gestioná tus reservas y tu cuenta desde cualquier dispositivo.' },
+    forgot: { title: 'Recuperá tu clave', subtitle: 'Te mandamos un link a tu email.' },
+};
+
+function setHeading(panel) {
+    if (!headingTitle || !headingSubtitle) return;
+    const key = panel === forgotPanel ? 'forgot' : panel === loginPanel ? 'login' : null;
+    if (!key) return; // reset / invalid-reset headings are rendered server-side on load
+    headingTitle.textContent = HEADINGS[key].title;
+    headingSubtitle.textContent = HEADINGS[key].subtitle;
+}
+
 function showPanel(panel) {
     [loginPanel, forgotPanel, resetPanel, invalidResetPanel].forEach((currentPanel) => {
         if (!currentPanel) return;
@@ -18,10 +34,18 @@ function showPanel(panel) {
     if (panel) {
         panel.classList.remove('d-none');
     }
+    setHeading(panel);
 }
 
 function isEmpty(value) {
     return String(value || '').trim() === '';
+}
+
+function setFieldError(inputId, errorId, hasError) {
+    const input = document.getElementById(inputId);
+    const error = document.getElementById(errorId);
+    if (input) input.classList.toggle('is-invalid', hasError);
+    if (error) error.classList.toggle('d-none', !hasError);
 }
 
 function togglePasswordVisibilityById(inputId, btn) {
@@ -44,12 +68,11 @@ function login() {
     if (!loginForm) return;
     const email = document.getElementById('email')?.value || '';
     const password = document.getElementById('password')?.value || '';
-    if (isEmpty(email) || isEmpty(password)) {
-        fun.swal({
-            icon: 'error',
-            title: 'Completá email y contraseña',
-            timerProgressBar: true,
-        });
+    const emailMissing = isEmpty(email);
+    const passwordMissing = isEmpty(password);
+    setFieldError('email', 'email-error', emailMissing);
+    setFieldError('password', 'password-error', passwordMissing);
+    if (emailMissing || passwordMissing) {
         return;
     }
 
@@ -158,6 +181,13 @@ function resetPassword() {
         }
     });
 }
+
+document.getElementById('email')?.addEventListener('input', (e) => {
+    if (!isEmpty(e.target.value)) setFieldError('email', 'email-error', false);
+});
+document.getElementById('password')?.addEventListener('input', (e) => {
+    if (!isEmpty(e.target.value)) setFieldError('password', 'password-error', false);
+});
 
 document.querySelectorAll('.input-password-show').forEach((btn) => {
     btn.addEventListener('click', () => {

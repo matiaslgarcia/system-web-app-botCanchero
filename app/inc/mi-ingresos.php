@@ -31,7 +31,7 @@
                         <!-- Resumen de Ingresos -->
                         <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
                             <div class="col-md-4">
-                                <div class="card card-flush h-md-100" style="background: linear-gradient(112.14deg, #00D2FF 0%, #3A7BD5 100%) !important;" data-bs-theme="dark">
+                                <div class="card card-flush h-md-100" style="background: var(--bc-lead-bg, #0E1A12) !important;" data-bs-theme="dark">
                                     <div class="card-header pt-5">
                                         <div class="card-title d-flex flex-column">
                                             <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">$<?php echo number_format($totalDiario, 2) ?></span>
@@ -45,7 +45,7 @@
                                                 <span class="fw-boldest text-white fs-6"><?php echo $porcentajeMeta ?>%</span>
                                             </div>
                                             <div class="h-8px mx-3 w-100 bg-white bg-opacity-25 rounded">
-                                                <div class="bg-white rounded h-8px" role="progressbar" style="width: <?php echo $porcentajeMeta ?>%;" aria-valuenow="<?php echo $porcentajeMeta ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="rounded h-8px" role="progressbar" style="width: <?php echo $porcentajeMeta ?>%; background: var(--bc-accent, #25D366);" aria-valuenow="<?php echo $porcentajeMeta ?>" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -62,13 +62,9 @@
                                     </div>
                                     <div class="card-body d-flex flex-column justify-content-end pe-0">
                                         <span class="fs-6 fw-bolder text-gray-800 d-block mb-2">Transacciones exitosas hoy</span>
-                                        <div class="symbol-group symbol-hover">
-                                            <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Pago Online">
-                                                <span class="symbol-label bg-light-success text-success fw-bold">ON</span>
-                                            </div>
-                                            <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Pago Presencial">
-                                                <span class="symbol-label bg-light-primary text-primary fw-bold">PR</span>
-                                            </div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge badge-light-success fw-bold px-3 py-2">Online</span>
+                                            <span class="badge badge-light-primary fw-bold px-3 py-2">Presencial</span>
                                         </div>
                                     </div>
                                 </div>
@@ -128,6 +124,51 @@
                                 </div>
                             </div>
 							<div class="card-body pt-0">
+								<div id="ingresos-mobile-list" class="d-flex flex-column gap-3">
+									<?php foreach ($invoices as $invoice) {
+										$val = abs((float) $invoice->signed_total);
+										$isNegative = ((float) $invoice->signed_total) < 0;
+										$colorClass = $isNegative ? 'text-danger' : 'text-success';
+										$prefix = $isNegative ? '-' : '';
+										$estadoBadge = $invoice->estado == 'approved' ? ['Aprobado', 'success']
+											: ($invoice->estado == 'refunded' ? ['Reembolsado', 'danger']
+											: ($invoice->estado == 'pending' ? ['Pendiente', 'warning'] : [ucfirst($invoice->estado), 'warning']));
+									?>
+										<div class="bc-mobile-card">
+											<div class="d-flex justify-content-between align-items-start mb-2">
+												<div class="d-flex flex-column">
+													<span class="text-gray-800 fw-bolder fs-6">Reserva #<?php echo $invoice->nroReserva ?></span>
+													<span class="text-muted fs-7"><?php echo date('d/m/Y', strtotime($invoice->date)) ?></span>
+												</div>
+												<span class="fw-boldest <?php echo $colorClass ?> fs-5"><?php echo $prefix ?>$<?php echo number_format($val, 2) ?></span>
+											</div>
+											<div class="d-flex justify-content-between align-items-center">
+												<span class="badge badge-light-<?php echo $estadoBadge[1] ?> fs-8 fw-bold"><?php echo $estadoBadge[0] ?></span>
+												<span class="text-muted fs-8"><?php echo ucfirst(str_replace('_', ' ', $invoice->paymet_method)) ?></span>
+											</div>
+										</div>
+									<?php } ?>
+									<?php foreach ($extraIngresos as $extra) { ?>
+										<div class="bc-mobile-card bg-light-success bg-opacity-10">
+											<div class="d-flex justify-content-between align-items-start mb-2">
+												<div class="d-flex flex-column">
+													<span class="text-gray-800 fw-bolder fs-6"><?php echo htmlspecialchars($extra->description, ENT_QUOTES) ?></span>
+													<span class="text-muted fs-7"><?php echo date('d/m/Y', strtotime($extra->date_income)) ?></span>
+												</div>
+												<span class="fw-boldest text-success fs-5">$<?php echo number_format((float) $extra->amount, 2) ?></span>
+											</div>
+											<div class="d-flex justify-content-between align-items-center">
+												<span class="badge badge-light-info fs-8 fw-bold">Ingreso extra</span>
+												<button class="btn btn-icon btn-sm btn-light-danger btn-delete-extra" data-id="<?php echo $extra->id ?>" title="Eliminar">
+													<i class="fa-solid fa-trash fs-7"></i>
+												</button>
+											</div>
+										</div>
+									<?php } ?>
+									<?php if (empty($invoices) && empty($extraIngresos)) { ?>
+										<div class="text-center text-muted py-8">No hay información</div>
+									<?php } ?>
+								</div>
 								<table id="kt_datatable_example_1" class="table align-middle table-row-dashed fs-6 gy-5">
 									<thead>
 										<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">

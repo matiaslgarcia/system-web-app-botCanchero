@@ -110,11 +110,37 @@ function updateEvent(data, onError) {
     });
 }
 
+function pad2(n) {
+    return String(n).padStart(2, '0');
+}
+
+// One hour before the establishment's first configured schedule slot, so the
+// week/day view opens near where reservations actually start instead of 00:00.
+function getDefaultScrollTime() {
+    const minHour = (calendarEl.dataset.minHour || '').trim();
+    if (!/^\d{2}:\d{2}$/.test(minHour)) return '06:00:00';
+    const [h] = minHour.split(':').map(Number);
+    return `${pad2(Math.max(0, h - 1))}:00:00`;
+}
+
+// If the visible range includes right now, scroll near the current time
+// instead; otherwise fall back to the establishment's opening hour.
+function getScrollTimeForRange(rangeStart, rangeEnd) {
+    const now = new Date();
+    if (rangeStart && rangeEnd && now >= rangeStart && now < rangeEnd) {
+        const h = Math.max(0, now.getHours() - 1);
+        return `${pad2(h)}:00:00`;
+    }
+    return getDefaultScrollTime();
+}
+
 function initCalendar(events) {
     const mobile = isMobileViewport();
     calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'es',
         initialView: mobile ? 'timeGridDay' : 'timeGridWeek',
+        scrollTime: getDefaultScrollTime(),
+        scrollTimeReset: false,
         headerToolbar: {
             left: 'prev,next',
             center: 'title',
@@ -167,13 +193,16 @@ function initCalendar(events) {
         expandRows: true,
         nowIndicator: true,
         handleWindowResize: true,
-        datesSet: function () {
+        datesSet: function (info) {
             // Al navegar semana/mes/día refrescamos con el rango visible actual.
             if (calendar) {
                 lastReservasSignature = null;
                 resetReservasPollingCadence();
                 cargarReservas({ silent: true });
                 scheduleReservasPolling();
+            }
+            if (calendar && info?.view?.type !== 'dayGridMonth') {
+                calendar.scrollToTime(getScrollTimeForRange(info?.view?.currentStart, info?.view?.currentEnd));
             }
         },
         windowResize: function () {

@@ -175,6 +175,12 @@ if ($oauthError === 'mp_oauth_failed') {
                                             
                                             <div class="card-body border-top p-9">
                                                 <div class="row mb-6">
+                                                    <label class="col-lg-4 col-form-label required fw-bold fs-6">Contraseña Actual</label>
+                                                    <div class="col-lg-8">
+                                                        <input type="password" name="current_password" id="current_password" class="form-control form-control-lg form-control-solid" placeholder="Tu contraseña actual" required autocomplete="current-password" />
+                                                    </div>
+                                                </div>
+                                                <div class="row mb-6">
                                                     <label class="col-lg-4 col-form-label required fw-bold fs-6">Nueva Contraseña</label>
                                                     <div class="col-lg-8">
                                                         <div class="position-relative mb-3">
@@ -184,7 +190,7 @@ if ($oauthError === 'mp_oauth_failed') {
                                                                 <i class="fa-solid fa-eye fs-2 d-none"></i>
                                                             </span>
                                                         </div>
-                                                        <div class="form-text">Mínimo 6 caracteres.</div>
+                                                        <div class="form-text">Mínimo 8 caracteres, con letras y números.</div>
                                                     </div>
                                                 </div>
                                                 <div class="row mb-6">

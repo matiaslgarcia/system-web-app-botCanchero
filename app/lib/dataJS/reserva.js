@@ -7,6 +7,17 @@ let btnPausarFija = document.querySelector('#btn-action-pausar-fija');
 let time_booking = document.querySelector('#time_booking');
 let id_field = document.querySelector('#id_field');
 
+const DAY_NAMES_REAGENDAR = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+let lastHasScheduleReagendar = true;
+
+function selectedDayNameReagendar() {
+    const value = document.querySelector('#date_booking')?.value || '';
+    const [d, m, y] = value.split('/');
+    if (!d || !m || !y) return '';
+    const date = new Date(`${y}-${m}-${d}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? '' : DAY_NAMES_REAGENDAR[date.getDay()];
+}
+
 function limpiarHorarios() {
     time_booking.innerHTML = '<option selected="true" disabled value="">--SELECCIONE--</option>';
 }
@@ -149,7 +160,14 @@ if (time_booking) {
         dropdownParent: $('#reagendar-reserva'),
         language: {
             searching: () => "Buscando...",
-            noResults: () => "No se encontraron turnos disponibles",
+            noResults: () => {
+                if (!lastHasScheduleReagendar) {
+                    const day = selectedDayNameReagendar();
+                    return (day ? `${day} sin horarios cargados. ` : 'Este día no tiene horarios cargados. ')
+                        + 'Configurar en Mi Cancha → Horarios.';
+                }
+                return "No hay turnos libres para esa fecha";
+            },
             errorLoading: () => "Error al cargar horarios"
         },
         ajax: {
@@ -173,7 +191,8 @@ if (time_booking) {
                 }
             },
             processResults: (data) => {
-                return { results: data };
+                lastHasScheduleReagendar = data?.has_schedule !== false;
+                return { results: data?.results || [] };
             }
         },
         minimumResultsForSearch: Infinity

@@ -90,9 +90,11 @@ function getDecoratedBookings() {
         const esFija = b.is_fixed == 1;
         const canCharge = Number(b.can_charge || 0) === 1;
         const isRealBooking = /^\d+$/.test(String(b.id || ''));
+        // Jugada 19: la etiqueta dice cuánto falta, no solo "pendiente" —
+        // ahorra un clic para saber si conviene pasar a cobrar.
         const badge =
             saldo <= 0 ? '<span class="badge badge-light-success">Pagada</span>' :
-            (paid > 0 ? '<span class="badge badge-light-warning">Parcial</span>' : '<span class="badge badge-light-danger">Pendiente</span>');
+            `<span class="badge badge-light-warning">Falta ${fmtMoney(saldo)}</span>`;
         const isPlannedRecurring = !isRealBooking && String(b.source || '') === 'recurring_planned' && Number(b.recurring_booking_id || 0) > 0;
         const recurringId = Number(b.recurring_booking_id || 0);
         const bookingLink = isRealBooking ? `reserva/${b.id}` : '';

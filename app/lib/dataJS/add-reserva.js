@@ -9,6 +9,17 @@ function limpiarHorarios() {
     time_booking.innerHTML = '<option selected="true" disabled value="">--SELECCIONE--</option>'
 }
 
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+let lastHasSchedule = true;
+
+function selectedDayName() {
+    const value = date_booking.value || '';
+    const [d, m, y] = value.split('/');
+    if (!d || !m || !y) return '';
+    const date = new Date(`${y}-${m}-${d}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? '' : DAY_NAMES[date.getDay()];
+}
+
 // Datepicker
 if (typeof $ !== 'undefined' && $.fn.daterangepicker) {
     $('#date_booking').daterangepicker({
@@ -31,7 +42,14 @@ $(time_booking).select2({
         inputTooShort: function (args) { return "Por favor, introduzca " + (args.minimum - args.input.length) + " o más carácteres"; },
         loadingMore: function () { return "Cargando más resultados…"; },
         maximumSelected: function (args) { return "Sólo puede seleccionar " + args.maximum + " elementos"; },
-        noResults: function () { return "No se encontraron resultados"; },
+        noResults: function () {
+            if (!lastHasSchedule) {
+                const day = selectedDayName();
+                return (day ? `${day} sin horarios cargados. ` : 'Este día no tiene horarios cargados. ')
+                    + 'Configurar en Mi Cancha → Horarios.';
+            }
+            return "No hay horarios libres para esa fecha";
+        },
         searching: function () { return "Buscando…"; },
         removeAllItems: function () { return "Eliminar todos los objetos"; }
     },
@@ -44,7 +62,7 @@ $(time_booking).select2({
         },
         data: () => {
             return {
-                id_field: id_field.value, 
+                id_field: id_field.value,
                 date_booking: date_booking.value,
                 csrf_token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
             }
@@ -59,7 +77,8 @@ $(time_booking).select2({
             }
         },
         processResults: function (data) {
-            return { results: data };
+            lastHasSchedule = data?.has_schedule !== false;
+            return { results: data?.results || [] };
         },
     },
     minimumResultsForSearch: Infinity
