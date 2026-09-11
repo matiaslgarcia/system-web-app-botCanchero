@@ -240,6 +240,54 @@ body {
     border-radius: 10px;
 }
 
+/* Jugada 18: los controles que arma DataTables (buscador, "mostrar X
+   entradas", paginado) vienen con su estilo de fábrica, muy distinto al
+   resto del panel — se nota que uno se diseñó y el otro vino así nomás.
+   Esto es solo configuración visual sobre los mismos elementos (no hay
+   integración Bootstrap de DataTables instalada), para que hablen el mismo
+   idioma que el resto de inputs/botones del panel. */
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid var(--bs-gray-300, #E4E6EF);
+    border-radius: 0.475rem;
+    padding: 0.55rem 1rem;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--bs-gray-700, #5E6278);
+    background-color: var(--bs-gray-100, #F5F8FA);
+}
+.dataTables_wrapper .dataTables_filter input:focus,
+.dataTables_wrapper .dataTables_length select:focus {
+    outline: none;
+    border-color: var(--bs-primary, #009EF7);
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border: none !important;
+    border-radius: 0.475rem;
+    margin: 0 2px;
+    padding: 0.4rem 0.75rem;
+    color: var(--bs-gray-700, #5E6278) !important;
+    background: transparent !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--bs-gray-100, #F5F8FA) !important;
+    color: var(--bs-gray-800, #3F4254) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--bs-primary, #009EF7) !important;
+    color: #fff !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    color: var(--bs-gray-400, #B5B5C3) !important;
+    background: transparent !important;
+}
+.dataTables_wrapper .dataTables_info {
+    color: var(--bs-gray-600, #7E8299);
+    font-size: 0.95rem;
+}
+
 /* Login UI Fix */
 .login-bg {
     background-size: cover;
@@ -720,6 +768,89 @@ body {
 
 #recurring-mobile-list {
     display: none;
+}
+
+/* ================= Jugada 19 — capa 1 de la propuesta de estilo =================
+   Variables de color + tipografía de números, para que el panel deje de tener
+   cuatro pasteles decorativos por pantalla y empiece a hablar con la misma voz
+   de marca que el sitio público (verde WhatsApp) reservando el color para lo
+   que realmente significa algo. Pensado para sumarse sin tocar la plantilla
+   base: son clases nuevas (.bc-kpi-row / .bc-kpi / .bc-kpi.lead), no un
+   reemplazo de .card/.bg-light-*. Se puede ir migrando pantalla por pantalla. */
+:root {
+    --bc-accent: #25D366;
+    --bc-accent-ink: #06210f;
+    --bc-lead-bg: #0E1A12;
+    --bc-lead-ink: #ffffff;
+    --bc-lead-label: #7FBF97;
+    --bc-surface: #ffffff;
+    --bc-surface-border: #E2E9DE;
+    --bc-ink: #16261B;
+    --bc-ink-soft: #76856F;
+}
+
+.bc-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+@media (max-width: 991.98px) {
+    .bc-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+.bc-kpi {
+    background: var(--bc-surface);
+    border: 1px solid var(--bc-surface-border);
+    border-radius: 0.85rem;
+    padding: 1.1rem 1.25rem;
+}
+.bc-kpi .bc-kpi-label {
+    font-size: 0.8rem;
+    color: var(--bc-ink-soft);
+    margin-bottom: 0.35rem;
+}
+.bc-kpi .bc-kpi-num {
+    font-family: "Bebas Neue", Impact, sans-serif;
+    letter-spacing: .01em;
+    font-size: 1.9rem;
+    line-height: 1;
+    color: var(--bc-ink);
+}
+.bc-kpi.lead {
+    background: var(--bc-lead-bg);
+    border-color: var(--bc-lead-bg);
+}
+.bc-kpi.lead .bc-kpi-label { color: var(--bc-lead-label); }
+.bc-kpi.lead .bc-kpi-num { color: var(--bc-lead-ink); }
+
+/* Jugada 15: el HTML y el JS de las tarjetas mobile de "Hoy" y "Reservas
+   Fijas" ya existían (dia.js / recurring-bookings.js las arman), pero nunca
+   se activaba la regla que oculta la tabla y muestra las tarjetas por debajo
+   de ~700px — así que siempre se veía la tabla completa, con la columna de
+   Acción (el botón de cobro) fuera de la pantalla. Clientes e Ingresos no
+   tenían ninguna versión mobile: se agregan tarjetas nuevas ahí también. */
+#clientes-mobile-list,
+#ingresos-mobile-list {
+    display: none !important;
+}
+
+@media (max-width: 767.98px) {
+    #dia-mobile-list,
+    #recurring-mobile-list,
+    #clientes-mobile-list,
+    #ingresos-mobile-list {
+        display: flex !important;
+    }
+
+    #dia-table-wrapper,
+    #recurring-table-wrapper,
+    #clientes-table-wrapper,
+    /* DataTables envuelve la tabla de Ingresos en tiempo real con este id
+       (id de la tabla + "_wrapper"); ahí vive también la búsqueda y la
+       paginación de DataTables, que no tienen nada que filtrar/paginar una
+       vez que la tabla queda oculta y la reemplazan las tarjetas. */
+    #kt_datatable_example_1_wrapper {
+        display: none !important;
+    }
 }
 
 .bc-mobile-card {

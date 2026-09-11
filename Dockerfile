@@ -15,8 +15,14 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install -j$(nproc) gd pdo_mysql zip
 
 # Habilitar mod_rewrite para Apache (.htaccess) y silenciar advertencia ServerName
+# Jugada 17: ServerTokens/ServerSignature no se pueden setear desde .htaccess
+# (son de contexto "server config" en Apache), así que van acá. Dejan de
+# publicar la versión exacta de Apache/Debian en cualquier error del server.
 RUN a2enmod rewrite \
-    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+    && echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \
+    && echo "ServerSignature Off" >> /etc/apache2/apache2.conf \
+    && echo "expose_php = Off" > /usr/local/etc/php/conf.d/expose-php-off.ini
 
 # Configurar el directorio de trabajo
 WORKDIR /var/www/html

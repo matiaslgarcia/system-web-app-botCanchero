@@ -287,6 +287,7 @@
                 }
 
                 if(move_uploaded_file($_FILES['avatar']['tmp_name'], $dir . $newName)){
+                    self::resizeAvatarInPlace($dir . $newName, $ext);
                     query("UPDATE users SET avatar = ? WHERE id = ?", '', [$newName, $id]);
                     return true;
                 } else {
@@ -295,7 +296,56 @@
             }
             return false;
         }
-        public static function changePassword($password, $id){
+        // El avatar se muestra como mucho a ~40px (header) y nunca se pidió
+        // una versión grande en ningún lado del panel; sin esto, una foto de
+        // celular de varios MB se sirve tal cual en cada carga. 200px de lado
+        // alcanza con margen para pantallas retina.
+        private static function resizeAvatarInPlace($path, $ext){
+            if (!function_exists('imagecreatetruecolor')) return; // GD no disponible: se deja el original.
+            $maxDim = 200;
+            $ext = strtolower($ext);
+            try {
+                $src = match ($ext) {
+                    'jpg', 'jpeg' => imagecreatefromjpeg($path),
+                    'png' => imagecreatefrompng($path),
+                    'webp' => function_exists('imagecreatefromwebp') ? imagecreatefromwebp($path) : false,
+                    default => false,
+                };
+                if (!$src) return; // formato no soportado (ej. gif animado): se deja el original.
+
+                $width = imagesx($src);
+                $height = imagesy($src);
+                if ($width <= $maxDim && $height <= $maxDim) {
+                    imagedestroy($src);
+                    return; // ya es chico, no hace falta tocarlo.
+                }
+
+                $scale = min($maxDim / $width, $maxDim / $height);
+                $newWidth = max(1, (int) round($width * $scale));
+                $newHeight = max(1, (int) round($height * $scale));
+
+                $dst = imagecreatetruecolor($newWidth, $newHeight);
+                if ($ext === 'png') {
+                    imagealphablending($dst, false);
+                    imagesavealpha($dst, true);
+                }
+                imagecopyresampled($dst, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+                if ($ext === 'jpg' || $ext === 'jpeg') {
+                    imagejpeg($dst, $path, 85);
+                } elseif ($ext === 'png') {
+                    imagepng($dst, $path, 6);
+                } elseif ($ext === 'webp' && function_exists('imagewebp')) {
+                    imagewebp($dst, $path, 85);
+                }
+
+                imagedestroy($src);
+                imagedestroy($dst);
+            } catch (Throwable $e) {
+                error_log('resizeAvatarInPlace falló para ' . $path . ': ' . $e->getMessage());
+            }
+        }
+        public static function changePassword($password, $id, $currentPassword = ''){
             if (!isset($_SESSION['canchero'])) {
                 JSON(['error' => 'Sesión inválida'], 401, true);
             }
@@ -305,12 +355,29 @@
             if (!$isOwnPassword && !self::isSuperAdmin()) {
                 JSON(['error' => 'No tenés permiso para cambiar esta contraseña'], 403, true);
             }
-            if (strlen(trim((string) $password)) < 6) {
-                JSON(['error' => 'La contraseña debe tener al menos 6 caracteres'], 400, true);
+            // Changing your own password always requires re-proving you are the
+            // account holder, even with a valid session (shared device, cancha PC, etc).
+            // A superAdmin resetting someone else's password is a separate, already-gated flow.
+            if ($isOwnPassword) {
+                $current = query("SELECT password FROM users WHERE id = ? LIMIT 1;", '', [$targetId]);
+                if (!$current || !password_verify((string) $currentPassword, $current->password)) {
+                    JSON(['error' => 'La contraseña actual no es correcta'], 400, true);
+                }
             }
-            $password = self::emcrytePassword($password);
-            query("UPDATE users SET password = ? WHERE id = ?", '', [$password, $targetId]);
+            if (!self::isStrongPassword($password)) {
+                JSON(['error' => 'La contraseña debe tener al menos 8 caracteres, con letras y números'], 400, true);
+            }
+            $hashed = self::emcrytePassword($password);
+            query("UPDATE users SET password = ? WHERE id = ?", '', [$hashed, $targetId]);
+            audit('password_change', 'user', $targetId, ['by' => $sessionId]);
             JSON(['success' => true, 'icon' => 'success', 'msg' => 'Contraseña actualizada']);
+        }
+        private static function isStrongPassword($password){
+            $password = (string) $password;
+            if (strlen(trim($password)) < 8) return false;
+            if (!preg_match('/[A-Za-z]/', $password)) return false;
+            if (!preg_match('/[0-9]/', $password)) return false;
+            return true;
         }
         private static function appEnv(){
             return strtolower(trim((string) ($_ENV['APP_ENV'] ?? 'production')));

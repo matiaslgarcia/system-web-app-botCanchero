@@ -54,7 +54,12 @@
                                     </span>
                                 </div>
                                 <!--begin::Calendar-->
-                                <div id="reservas"></div>
+                                <?php
+                                    $canchasUsuario = Canchas::getByIdUser();
+                                    $fieldIdsUsuario = array_map(function ($c) { return $c->id; }, $canchasUsuario);
+                                    $minHorarioOperativo = Schedules::getEarliestHourForFields($fieldIdsUsuario);
+                                ?>
+                                <div id="reservas" data-min-hour="<?php echo htmlspecialchars($minHorarioOperativo ?? '', ENT_QUOTES); ?>"></div>
                                 <!--end::Calendar-->
                             </div>
                             <!--end::Card body-->

@@ -194,11 +194,10 @@
 														<input type="hidden" name="id_field" value="<?php echo $cancha->id?>">
 														<input type="hidden" name="id_day" value="<?php echo $d->id?>">
 														<?php 
-														foreach (Schedules::getAllDayCancha($d->id, $cancha->id) as $h) { 
-															$startTime = explode(' - ', $h->hour12)[0];
-															$militaryHour = (strpos($startTime, 'PM') !== false && intval($startTime) != 12) ? intval($startTime) + 12 : intval($startTime);
-															if (strpos($startTime, 'AM') !== false && intval($startTime) == 12) $militaryHour = 0;
-															
+														foreach (Schedules::getAllDayCancha($d->id, $cancha->id) as $h) {
+															$startTime = explode(' - ', $h->hour)[0];
+															$militaryHour = intval($startTime);
+
 															$slotClass = 'slot-morning';
 															$icon = '<i class="fa-solid fa-sun fs-7 text-warning"></i>';
 															if ($militaryHour >= 12 && $militaryHour < 18) {
@@ -214,7 +213,7 @@
 																	<input class="form-check-input me-3" <?php echo $h->checked ?> name="horario[]" id="h_<?php echo $d->id ?>_<?php echo $h->id?>" type="checkbox" value="<?php echo $h->id?>" >
 																	<label class="form-check-label" for="h_<?php echo $d->id ?>_<?php echo $h->id?>">
 																		<?php echo $icon ?>
-																		<div class="fw-bolder text-gray-800"><?php echo $h->hour12 ?></div>
+																		<div class="fw-bolder text-gray-800"><?php echo $h->hour ?></div>
 																	</label>
 																</div>
 															</div>

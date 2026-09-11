@@ -5,6 +5,19 @@
     if ($resetToken !== '') {
         $validResetToken = (bool) Users::validatePasswordResetToken($resetToken);
     }
+
+    $headingTitle = 'Bienvenido';
+    $headingSubtitle = 'Gestioná tus reservas y tu cuenta desde cualquier dispositivo.';
+    if ($validResetToken) {
+        $headingTitle = 'Elegí tu nueva clave';
+        $headingSubtitle = 'Mínimo 6 caracteres.';
+    } elseif ($resetToken !== '' && !$validResetToken) {
+        $headingTitle = 'Enlace vencido';
+        $headingSubtitle = 'Pedí un nuevo enlace para continuar.';
+    } elseif ($showForgotPanel) {
+        $headingTitle = 'Recuperá tu clave';
+        $headingSubtitle = 'Te mandamos un link a tu email.';
+    }
 ?>
 <div class="d-flex flex-column flex-root">
 	<div 
@@ -15,19 +28,20 @@
 			<div class="w-lg-500px rounded-4 mx-auto login-card">
 				<div class="d-flex justify-content-center">
 					<a href="<?php echo URL?>" class="mb-8">
-						<img alt="Logo_BotCanchero" src="assets/img/logos/logoNew.png" class="h-100px logo-animate login-logo" />
+						<img alt="Logo_BotCanchero" src="assets/img/logos/logoNew-optimized.png" class="h-100px logo-animate login-logo" />
 					</a>
 				</div>
-                <h1 class="text-center fs-2hx fw-bolder mb-3">Bienvenido</h1>
-                <p class="text-center text-muted mb-9 login-subtitle">
-                    Gestioná tus reservas y tu cuenta desde cualquier dispositivo.
+                <h1 class="text-center fs-2hx fw-bolder mb-3" id="login-heading-title"><?php echo htmlspecialchars($headingTitle, ENT_QUOTES); ?></h1>
+                <p class="text-center text-muted mb-9 login-subtitle" id="login-heading-subtitle">
+                    <?php echo htmlspecialchars($headingSubtitle, ENT_QUOTES); ?>
                 </p>
 
                 <div id="login-panel" class="<?php echo ($validResetToken || $showForgotPanel) ? 'd-none' : '';?>">
                     <form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="#">
                         <div class="fv-row mb-8">
                             <label class="form-label" for="email">Email</label>
-                            <input type="text" name="email" id="email" class="form-control" placeholder="ejemplo@correo.com">
+                            <input type="email" name="email" id="email" class="form-control" placeholder="ejemplo@correo.com" required autocomplete="email">
+                            <div class="form-text text-danger d-none" id="email-error">⚠ Ingresá tu email</div>
                         </div>
                         <div class="fv-row mb-8">
                             <label class="form-label" for="password">Contraseña</label>
@@ -35,8 +49,9 @@
                                 <button type="button" class="input-password-show" data-input="password" aria-label="Mostrar contraseña" onclick="togglePasswordVisibility('password', this)">
                                     <i class="fa-solid fa-eye-slash"></i>
                                 </button>
-                                <input type="password" name="password" id="password" autocomplete="off" class="form-control" placeholder="••••••••">
+                                <input type="password" name="password" id="password" autocomplete="current-password" class="form-control" placeholder="••••••••" required>
                             </div>
+                            <div class="form-text text-danger d-none" id="password-error">⚠ Ingresá tu contraseña</div>
                         </div>
                         <div class="d-flex justify-content-end mb-6">
                             <a href="?forgot=1" class="btn btn-link p-0 fs-6 fw-semibold" id="forgot-password-trigger">
@@ -55,7 +70,7 @@
                     <form class="form w-100" novalidate="novalidate" id="kt_forgot_form" action="#">
                         <div class="fv-row mb-8">
                             <label class="form-label" for="forgot_email">Email</label>
-                            <input type="email" name="email" id="forgot_email" class="form-control" placeholder="ejemplo@correo.com">
+                            <input type="email" name="email" id="forgot_email" class="form-control" placeholder="ejemplo@correo.com" required autocomplete="email">
                             <div class="form-text mt-3">
                                 Te enviaremos un enlace para crear una nueva contraseña.
                             </div>
@@ -76,7 +91,7 @@
                                 <button type="button" class="input-password-show" data-input="reset_password" aria-label="Mostrar contraseña" onclick="togglePasswordVisibility('reset_password', this)">
                                     <i class="fa-solid fa-eye-slash"></i>
                                 </button>
-                                <input type="password" name="password" id="reset_password" autocomplete="off" class="form-control" placeholder="Mínimo 6 caracteres">
+                                <input type="password" name="password" id="reset_password" autocomplete="new-password" class="form-control" placeholder="Mínimo 6 caracteres" required>
                             </div>
                         </div>
                         <div class="fv-row mb-8">
@@ -85,7 +100,7 @@
                                 <button type="button" class="input-password-show" data-input="reset_password_confirm" aria-label="Mostrar contraseña" onclick="togglePasswordVisibility('reset_password_confirm', this)">
                                     <i class="fa-solid fa-eye-slash"></i>
                                 </button>
-                                <input type="password" name="password_confirm" id="reset_password_confirm" autocomplete="off" class="form-control" placeholder="Repetí la nueva contraseña">
+                                <input type="password" name="password_confirm" id="reset_password_confirm" autocomplete="new-password" class="form-control" placeholder="Repetí la nueva contraseña" required>
                             </div>
                         </div>
                         <div class="text-center">

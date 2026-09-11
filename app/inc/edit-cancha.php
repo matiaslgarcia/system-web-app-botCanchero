@@ -168,7 +168,7 @@
 																	<!--end::Input-->
 																	<!--begin::Label-->
 																	<label class="form-check-label" for="h_<?php echo $d->id ?>_<?php echo $h->id ?>">
-																		<div class="fw-bolder text-gray-800"><?php echo $h->hour12 ?></div>
+																		<div class="fw-bolder text-gray-800"><?php echo $h->hour ?></div>
 																	</label>
 																	<!--end::Label-->
 																</div>

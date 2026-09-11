@@ -124,8 +124,7 @@
 
         private static function get_customer($data){
             self::validateParam(['phone']);
-            $phone = str_replace(['+','-'], '', $data->phone);
-            $jugador = query("SELECT * FROM customers WHERE phone = ? LIMIT 1", '', [$phone]);
+            $jugador = Customers::getByNumeroTelefono($data->phone);
             if ($jugador) {
                 JSON($jugador);
             } else {
@@ -155,7 +154,7 @@
 
         private static function get_reservas($data){
             self::validateParam(['phone']);
-            $phone = $_POST['phone'];
+            $phone = Customers::normalizePhone($_POST['phone']);
             $booking = query(
                 "SELECT
                     b.id,
