@@ -20,21 +20,24 @@
                             <!--begin::Card header-->
                             <div class="card-header border-0 pt-5">
                                 <div class="card-title align-items-start flex-column">
-                                    <span class="card-label fw-bolder fs-3 mb-1">Calendario de Reservas</span>
-                                    <span class="text-muted fw-bold fs-7">Visualiza y gestiona las reservas de todas tus canchas</span>
+                                    <h1 class="card-label fw-bolder fs-3 mb-1">Calendario de Reservas</h1>
+                                    <span class="text-muted fw-bold fs-7">Mirá y gestioná las reservas de todas tus canchas</span>
                                 </div>
                                 <div class="card-toolbar">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <select id="filtroCancha" class="form-select form-select-sm w-200px" data-control="select2" data-placeholder="Todas las canchas">
-                                            <option value="">Todas las canchas</option>
-                                            <?php 
-                                                foreach(Canchas::getByIdUser() as $cancha){
-                                                    echo '<option value="'.$cancha->id.'">'.$cancha->name.'</option>';
-                                                }
-                                            ?>
-                                        </select>
-                                        <a href="add-booking" class="btn btn-sm btn-primary h-40px d-flex align-items-center px-4">
-                                            <i class="fa-solid fa-plus me-2"></i>Agregar Reserva
+                                    <div class="d-flex align-items-end gap-3">
+                                        <div>
+                                            <label for="filtroCancha" class="form-label fs-8 mb-1">Cancha</label>
+                                            <select id="filtroCancha" class="form-select form-select-sm w-200px" data-control="select2" data-placeholder="Todas las canchas">
+                                                <option value="">Todas las canchas</option>
+                                                <?php
+                                                    foreach(Canchas::getByIdUser() as $cancha){
+                                                        echo '<option value="'.$cancha->id.'">'.$cancha->name.'</option>';
+                                                    }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <a href="add-booking" class="btn btn-sm btn-primary h-40px d-flex align-items-center px-4 text-nowrap">
+                                            <i class="fa-solid fa-plus me-2"></i>Nueva reserva
                                         </a>
                                     </div>
                                 </div>
@@ -60,9 +63,9 @@
                                 <?php
                                     $canchasUsuario = Canchas::getByIdUser();
                                     $fieldIdsUsuario = array_map(function ($c) { return $c->id; }, $canchasUsuario);
-                                    $minHorarioOperativo = Schedules::getEarliestHourForFields($fieldIdsUsuario);
+                                    $horarioOperativo = Schedules::getOperatingHourRangeForFields($fieldIdsUsuario);
                                 ?>
-                                <div id="reservas" data-min-hour="<?php echo htmlspecialchars($minHorarioOperativo ?? '', ENT_QUOTES); ?>"></div>
+                                <div id="reservas" data-min-hour="<?php echo htmlspecialchars($horarioOperativo['min'] ?? '', ENT_QUOTES); ?>" data-max-hour="<?php echo htmlspecialchars($horarioOperativo['max'] ?? '', ENT_QUOTES); ?>"></div>
                                 <!--end::Calendar-->
                             </div>
                             <!--end::Card body-->

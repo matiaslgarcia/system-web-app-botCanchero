@@ -10,8 +10,8 @@
                         <div class="card mb-5">
                             <div class="card-header border-0 pt-5">
                                 <div class="card-title align-items-start flex-column">
-                                    <span class="card-label fw-bolder fs-3 mb-1">Reservas Fijas Pausadas</span>
-                                    <span class="text-muted fw-bold fs-7">Gestiona pausas activas y su estado por cancha</span>
+                                    <h1 class="card-label fw-bolder fs-3 mb-1">Pausas Pendientes</h1>
+                                    <span class="text-muted fw-bold fs-7">Gestioná las reservas fijas pausadas y su estado por cancha</span>
                                 </div>
                                 <div class="card-toolbar">
                                     <div class="d-flex align-items-center gap-3">
@@ -32,9 +32,14 @@
                             </div>
                         </div>
 
-                        <div class="row g-5 g-xl-8 mb-5">
+                        <!-- TXT-06: estos contadores son un total de las tres canchas/estados,
+                             no una respuesta al filtro de arriba (por diseño: son un resumen
+                             general). Antes eso no se explicaba en ningún lado y encima no
+                             llevaban a ningún lado. Ahora dicen su alcance y son un atajo al
+                             filtro correspondiente. -->
+                        <div class="row g-5 g-xl-8 mb-2">
                             <div class="col-xl-4 col-md-6">
-                                <div class="card bg-light-warning">
+                                <div class="card bg-light-warning kpi-filtro-atajo" role="button" tabindex="0" data-status="paused">
                                     <div class="card-body p-4">
                                         <div class="text-muted fs-7">Pausadas</div>
                                         <div class="fw-bold fs-2" id="kpi-pausadas">0</div>
@@ -42,7 +47,7 @@
                                 </div>
                             </div>
                             <div class="col-xl-4 col-md-6">
-                                <div class="card bg-light-success">
+                                <div class="card bg-light-success kpi-filtro-atajo" role="button" tabindex="0" data-status="active">
                                     <div class="card-body p-4">
                                         <div class="text-muted fs-7">Activas</div>
                                         <div class="fw-bold fs-2" id="kpi-activas">0</div>
@@ -50,7 +55,7 @@
                                 </div>
                             </div>
                             <div class="col-xl-4 col-md-6">
-                                <div class="card bg-light-danger">
+                                <div class="card bg-light-danger kpi-filtro-atajo" role="button" tabindex="0" data-status="cancelled">
                                     <div class="card-body p-4">
                                         <div class="text-muted fs-7">Canceladas</div>
                                         <div class="fw-bold fs-2" id="kpi-canceladas">0</div>
@@ -58,6 +63,7 @@
                                 </div>
                             </div>
                         </div>
+                        <p class="text-muted fs-8 mb-5">Totales de todas tus canchas, en cualquier estado. Tocá una tarjeta para ir a ese filtro.</p>
 
                         <div id="lista-pausas" class="row g-4">
                             <div class="col-12 text-center py-10 text-muted">Cargando...</div>

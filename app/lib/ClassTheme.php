@@ -60,6 +60,7 @@
     {$extra_css}
 </head>
 <body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed toolbar-enabled toolbar-fixed aside-enabled aside-fixed" style="--kt-toolbar-height:55px;--kt-toolbar-height-tablet-and-mobile:55px">
+    <a href="#contenido" class="visually-hidden-focusable">Saltar al contenido</a>
 HTML;
         }
         private static function extra_css($arr){

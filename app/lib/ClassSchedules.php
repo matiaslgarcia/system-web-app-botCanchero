@@ -39,22 +39,35 @@
 
             return $schedules;
         }
-        // Earliest operating hour (24h "HH:MM") configured across the given
-        // fields, used to open the calendar view scrolled to where reservations
-        // actually start instead of always at 00:00.
-        public static function getEarliestHourForFields($fieldIds){
+        // Earliest/latest operating hour configured across the given fields.
+        // Used for CAL-01 (slotMinTime/slotMaxTime, so the grid only shows
+        // hours the cancha is actually open) and to open the calendar near
+        // where reservations start instead of always at 00:00.
+        public static function getOperatingHourRangeForFields($fieldIds){
             $fieldIds = array_values(array_filter(array_map('intval', (array) $fieldIds)));
-            if (empty($fieldIds)) return null;
+            if (empty($fieldIds)) return ['min' => null, 'max' => null];
             $placeholders = implode(',', array_fill(0, count($fieldIds), '?'));
             $row = query(
-                "SELECT MIN(s.time) AS min_time
+                "SELECT MIN(s.time) AS min_time, MAX(s.time) AS max_time
                  FROM schedules AS s
                  INNER JOIN schedules_field AS f ON f.id_schedule = s.id
                  WHERE f.id_field IN ($placeholders)",
                 '', $fieldIds
             );
-            if (!$row || empty($row->min_time)) return null;
-            return substr((string) $row->min_time, 0, 5);
+            if (!$row || empty($row->min_time) || empty($row->max_time)) {
+                return ['min' => null, 'max' => null];
+            }
+            // schedules.time is the *start* of each 1h slot (slotDuration is
+            // fixed at 01:00 across the product), so the grid needs to stay
+            // open one hour past the last enabled start time to show that
+            // slot fully. FullCalendar accepts "24:00:00" for a slot that
+            // runs to midnight.
+            $maxHour = (int) substr((string) $row->max_time, 0, 2) + 1;
+            $maxTime = sprintf('%02d:00:00', $maxHour);
+            return [
+                'min' => substr((string) $row->min_time, 0, 5),
+                'max' => substr($maxTime, 0, 5),
+            ];
         }
         public static function deleteAllSchedulesField($id_day, $id_field){
             query("DELETE FROM schedules_field WHERE id_day = ? AND id_field = ?", '', [$id_day, $id_field]);
@@ -151,14 +164,31 @@
                             AND (status <> 7 OR expires_at IS NULL OR expires_at > NOW())
                             $excludeSql)
                         +
-                        (SELECT COUNT(*) FROM recurring_booking rb 
+                        (SELECT COUNT(*) FROM recurring_booking rb
                          WHERE rb.field_id = ? AND rb.day_of_week = ? AND rb.start_time <= s.hour AND ADDTIME(rb.start_time, SEC_TO_TIME(rb.duration_min*60)) > s.hour
                            AND rb.status = 'active' AND rb.valid_from <= ? AND (rb.valid_until IS NULL OR rb.valid_until >= ?)
                            AND NOT EXISTS (SELECT 1 FROM recurring_booking_pause p WHERE p.recurring_booking_id = rb.id AND p.status = 'approved' AND ? BETWEEN p.from_date AND p.to_date)
                            AND NOT EXISTS (SELECT 1 FROM booking b2 WHERE b2.recurring_booking_id = rb.id AND b2.date_booking = ? AND b2.status <> 2)
                         )
                     ) AS total,
-                    f.threshold
+                    f.threshold,
+                    COALESCE(
+                        (SELECT pr.price
+                           FROM price_ranges pr
+                          WHERE pr.id_field = f.id
+                            AND s.time >= pr.start_time
+                            AND s.time < pr.end_time
+                          ORDER BY pr.start_time DESC
+                          LIMIT 1),
+                        f.price_hour
+                    ) AS price,
+                    (SELECT CONCAT(TIME_FORMAT(pr.start_time,'%H:%i'), '-', TIME_FORMAT(pr.end_time,'%H:%i'))
+                       FROM price_ranges pr
+                      WHERE pr.id_field = f.id
+                        AND s.time >= pr.start_time
+                        AND s.time < pr.end_time
+                      ORDER BY pr.start_time DESC
+                      LIMIT 1) AS price_range
                 FROM
                     schedules_field AS sf
                 INNER JOIN schedules_day AS d
@@ -169,10 +199,10 @@
                     ON f.id = sf.id_field
                 WHERE f.id = ? AND d.id = ?
                 AND (? > ? OR s.hour > ?)
-                HAVING 
+                HAVING
                  COALESCE(total, 0) < threshold",
             'ALL', [
-                $cancha, $date, 
+                $cancha, $date,
                 $cancha, $dow, $date, $date, $date, $date,
                 $cancha, $day, $date, $currentDate, $currentTime
             ]);
@@ -181,7 +211,14 @@
                 $threshold = max(1, (int) ($slot->threshold ?? 1));
                 $occupied = max(0, (int) ($slot->total ?? 0));
                 $free = max(0, $threshold - $occupied);
-                $slot->text = sprintf('%s (%d/%d cupos libres)', $slot->text, $free, $threshold);
+                $slot->price = isset($slot->price) ? (float) $slot->price : null;
+                // RES-03: mostrar el precio ya en la lista de horarios, no
+                // solo después de elegir uno — el sistema ya sabe qué franja
+                // aplica, no hace falta que el canchero se acuerde.
+                $priceLabel = $slot->price !== null
+                    ? ' — $' . number_format($slot->price, 0, ',', '.')
+                    : '';
+                $slot->text = sprintf('%s (%d/%d cupos libres)%s', $slot->text, $free, $threshold, $priceLabel);
             }
 
             // Distinguish "this day has no schedule configured at all" from

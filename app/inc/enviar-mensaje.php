@@ -10,8 +10,8 @@
 						<div class="d-flex align-items-center mb-6">
 							<i class="fa-brands fa-whatsapp fs-2x text-success me-3"></i>
 							<div>
-								<h2 class="fw-bolder text-dark mb-0">Enviar Mensaje WhatsApp</h2>
-								<span class="text-muted fs-6">Enviá un mensaje a uno o varios clientes registrados.</span>
+								<h1 class="fs-2 fw-bolder text-dark mb-0">Enviar Mensaje</h1>
+								<span class="text-muted fs-6">Enviá un mensaje de WhatsApp a uno o varios clientes registrados.</span>
 							</div>
 						</div>
 
@@ -82,7 +82,7 @@
 										<div class="d-flex align-items-center justify-content-between">
 											<div class="text-muted fs-7">
 												Se enviará a <strong id="countEnviar">0</strong> destinatario(s).
-												<br><span class="text-warning fs-8"><i class="fa-solid fa-clock me-1"></i>~300ms por mensaje para respetar límites de Meta.</span>
+												<br><span class="text-muted fs-8"><i class="fa-solid fa-clock me-1"></i><span id="tiempoEstimado">Se envía al instante.</span></span>
 											</div>
 											<button type="button" id="btnEnviar" class="btn btn-success" disabled>
 												<span class="indicator-label">

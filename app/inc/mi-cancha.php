@@ -10,6 +10,10 @@
 			<div class="content d-flex flex-column flex-column-fluid pt-5 pt-0" id="kt_content">
 				<div class="post d-flex flex-column-fluid" id="kt_post">
 					<div id="kt_content_container" class="container-xxl">
+						<div class="d-flex flex-column mb-5">
+							<h1 class="fs-2 fw-bolder mb-1">Mi Cancha</h1>
+							<span class="text-muted fs-7">Configurá precios, horarios y servicios de tu establecimiento</span>
+						</div>
 						<div class="card mb-5 mb-xl-10">
 							<div class="card-header card-header-stretch">
 								<div class="card-toolbar">

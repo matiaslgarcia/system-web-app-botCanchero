@@ -24,8 +24,72 @@
     --bc-warning: #ffc700;
     --bc-danger: #f1416c;
     --bc-dark: #1e1e2d;
-    --bc-gradient: linear-gradient(90deg, #50cd89 0%, #399e69 100%);
+    /* AC-01: #50cd89 con texto blanco medía 2.01:1 (AA pide 4.5:1) — el CTA
+       principal era ilegible al sol. Oscurecido a un verde que da ~5.2:1 en
+       el extremo claro del degradado y ~6.5:1 en el oscuro. #50cd89 se
+       mantiene disponible como --bc-primary/--bc-success para bordes,
+       íconos y rellenos, que es donde de verdad funciona. */
+    --bc-gradient: linear-gradient(90deg, #2b7a4f 0%, #1f5c3a 100%);
     --bc-card-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+
+/* AC-02: mismo problema en otras tres combinaciones repetidas cientos de
+   veces (216 nodos solo en Clientes). Las clases de utilidad de Bootstrap
+   ya fijan estos colores con !important en style.bundle.css; como theme.css
+   carga después en todas las pantallas, esto gana la cascada sin tocar
+   ningún otro archivo. */
+.text-gray-400,
+.text-gray-500 {
+    color: #5e6278 !important; /* era #a1a5b7/#b5b5c3, 2.45:1 -> 6.01:1 */
+}
+.text-primary {
+    color: #0b76bd !important; /* era #009ef7, 2.90:1 sobre blanco -> 4.84:1 */
+}
+.text-success {
+    color: #1e7a4a !important; /* era #50cd89, 2.01:1 -> 5.33:1 (montos de dinero) */
+}
+
+/* AC-03: tabulando por la página el foco no se ve — outline:0 y sin ningún
+   cambio visual al enfocar. Regla global aditiva: no reemplaza nada de lo
+   que ya hay (sombras, bordes), solo garantiza un anillo visible siempre. */
+:focus-visible {
+    outline: 2px solid #1e6b45 !important;
+    outline-offset: 2px !important;
+}
+
+/* NAV-02: el ítem activo del sidebar ahora se marca en todas las pantallas
+   (antes solo pasaba en Clientes) — esta regla asegura que el estado sea
+   legible: franja + fondo verde sobre el sidebar oscuro, en vez de
+   depender de lo que la plantilla resuelva por su cuenta. */
+.aside .menu-link.active {
+    background-color: rgba(30, 107, 69, 0.45) !important;
+    border-left: 3px solid #4cd48a;
+}
+.aside .menu-link.active .menu-title,
+.aside .menu-link.active .menu-icon i {
+    color: #ffffff !important;
+}
+
+/* TXT-06: tarjetas KPI que ahora son atajos de filtro clickeables. */
+.kpi-filtro-atajo {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+.kpi-filtro-atajo:hover {
+    transform: translateY(-2px);
+}
+
+/* AC-06: style.bundle.css fija `html,body{font-size:13px!important}` sin
+   media query — o sea que TODO lo medido en rem en el panel (texto,
+   paddings, íconos, hasta los inputs) viene achicado un 19% siempre, no
+   solo en mobile. Con eso: fs-7 (0.95rem) renderiza a ~12.4px, fs-8
+   (0.85rem) a ~11px, fs-9 (0.75rem) a ~9.75px — coincide casi exacto con
+   los "92 nodos a 11px, 5 a 10px" medidos. Y los <input> quedan por debajo
+   de 16px reales, lo que dispara el zoom automático de iOS al enfocar.
+   Como el resto del sistema está pensado en rem, devolver la base a 16px
+   reescala todo proporcionalmente en vez de romper el layout. */
+html, body {
+    font-size: 16px !important;
 }
 
 /* General overrides */
@@ -282,7 +346,8 @@ body {
 }
 .dataTables_wrapper .dataTables_filter input:focus,
 .dataTables_wrapper .dataTables_length select:focus {
-    outline: none !important;
+    outline: 2px solid #1e6b45 !important;
+    outline-offset: 1px;
     border-color: var(--bs-primary, #009EF7) !important;
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button {

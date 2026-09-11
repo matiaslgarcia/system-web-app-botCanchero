@@ -1050,7 +1050,7 @@ class CustomerCRM
                     b.date_booking,
                     b.status,
                     sf.full_name AS field_name,
-                    s.hour12 AS booking_hour,
+                    s.hour AS booking_hour,
                     ROUND(" . $paidAmountExpr . ", 2) AS paid_amount
                FROM booking b
                INNER JOIN soccer_field sf ON sf.id = b.id_field
@@ -1091,7 +1091,7 @@ class CustomerCRM
                     b.date_booking,
                     b.status,
                     sf.full_name AS field_name,
-                    s.hour12 AS booking_hour,
+                    s.hour AS booking_hour,
                     ROUND(" . $paidAmountExpr . ", 2) AS paid_amount
                FROM booking b
                INNER JOIN soccer_field sf ON sf.id = b.id_field

@@ -15,7 +15,7 @@
                 <!--cliente-->
                 <div class="row">
                     <div class="col-6 input-floting-label my-3" >
-                        <label for="NumeroTelefono" class="form-label">Numero Telefono</label>
+                        <label for="NumeroTelefono" class="form-label">Número Teléfono</label>
                         <input type="text" name="NumeroTelefono" id="NumeroTelefono" class="form-control">
                     </div>
                     <div class="col-6 input-floting-label my-3" >
