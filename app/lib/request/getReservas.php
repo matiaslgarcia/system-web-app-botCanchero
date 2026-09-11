@@ -122,6 +122,9 @@
         ]);
     }
 
+    $bookingParams = $params;
+    $bookingParams[':rangeStart'] = $startDate;
+    $bookingParams[':rangeEnd'] = $endDate;
     $booking = query(
         "SELECT
             b.id AS id,
@@ -183,7 +186,8 @@
         INNER JOIN schedules AS h
         ON h.id = b.time_booking
         $where
-        ", 'ALL', $params
+          AND b.date_booking BETWEEN :rangeStart AND :rangeEnd
+        ", 'ALL', $bookingParams
     );
 
     $recurringParams = $params;

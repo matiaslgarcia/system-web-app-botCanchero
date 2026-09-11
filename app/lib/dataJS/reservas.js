@@ -379,5 +379,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // Init
-cargarReservas();
-startReservasPolling();
+if (calendarEl) {
+    initCalendar([]);
+    startReservasPolling();
+}
