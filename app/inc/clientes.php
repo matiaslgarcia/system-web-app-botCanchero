@@ -137,7 +137,7 @@ foreach ($customers as $customer) {
                                             <option value="frequent" <?php echo $selectedActivity === 'frequent' ? 'selected' : ''; ?>>Frecuentes</option>
                                         </select>
                                     </div>
-                                    <div class="col-xl-3 col-md-6">
+                                    <div class="col-xl-6 col-md-12">
                                         <label class="form-label fw-semibold">Buscar</label>
                                         <input type="text" name="q" class="form-control form-control-solid" value="<?php echo htmlspecialchars($search); ?>" placeholder="Nombre, teléfono o email">
                                     </div>
@@ -150,7 +150,44 @@ foreach ($customers as $customer) {
                                 <?php if (empty($customers)) { ?>
                                     <div class="text-muted py-10 text-center">No se encontraron clientes con el filtro actual.</div>
                                 <?php } else { ?>
-                                    <div class="table-responsive">
+                                    <div id="clientes-mobile-list" class="d-flex flex-column gap-3">
+                                        <?php foreach ($customers as $customer) {
+                                            $phoneDisplay = trim((string) ($customer['phone'] ?? ''));
+                                            $phoneWaLink = preg_replace('/\D+/', '', $phoneDisplay);
+                                        ?>
+                                            <div class="bc-mobile-card">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div class="d-flex flex-column">
+                                                        <span class="text-dark fw-bolder fs-6"><?php echo htmlspecialchars((string) $customer['full_name']); ?></span>
+                                                        <span class="text-muted fs-7">
+                                                            <?php if ($phoneWaLink !== '') { ?>
+                                                                <a href="https://wa.me/<?php echo htmlspecialchars($phoneWaLink); ?>" target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars($phoneDisplay); ?></a>
+                                                            <?php } else { ?>
+                                                                Sin telefono
+                                                            <?php } ?>
+                                                        </span>
+                                                        <?php if ($isSuperAdmin && $selectedEstablishmentId === 0) { ?>
+                                                            <span class="text-muted fs-8"><?php echo htmlspecialchars((string) $customer['establishment_name']); ?></span>
+                                                        <?php } ?>
+                                                    </div>
+                                                    <a class="btn btn-sm btn-light-primary" href="cliente?id=<?php echo (int) $customer['customer_id']; ?>&establishment_id=<?php echo (int) $customer['establishment_id']; ?>">Ver ficha</a>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                                                    <span class="text-muted fs-8">Reservas</span>
+                                                    <span class="fw-semibold text-gray-800"><?php echo (int) ($customer['total_bookings'] ?? 0); ?> (canceladas: <?php echo (int) ($customer['cancelled_bookings'] ?? 0); ?>)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="text-muted fs-8">Dinero generado</span>
+                                                    <span class="fw-bolder text-success">$<?php echo number_format((float) ($customer['paid_total'] ?? 0), 2); ?></span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="text-muted fs-8">Próxima reserva</span>
+                                                    <span class="text-gray-800 fs-8"><?php echo !empty($customer['next_booking_date']) ? htmlspecialchars(showDate((string) $customer['next_booking_date'])) : 'Sin próxima reserva'; ?></span>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
+                                    </div>
+                                    <div id="clientes-table-wrapper" class="table-responsive">
                                         <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
                                             <thead>
                                                 <tr class="fw-bolder text-muted">

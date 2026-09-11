@@ -1,6 +1,27 @@
 <?php
 
     class Customers{
+        // Canonical E.164-ish format for Argentine WhatsApp numbers, so the
+        // same real phone always maps to the same stored string regardless of
+        // whether it came in with a leading "+", the "54" country code, the
+        // "9" mobile marker, a trunk "0", spaces or dashes. Every path that
+        // writes or looks up customers.phone must go through this first —
+        // otherwise the same person can get re-created as a "new" customer
+        // just because the digits arrived shaped differently.
+        public static function normalizePhone($raw){
+            $digits = preg_replace('/\D+/', '', (string) $raw);
+            if ($digits === '') return '';
+            if (strpos($digits, '54') === 0 && strlen($digits) > 10) {
+                $digits = substr($digits, 2);
+            }
+            if (strpos($digits, '0') === 0 && strlen($digits) > 10) {
+                $digits = substr($digits, 1);
+            }
+            if (strpos($digits, '9') === 0 && strlen($digits) === 11) {
+                $digits = substr($digits, 1);
+            }
+            return '+549' . $digits;
+        }
         private static $tableExistsCache = [];
         private static $columnExistsCache = [];
         private static $privacyReadyCache = null;
@@ -180,6 +201,7 @@
         }
 
         public static function checkExitCustomerOCreate($data){
+            $data->phone = self::normalizePhone($data->phone);
             $result = self::getByNumeroTelefono($data->phone);
 
             if($result){
@@ -193,9 +215,11 @@
         }
         private static function update($data, $id){
             $email = $data->email ?? '';
-            query("UPDATE customers SET full_name = ?, phone = ?, email = ? WHERE id = ?", '', [$data->full_name, $data->phone, $email, $id]);
+            $phone = self::normalizePhone($data->phone);
+            query("UPDATE customers SET full_name = ?, phone = ?, email = ? WHERE id = ?", '', [$data->full_name, $phone, $email, $id]);
         }
         public static function getByNumeroTelefono($phone){
+            $phone = self::normalizePhone($phone);
             $where = ["phone = ?"];
             if (self::isPrivacyInfrastructureReady()) {
                 $where[] = self::getGlobalActiveWhereClause('customers');
@@ -207,10 +231,11 @@
         public static function add($data){
             $data->id = self::getIDNewCustomer();
             $email = $data->email ?? '';
+            $phone = self::normalizePhone($data->phone);
             query("INSERT INTO customers(
                     id, full_name, phone, email
                 ) VALUES (
-                    ?, ?, ?, ?)", '', [$data->id, $data->full_name, $data->phone, $email]);
+                    ?, ?, ?, ?)", '', [$data->id, $data->full_name, $phone, $email]);
             return self::getCustomerById($data->id);
         }
 
@@ -220,7 +245,6 @@
             if (!$phone) {
                 Api::ApiError(['error' => 'phone is required'], 400);
             }
-            $phone = str_replace(['+','-',' '], '', $phone);
             $customer = self::getByNumeroTelefono($phone);
             if ($customer) {
                 JSON($customer);
@@ -234,10 +258,10 @@
             if (!isset($data->name) || !isset($data->phone)) {
                 Api::ApiError(['error' => 'name and phone are required'], 400);
             }
-            
-            $phone = str_replace(['+','-',' '], '', $data->phone);
+
+            $phone = self::normalizePhone($data->phone);
             $email = $data->email ?? '';
-            
+
             $newCustomer = self::add((object) [
                 'full_name' => $data->name,
                 'phone'     => $phone,

@@ -39,6 +39,23 @@
 
             return $schedules;
         }
+        // Earliest operating hour (24h "HH:MM") configured across the given
+        // fields, used to open the calendar view scrolled to where reservations
+        // actually start instead of always at 00:00.
+        public static function getEarliestHourForFields($fieldIds){
+            $fieldIds = array_values(array_filter(array_map('intval', (array) $fieldIds)));
+            if (empty($fieldIds)) return null;
+            $placeholders = implode(',', array_fill(0, count($fieldIds), '?'));
+            $row = query(
+                "SELECT MIN(s.time) AS min_time
+                 FROM schedules AS s
+                 INNER JOIN schedules_field AS f ON f.id_schedule = s.id
+                 WHERE f.id_field IN ($placeholders)",
+                '', $fieldIds
+            );
+            if (!$row || empty($row->min_time)) return null;
+            return substr((string) $row->min_time, 0, 5);
+        }
         public static function deleteAllSchedulesField($id_day, $id_field){
             query("DELETE FROM schedules_field WHERE id_day = ? AND id_field = ?", '', [$id_day, $id_field]);
         }
@@ -167,7 +184,22 @@
                 $slot->text = sprintf('%s (%d/%d cupos libres)', $slot->text, $free, $threshold);
             }
 
-            JSON($result);
+            // Distinguish "this day has no schedule configured at all" from
+            // "there are schedules but none free right now", so the UI can
+            // point the canchero at Mi Cancha → Horarios instead of implying
+            // a plain empty search.
+            $hasScheduleForDay = (int) (query(
+                "SELECT COUNT(*) AS c
+                   FROM schedules_field sf
+                   INNER JOIN schedules_day sd ON sf.id_day = sd.id
+                  WHERE sf.id_field = ? AND sd.id = ?",
+                '', [$cancha, $day]
+            )->c ?? 0) > 0;
+
+            JSON([
+                'results' => $result,
+                'has_schedule' => $hasScheduleForDay,
+            ]);
         }
 
         /** Métodos para API v2 **/

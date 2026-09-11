@@ -30,16 +30,23 @@ function getCountsFallback(items = [], currentStatus = '') {
     };
 }
 
+const ESTADO_LABELS = {
+    paused: 'pausadas',
+    active: 'activas',
+    cancelled: 'canceladas',
+};
+
 function renderItems() {
     const wrap = document.getElementById('lista-pausas');
     if (!state.items.length) {
-        const estadoLabel = state.filtroEstado || 'disponibles';
+        const estadoLabel = ESTADO_LABELS[state.filtroEstado] || '';
+        const mensajeVacio = estadoLabel ? `No hay reservas fijas ${estadoLabel}` : 'No hay reservas fijas';
         wrap.innerHTML = `
             <div class="col-12">
                 <div class="card border border-dashed border-gray-300">
                     <div class="card-body text-center py-12">
                         <i class="fa-solid fa-inbox fs-2x text-gray-400 mb-3"></i>
-                        <div class="fw-bold fs-5 mb-2">No hay reservas fijas ${estadoLabel}</div>
+                        <div class="fw-bold fs-5 mb-2">${mensajeVacio}</div>
                         <div class="text-muted mb-4">Cuando existan, se van a mostrar acá.</div>
                         <button id="btn-refrescar" class="btn btn-light-primary btn-sm">Actualizar</button>
                     </div>

@@ -34,38 +34,22 @@
                         </div>
 
                         <!-- Resumen rápido del día -->
-                        <div class="row g-5 g-xl-8 mb-5">
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-primary">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Reservas hoy</div>
-                                        <div class="fw-bold fs-2" id="kpi-total">0</div>
-                                    </div>
-                                </div>
+                        <div class="bc-kpi-row mb-5">
+                            <div class="bc-kpi lead">
+                                <div class="bc-kpi-label">A cobrar en cancha</div>
+                                <div class="bc-kpi-num" id="kpi-saldo">$0</div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-success">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Pagadas</div>
-                                        <div class="fw-bold fs-2" id="kpi-pagadas">0</div>
-                                    </div>
-                                </div>
+                            <div class="bc-kpi">
+                                <div class="bc-kpi-label">Reservas hoy</div>
+                                <div class="bc-kpi-num" id="kpi-total">0</div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-warning">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Con saldo pendiente</div>
-                                        <div class="fw-bold fs-2" id="kpi-pendientes">0</div>
-                                    </div>
-                                </div>
+                            <div class="bc-kpi">
+                                <div class="bc-kpi-label">Pagadas</div>
+                                <div class="bc-kpi-num" id="kpi-pagadas">0</div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-info">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">A cobrar en cancha</div>
-                                        <div class="fw-bold fs-2" id="kpi-saldo">$0</div>
-                                    </div>
-                                </div>
+                            <div class="bc-kpi">
+                                <div class="bc-kpi-label">Con saldo pendiente</div>
+                                <div class="bc-kpi-num" id="kpi-pendientes">0</div>
                             </div>
                         </div>
 
