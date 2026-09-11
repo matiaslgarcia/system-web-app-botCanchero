@@ -170,6 +170,20 @@ body {
     color: #ffffff !important;
 }
 
+.fc .fc-event.fc-event-fixed-cancelled,
+.fc .fc-daygrid-event.fc-event-fixed-cancelled,
+.fc .fc-timegrid-event.fc-event-fixed-cancelled {
+    background-color: #f1416c !important;
+    border-color: #f1416c !important;
+    color: #ffffff !important;
+}
+
+.fc .fc-event.fc-event-fixed-cancelled .fc-event-title,
+.fc .fc-event.fc-event-fixed-cancelled .fc-event-time {
+    color: #ffffff !important;
+    text-decoration: line-through;
+}
+
 /* Indicador visual por origen */
 .fc .fc-event.fc-event-source-bot,
 .fc .fc-daygrid-event.fc-event-source-bot,
@@ -202,6 +216,10 @@ body {
 
 .bc-origin-dot-fixed {
     background-color: #fd7e14;
+}
+
+.bc-origin-dot-fixed-cancelled {
+    background-color: #f1416c;
 }
 
 .fc .fc-timegrid-slot {

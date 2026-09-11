@@ -7,8 +7,50 @@ const state = {
     items: [],
     filtroEstado: 'active',
     hasAvailableSlots: false,
+    selectedCustomer: null,
 };
 const isUltraMobile = () => window.matchMedia('(max-width: 767.98px)').matches;
+const getFieldInput = () => document.getElementById('nueva-cancha');
+const getFieldValue = () => {
+    const fieldInput = getFieldInput();
+    if (!fieldInput) return '';
+    if (fieldInput.tagName === 'SELECT' && typeof $ !== 'undefined') {
+        return $(fieldInput).val();
+    }
+    return fieldInput.value;
+};
+const normalizePhone = (value) => String(value || '').replace(/\D/g, '');
+const getCustomerPhoneInput = () => document.getElementById('nueva-customer-phone');
+const getCustomerNameInput = () => document.getElementById('nueva-customer-name');
+
+function setManualCustomerInputsDisabled(disabled) {
+    const phoneInput = getCustomerPhoneInput();
+    const nameInput = getCustomerNameInput();
+    if (phoneInput) phoneInput.dataset.customerLocked = disabled ? '1' : '0';
+    if (nameInput) nameInput.dataset.customerLocked = disabled ? '1' : '0';
+}
+
+function syncManualCustomerInputs(customer = null) {
+    const phoneInput = getCustomerPhoneInput();
+    const nameInput = getCustomerNameInput();
+    if (phoneInput) phoneInput.value = customer ? (customer.phone || '') : '';
+    if (nameInput) nameInput.value = customer ? (customer.full_name || customer.text || '') : '';
+}
+
+function clearSelectedCustomer({ keepManualValues = true } = {}) {
+    state.selectedCustomer = null;
+    $('#nueva-cliente').val(null).trigger('change.select2');
+    setManualCustomerInputsDisabled(false);
+    if (!keepManualValues) {
+        syncManualCustomerInputs(null);
+    }
+}
+
+function applySelectedCustomer(customer) {
+    state.selectedCustomer = customer || null;
+    syncManualCustomerInputs(customer);
+    setManualCustomerInputsDisabled(Boolean(customer));
+}
 
 function nextDateForDow(dayOfWeek) {
     const target = Number(dayOfWeek || 0); // 1..7
@@ -204,7 +246,7 @@ function cargar() {
         method: 'POST',
         data: fun.setForm({ status: state.filtroEstado }),
         success: (resp) => {
-            state.items = resp.items || [];
+            state.items = Array.isArray(resp?.items) ? resp.items : [];
             renderTabla();
         },
         error: () => {
@@ -259,24 +301,37 @@ function cambiarEstado(id, status) {
 
 function initSelect2() {
     // Selector de Clientes
-    $('#nueva-cliente').select2({
-        dropdownParent: $('#modalNueva'),
-        placeholder: "Buscar cliente...",
-        allowClear: true,
-        ajax: {
-            url: 'lib/request/searchCustomers.php',
-            dataType: 'json',
-            delay: 250,
-            data: (params) => ({ q: params.term }),
-            processResults: (data) => ({ results: data }),
-            cache: true
-        },
-        minimumInputLength: 0, // Permite cargar por defecto
-        language: {
-            inputTooShort: () => "Ingresa 2 o más caracteres...",
-            searching: () => "Buscando...",
-            noResults: () => "No se encontraron clientes"
-        }
+    try {
+        $('#nueva-cliente').select2({
+            dropdownParent: $('#modalNueva'),
+            placeholder: "Buscar cliente...",
+            allowClear: true,
+            ajax: {
+                url: 'lib/request/searchCustomers.php',
+                dataType: 'json',
+                delay: 250,
+                data: (params) => ({ q: params.term }),
+                processResults: (data) => ({ results: data }),
+                cache: true
+            },
+            minimumInputLength: 0, // Permite cargar por defecto
+            language: {
+                inputTooShort: () => "Ingresa 2 o más caracteres...",
+                searching: () => "Buscando...",
+                noResults: () => "No se encontraron clientes. Podés cargar teléfono y nombre manualmente."
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+
+    $('#nueva-cliente').on('select2:select', (event) => {
+        const selected = event?.params?.data || null;
+        applySelectedCustomer(selected);
+    });
+
+    $('#nueva-cliente').on('select2:clear', () => {
+        clearSelectedCustomer({ keepManualValues: false });
     });
 
     // Forzar carga inicial al abrir el modal
@@ -286,11 +341,18 @@ function initSelect2() {
     });
 
     // Selector de Canchas
-    $('#nueva-cancha').select2({
-        dropdownParent: $('#modalNueva'),
-        placeholder: "Selecciona cancha...",
-        minimumResultsForSearch: Infinity
-    }).on('change', cargarHorarios);
+    const fieldInput = getFieldInput();
+    if (fieldInput && fieldInput.tagName === 'SELECT') {
+        try {
+            $('#nueva-cancha').select2({
+                dropdownParent: $('#modalNueva'),
+                placeholder: "Selecciona cancha...",
+                minimumResultsForSearch: Infinity
+            }).on('change', cargarHorarios);
+        } catch (error) {
+            throw error;
+        }
+    }
 
     $('#nueva-dow').on('change', cargarHorarios);
 }
@@ -319,14 +381,26 @@ function setGuardarNuevaState(enabled, message = '', helperClass = 'text-muted')
     helper.innerHTML = message;
 }
 
+function bindModalFocusCleanup(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    modal.addEventListener('hide.bs.modal', () => {
+        const activeElement = document.activeElement;
+        if (activeElement && modal.contains(activeElement) && typeof activeElement.blur === 'function') {
+            activeElement.blur();
+        }
+    });
+}
+
 function cargarHorarios() {
-    const id_field = $('#nueva-cancha').val();
+    const id_field = getFieldValue();
     const id_day = $('#nueva-dow').val();
     const select = document.getElementById('nueva-start');
 
     if (!id_field || !id_day) {
-        select.innerHTML = '<option value="">Primero elige cancha y día...</option>';
-        setGuardarNuevaState(false, 'Seleccioná cancha y día para habilitar horarios.', 'text-muted');
+        select.innerHTML = '<option value="">Primero completá los datos necesarios...</option>';
+        setGuardarNuevaState(false, 'Seleccioná el día y, si corresponde, la cancha para habilitar horarios.', 'text-muted');
         return;
     }
 
@@ -338,7 +412,7 @@ function cargarHorarios() {
         method: 'GET',
         data: `id_field=${id_field}&id_day=${id_day}`,
         success: (resp) => {
-            if (resp && resp.length) {
+            if (Array.isArray(resp) && resp.length) {
                 const toOptionText = (h) => {
                     const threshold = Math.max(1, Number(h.threshold || 1));
                     const occupied = Math.max(0, Number(h.occupied || 0));
@@ -367,10 +441,14 @@ function cargarHorarios() {
 function guardarNueva() {
     const btn = document.getElementById('btn-guardar-fija');
     const form = document.getElementById('form-nueva-fija');
+    const customerPhoneInput = document.getElementById('nueva-customer-phone');
+    const customerNameInput = document.getElementById('nueva-customer-name');
     
     const payload = {
         customer_id: $('#nueva-cliente').val(),
-        field_id: $('#nueva-cancha').val(),
+        customer_phone: normalizePhone(customerPhoneInput ? customerPhoneInput.value : ''),
+        customer_name: customerNameInput ? customerNameInput.value.trim() : '',
+        field_id: getFieldValue(),
         day_of_week: $('#nueva-dow').val(),
         start_time: $('#nueva-start').val(),
         duration_min: 60, // Fijo 1 hora siempre
@@ -387,8 +465,17 @@ function guardarNueva() {
         return;
     }
 
-    if (!payload.customer_id || !payload.field_id || !payload.start_time) {
-        fun.swal({ icon: 'error', title: 'Campos incompletos', text: 'Por favor selecciona cliente, cancha y horario.' });
+    if (!payload.customer_id && (!payload.customer_phone || !payload.customer_name)) {
+        fun.swal({
+            icon: 'error',
+            title: 'Cliente incompleto',
+            text: 'Seleccioná un cliente existente o cargá teléfono y nombre.'
+        });
+        return;
+    }
+
+    if (!payload.field_id || !payload.start_time) {
+        fun.swal({ icon: 'error', title: 'Campos incompletos', text: 'Por favor seleccioná el horario disponible para la reserva fija.' });
         return;
     }
 
@@ -405,8 +492,13 @@ function guardarNueva() {
             if (resp && resp.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('modalNueva')).hide();
                 form.reset();
-                $('#nueva-cliente').val(null).trigger('change');
-                $('#nueva-cancha').val(null).trigger('change');
+                clearSelectedCustomer({ keepManualValues: false });
+                const fieldInput = getFieldInput();
+                if (fieldInput && fieldInput.tagName === 'SELECT') {
+                    $('#nueva-cancha').val(null).trigger('change');
+                }
+                document.getElementById('nueva-start').innerHTML = '<option value="">Selecciona horario...</option>';
+                setGuardarNuevaState(false, 'Seleccioná el día y, si corresponde, la cancha para habilitar horarios.', 'text-muted');
                 fun.swal({ icon: 'success', title: 'Reserva fija creada correctamente' });
                 cargar();
             } else {
@@ -485,26 +577,40 @@ document.getElementById('cancelar-confirmar').addEventListener('click', () => {
 
 document.getElementById('btn-guardar-fija').addEventListener('click', guardarNueva);
 
-document.addEventListener('DOMContentLoaded', () => {
+function initRecurringBookingsPage() {
     document.getElementById('filtroEstado').addEventListener('change', (e) => {
         state.filtroEstado = e.target.value;
         cargar();
     });
+    bindModalFocusCleanup('modalNueva');
+    bindModalFocusCleanup('modalMover');
+    bindModalFocusCleanup('modalCancelar');
     initSelect2();
-    setGuardarNuevaState(false, 'Seleccioná cancha y día para habilitar horarios.', 'text-muted');
-    const canchaSelect = document.getElementById('nueva-cancha');
-    const availableFields = Array.from(canchaSelect.options).filter((opt) => opt.value);
-    if (availableFields.length === 1) {
-        $('#nueva-cancha').val(availableFields[0].value).trigger('change');
-    }
-    if (canchaSelect.value && document.getElementById('nueva-dow').value) {
+    setGuardarNuevaState(false, 'Seleccioná el día y, si corresponde, la cancha para habilitar horarios.', 'text-muted');
+    setManualCustomerInputsDisabled(false);
+    const phoneInput = getCustomerPhoneInput();
+    const nameInput = getCustomerNameInput();
+    const switchToManualMode = () => {
+        if (!state.selectedCustomer) return;
+        clearSelectedCustomer({ keepManualValues: true });
+    };
+    if (phoneInput) phoneInput.addEventListener('input', switchToManualMode);
+    if (nameInput) nameInput.addEventListener('input', switchToManualMode);
+    const canchaSelect = getFieldInput();
+    if (canchaSelect && getFieldValue() && document.getElementById('nueva-dow').value) {
         cargarHorarios();
     }
     document.getElementById('modalNueva').addEventListener('shown.bs.modal', () => {
-        if (canchaSelect.value && document.getElementById('nueva-dow').value) {
+        if (getFieldValue() && document.getElementById('nueva-dow').value) {
             cargarHorarios();
         }
     });
     window.addEventListener('resize', renderTabla);
     cargar();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRecurringBookingsPage);
+} else {
+    initRecurringBookingsPage();
+}

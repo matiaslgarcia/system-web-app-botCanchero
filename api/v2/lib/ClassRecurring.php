@@ -22,6 +22,63 @@ class Recurring {
         }
     }
 
+    private static function getRecurringById($recurringId) {
+        return query(
+            "SELECT rb.*,
+                    sf.full_name AS field_name,
+                    c.full_name AS customer_name,
+                    c.phone AS customer_phone
+               FROM recurring_booking rb
+               LEFT JOIN soccer_field sf ON sf.id = rb.field_id
+               LEFT JOIN customers c ON c.id = rb.customer_id
+              WHERE rb.id = ?
+              LIMIT 1",
+            'ARRAY',
+            [(int) $recurringId]
+        ) ?: null;
+    }
+
+    private static function validateOccurrenceDateForRecurring($recurring, $date) {
+        $date = (string) $date;
+        if ($date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            Api::ApiError(['error' => 'occurrence_date must be YYYY-MM-DD'], 400);
+        }
+        if ($date < (string) ($recurring['valid_from'] ?? '')) {
+            Api::ApiError(['error' => 'La fecha está fuera de vigencia de la reserva fija'], 409);
+        }
+        if (!empty($recurring['valid_until']) && $date > (string) $recurring['valid_until']) {
+            Api::ApiError(['error' => 'La fecha está fuera de vigencia de la reserva fija'], 409);
+        }
+        if ((int) date('N', strtotime($date)) !== (int) ($recurring['day_of_week'] ?? 0)) {
+            Api::ApiError(['error' => 'La fecha no coincide con el día semanal de la reserva fija'], 409);
+        }
+    }
+
+    private static function buildRecurringPayload($recurring, $extra = []) {
+        return array_merge([
+            'establishment_id' => (int) ($recurring['establishment_id'] ?? 0),
+            'field_id' => (int) ($recurring['field_id'] ?? 0),
+            'customer_id' => (int) ($recurring['customer_id'] ?? 0),
+            'customer_phone' => (string) ($recurring['customer_phone'] ?? ''),
+            'day_of_week' => (int) ($recurring['day_of_week'] ?? 0),
+            'start_time' => (string) ($recurring['start_time'] ?? ''),
+            'duration_min' => (int) ($recurring['duration_min'] ?? 0),
+            'valid_from' => (string) ($recurring['valid_from'] ?? ''),
+            'valid_until' => (string) ($recurring['valid_until'] ?? ''),
+            'status' => (string) ($recurring['status'] ?? ''),
+            'field_name' => (string) ($recurring['field_name'] ?? ''),
+            'customer_name' => (string) ($recurring['customer_name'] ?? ''),
+        ], $extra);
+    }
+
+    private static function buildOccurrenceDateTime($date, $startTime) {
+        $date = trim((string) $date);
+        $time = substr(trim((string) $startTime), 0, 5);
+        if ($date === '' || $time === '') return null;
+        $ts = strtotime($date . ' ' . $time . ':00');
+        return $ts ? date('Y-m-d H:i:s', $ts) : null;
+    }
+
     /**
      * POST /api/v2/?action=recurring_addBooking
      * Body JSON: {
@@ -258,20 +315,79 @@ class Recurring {
         if (!$rbId) Api::ApiError(['error' => 'recurring_booking_id is required'], 400);
         $boundEst = Auth::getEstablishmentId();
         self::assertRecurringOwnership($rbId, $boundEst);
+        $recurring = self::getRecurringById($rbId);
+        if (!$recurring) {
+            Api::ApiError(['error' => 'Reserva fija no encontrada'], 404);
+        }
+        $rules = BusinessRules::getByEstablishment((int) ($recurring['establishment_id'] ?? 0));
+        if ((int) ($rules['allow_customer_pause_request'] ?? 0) !== 1) {
+            Api::ApiError(['error' => 'Las pausas de reservas fijas están deshabilitadas'], 403);
+        }
+        $fromDate = trim((string) ($d->from_date ?? ''));
+        $toDate = trim((string) ($d->to_date ?? ''));
+        if ($fromDate === '' || $toDate === '') {
+            Api::ApiError(['error' => 'from_date y to_date son obligatorios'], 400);
+        }
+        self::validateOccurrenceDateForRecurring($recurring, $fromDate);
+        self::validateOccurrenceDateForRecurring($recurring, $toDate);
+        if ($toDate < $fromDate) {
+            Api::ApiError(['error' => 'to_date no puede ser menor a from_date'], 409);
+        }
+        $bookingDateTime = self::buildOccurrenceDateTime($fromDate, $recurring['start_time'] ?? '');
+        if (!BusinessRules::canCustomerPauseAt((int) ($recurring['establishment_id'] ?? 0), $bookingDateTime)) {
+            Api::ApiError([
+                'error' => 'La política del establecimiento solo permite pausar una reserva fija con al menos ' . (int) ($rules['customer_pause_min_hours'] ?? 0) . ' horas de anticipación.'
+            ], 409);
+        }
+        $existingPause = query(
+            "SELECT id, status
+               FROM recurring_booking_pause
+              WHERE recurring_booking_id = :rb
+                AND (
+                    :from BETWEEN from_date AND to_date
+                    OR :to BETWEEN from_date AND to_date
+                    OR from_date BETWEEN :from AND :to
+                    OR to_date BETWEEN :from AND :to
+                )
+              ORDER BY id DESC
+              LIMIT 1",
+            'ARRAY',
+            [':rb' => $rbId, ':from' => $fromDate, ':to' => $toDate]
+        );
+        if ($existingPause && in_array((string) ($existingPause['status'] ?? ''), ['pending', 'approved'], true)) {
+            Api::ApiError(['error' => 'Ya existe una pausa para ese rango solicitado'], 409);
+        }
         query(
             "INSERT INTO recurring_booking_pause
-                (recurring_booking_id, from_date, to_date, reason, status, requested_by)
-             VALUES (:rb, :from, :to, :reason, 'pending', :rby)",
+                (recurring_booking_id, from_date, to_date, reason, status, requested_by, requested_min_hours)
+             VALUES (:rb, :from, :to, :reason, 'pending', :rby, :min_hours)",
             '',
             [
                 ':rb'     => $rbId,
-                ':from'   => $d->from_date,
-                ':to'     => $d->to_date,
+                ':from'   => $fromDate,
+                ':to'     => $toDate,
                 ':reason' => $d->reason ?? null,
                 ':rby'    => $d->requested_by ?? 'customer_bot',
+                ':min_hours' => (int) ($rules['customer_pause_min_hours'] ?? 0),
             ]
         );
         $newId = query("SELECT LAST_INSERT_ID() AS id")->id;
+        audit('recurring_pause_request', 'recurring_booking_pause', (int) $newId, [
+            'recurring_booking_id' => $rbId,
+            'from_date' => $fromDate,
+            'to_date' => $toDate,
+            'requested_by' => (string) ($d->requested_by ?? 'customer_bot'),
+            'requested_min_hours' => (int) ($rules['customer_pause_min_hours'] ?? 0),
+        ]);
+        domain_event('recurring_pause_requested', 'recurring_booking_pause', (int) $newId, self::buildRecurringPayload($recurring, [
+            'pause_id' => (int) $newId,
+            'from_date' => $fromDate,
+            'to_date' => $toDate,
+            'requested_by' => (string) ($d->requested_by ?? 'customer_bot'),
+            'requested_min_hours' => (int) ($rules['customer_pause_min_hours'] ?? 0),
+        ]), [
+            'source' => 'api_v2',
+        ]);
         JSON(['id' => (int) $newId, 'status' => 'pending']);
     }
 
@@ -343,7 +459,131 @@ class Recurring {
             );
         }
 
+        audit('recurring_pause_review', 'recurring_booking_pause', $pauseId, [
+            'decision' => $decision,
+            'reviewed_by_user_id' => $reviewerId,
+            'review_note' => (string) ($d->review_note ?? ''),
+        ]);
+
         JSON(['ok' => true, 'status' => $decision]);
+    }
+
+    /**
+     * POST /api/v2/?action=recurring_skipOccurrence
+     * Body: { recurring_booking_id, occurrence_date, reason, requested_by }
+     */
+    public static function skipOccurrence() {
+        $d = Api::getData();
+        $id = (int) ($d->id ?? $d->recurring_booking_id ?? 0);
+        $occurrenceDate = trim((string) ($d->occurrence_date ?? $d->date_booking ?? ''));
+        if (!$id || $occurrenceDate === '') {
+            Api::ApiError(['error' => 'recurring_booking_id y occurrence_date son obligatorios'], 400);
+        }
+
+        $boundEst = Auth::getEstablishmentId();
+        self::assertRecurringOwnership($id, $boundEst);
+
+        $recurring = self::getRecurringById($id);
+        if (!$recurring) {
+            Api::ApiError(['error' => 'Reserva fija no encontrada'], 404);
+        }
+        if ((string) ($recurring['status'] ?? '') !== 'active') {
+            Api::ApiError(['error' => 'La reserva fija debe estar activa para pausar una fecha puntual'], 409);
+        }
+
+        self::validateOccurrenceDateForRecurring($recurring, $occurrenceDate);
+
+        $rules = BusinessRules::getByEstablishment((int) ($recurring['establishment_id'] ?? 0));
+        if ((int) ($rules['allow_customer_pause_request'] ?? 0) !== 1) {
+            Api::ApiError(['error' => 'Las pausas de reservas fijas están deshabilitadas'], 403);
+        }
+
+        $bookingDateTime = self::buildOccurrenceDateTime($occurrenceDate, $recurring['start_time'] ?? '');
+        if (!BusinessRules::canCustomerPauseAt((int) ($recurring['establishment_id'] ?? 0), $bookingDateTime)) {
+            Api::ApiError([
+                'error' => 'La política del establecimiento solo permite pausar una reserva fija con al menos ' . (int) ($rules['customer_pause_min_hours'] ?? 0) . ' horas de anticipación.'
+            ], 409);
+        }
+
+        $existingPause = query(
+            "SELECT id, status
+               FROM recurring_booking_pause
+              WHERE recurring_booking_id = ?
+                AND ? BETWEEN from_date AND to_date
+              ORDER BY id DESC
+              LIMIT 1",
+            'ARRAY',
+            [$id, $occurrenceDate]
+        );
+        if ($existingPause && in_array((string) ($existingPause['status'] ?? ''), ['pending', 'approved'], true)) {
+            Api::ApiError(['error' => 'Ya existe una pausa para esa fecha'], 409);
+        }
+
+        query(
+            "INSERT INTO recurring_booking_pause
+                (recurring_booking_id, from_date, to_date, reason, status, requested_by, requested_min_hours, reviewed_at, review_note)
+             VALUES (?, ?, ?, ?, 'approved', ?, ?, NOW(), ?)",
+            '',
+            [
+                $id,
+                $occurrenceDate,
+                $occurrenceDate,
+                trim((string) ($d->reason ?? 'customer_bot_skip_occurrence')),
+                $d->requested_by ?? 'customer_bot',
+                (int) ($rules['customer_pause_min_hours'] ?? 0),
+                trim((string) ($d->review_note ?? 'Pausa puntual autoaprobada desde bot/API')),
+            ]
+        );
+        $pauseId = (int) (query("SELECT LAST_INSERT_ID() AS id")->id ?? 0);
+
+        $affected = query(
+            "SELECT COUNT(*) AS total
+               FROM booking
+              WHERE recurring_booking_id = ?
+                AND date_booking = ?
+                AND (paid_amount IS NULL OR paid_amount = 0)",
+            'ARRAY',
+            [$id, $occurrenceDate]
+        );
+        $releasedBookings = (int) ($affected['total'] ?? 0);
+
+        query(
+            "UPDATE booking
+                SET status = 2
+              WHERE recurring_booking_id = ?
+                AND date_booking = ?
+                AND (paid_amount IS NULL OR paid_amount = 0)",
+            '',
+            [$id, $occurrenceDate]
+        );
+
+        audit('recurring_occurrence_paused', 'recurring_booking_pause', $pauseId, [
+            'recurring_booking_id' => $id,
+            'occurrence_date' => $occurrenceDate,
+            'requested_by' => (string) ($d->requested_by ?? 'customer_bot'),
+            'requested_min_hours' => (int) ($rules['customer_pause_min_hours'] ?? 0),
+            'released_bookings' => $releasedBookings,
+        ]);
+        domain_event('recurring_occurrence_paused', 'recurring_booking_pause', $pauseId, self::buildRecurringPayload($recurring, [
+            'pause_id' => $pauseId,
+            'occurrence_date' => $occurrenceDate,
+            'from_date' => $occurrenceDate,
+            'to_date' => $occurrenceDate,
+            'reason' => trim((string) ($d->reason ?? '')),
+            'requested_by' => (string) ($d->requested_by ?? 'customer_bot'),
+            'requested_min_hours' => (int) ($rules['customer_pause_min_hours'] ?? 0),
+            'released_bookings' => $releasedBookings,
+        ]), [
+            'source' => 'api_v2',
+        ]);
+
+        JSON([
+            'ok' => true,
+            'pause_id' => $pauseId,
+            'status' => 'approved',
+            'occurrence_date' => $occurrenceDate,
+            'released_bookings' => $releasedBookings,
+        ]);
     }
 
     /**

@@ -10,9 +10,12 @@
     };
     $isReservas = $isRoute(['index', 'reservas', 'reserva', 'add-booking']);
     $isIngresos = $isRoute(['ingresos']);
+    $isClientes = $isRoute(['clientes', 'cliente']);
     $isMensaje  = $isRoute(['enviar-mensaje']);
     $isUsuarios = $isRoute(['users-list', 'add-users', 'edit-user']);
     $isCanchas = $isRoute(['canchas-list', 'add-cancha', 'edit-cancha']);
+    $currentEstablishmentId = (int) (FeatureGate::currentEstablishmentId() ?? 0);
+    $showCRM = FeatureGate::isEnabled($currentEstablishmentId, 'mod_crm', true);
 ?>
 <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
     <div class="menu-item">
@@ -36,6 +39,16 @@
             <span class="menu-title">Ingresos</span>
         </a>
     </div>
+    <?php if ($showCRM) : ?>
+    <div class="menu-item">
+        <a class="menu-link <?php echo $isClientes ? 'active' : ''; ?>" href="clientes">
+            <span class="menu-icon">
+                <i class="fa-solid fa-address-book fs-2"></i>
+            </span>
+            <span class="menu-title">Clientes</span>
+        </a>
+    </div>
+    <?php endif; ?>
     <div class="menu-item">
         <a class="menu-link <?php echo $isMensaje ? 'active' : ''; ?>" href="enviar-mensaje">
             <span class="menu-icon">

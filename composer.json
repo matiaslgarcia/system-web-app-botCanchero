@@ -1,0 +1,11 @@
+{
+    "name": "botcanchero/systemweb-prod",
+    "description": "Dependencias PHP de produccion para el modulo web de BotCanchero",
+    "type": "project",
+    "require": {
+        "tecnickcom/tcpdf": "^6.9"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

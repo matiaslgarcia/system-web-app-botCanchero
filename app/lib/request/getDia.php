@@ -155,6 +155,13 @@
          WHERE $whereRecurringSql
            AND NOT EXISTS (
                 SELECT 1
+                  FROM recurring_booking_pause p
+                 WHERE p.recurring_booking_id = rb.id
+                   AND p.status = 'approved'
+                   AND :fecha_rec_day_pause BETWEEN p.from_date AND p.to_date
+           )
+           AND NOT EXISTS (
+                SELECT 1
                   FROM booking b2
                  WHERE b2.recurring_booking_id = rb.id
                    AND b2.date_booking = :fecha_rec_day_exists

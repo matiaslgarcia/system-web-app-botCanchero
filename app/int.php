@@ -1,18 +1,22 @@
 <?php
 	date_default_timezone_set('America/Argentina/Buenos_Aires');
 
-    define('VERSION', '1.0.34');
+    define('VERSION', '1.0.36');
     
     require 'config.php';
     require 'lib/function.php';
     initRequestContext();
     require 'lib/ClassConexion.php';
+    require 'lib/ClassDomainEvents.php';
     require 'lib/ClassTheme.php';
     require 'lib/ClassUsers.php';
+    require 'lib/ClassFeatureGate.php';
+    require 'lib/ClassBusinessRules.php';
     require 'lib/ClassCanchas.php';
     require 'lib/ClassBooking.php';
     require 'lib/ClassPayment.php';
     require 'lib/ClassCustomers.php';
+    require 'lib/ClassCustomerCRM.php';
     require 'lib/ClassApi.php';
     require 'lib/ClassAddress.php';
     require 'lib/ClassSchedules.php';

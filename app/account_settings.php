@@ -22,3 +22,4 @@
     ]);
 ?>
 <script type="module" src="lib/dataJS/account_settings.js?ver=<?php echo VERSION ?>"></script>
+<script type="module" src="lib/dataJS/configuracion-operativa.js?ver=<?php echo VERSION ?>"></script>
