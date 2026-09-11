@@ -11,8 +11,8 @@
                         <div class="card mb-5">
                             <div class="card-header border-0 pt-5">
                                 <div class="card-title align-items-start flex-column">
-                                    <span class="card-label fw-bolder fs-3 mb-1">Reservas del Día</span>
-                                    <span class="text-muted fw-bold fs-7">Gestiona las reservas de hoy y realiza cobros presenciales</span>
+                                    <h1 class="card-label fw-bolder fs-3 mb-1">Hoy</h1>
+                                    <span class="text-muted fw-bold fs-7">Gestioná las reservas de hoy y registrá los cobros presenciales</span>
                                 </div>
                                 <div class="card-toolbar">
                                     <div class="d-flex align-items-center gap-3">

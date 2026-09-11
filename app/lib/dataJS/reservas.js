@@ -151,18 +151,33 @@ function scrollGridToTime(hhmmss) {
     });
 }
 
+// CAL-01: la grilla mostraba las 24 horas del día aunque la cancha solo
+// opere, por ejemplo, de 16 a 00 — ocho filas siempre vacías arriba, dos
+// pantallas de alto. slotMinTime/slotMaxTime ya vienen calculados en el
+// servidor a partir de los horarios habilitados (Mi Cancha → Horarios).
+function getSlotBounds() {
+    const min = (calendarEl.dataset.minHour || '').trim();
+    const max = (calendarEl.dataset.maxHour || '').trim();
+    const valid = /^\d{2}:\d{2}$/;
+    if (!valid.test(min) || !valid.test(max)) return null;
+    return { min: `${min}:00`, max: `${max}:00` };
+}
+
 function initCalendar(events) {
     const mobile = isMobileViewport();
+    const bounds = getSlotBounds();
     calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'es',
         initialView: mobile ? 'timeGridDay' : 'timeGridWeek',
+        ...(bounds ? { slotMinTime: bounds.min, slotMaxTime: bounds.max } : {}),
         scrollTime: getDefaultScrollTime(),
         scrollTimeReset: false,
         headerToolbar: {
-            left: 'prev,next',
+            left: 'prev,next today',
             center: 'title',
             right: mobile ? 'timeGridDay,dayGridMonth' : 'timeGridWeek,timeGridDay,dayGridMonth',
         },
+        buttonText: { today: 'Hoy' },
         selectable: true,
         selectMirror: true,
         unselectAuto: false,

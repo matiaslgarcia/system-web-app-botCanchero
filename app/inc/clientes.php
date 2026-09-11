@@ -232,7 +232,7 @@ foreach ($customers as $customer) {
                                                             <div class="d-flex flex-column">
                                                                 <span class="fw-semibold text-gray-800"><?php echo (int) ($customer['total_bookings'] ?? 0); ?> reservas</span>
                                                                 <span class="text-muted fs-7">Canceladas: <?php echo (int) ($customer['cancelled_bookings'] ?? 0); ?></span>
-                                                                <span class="text-muted fs-8">Ultima reserva: <?php echo !empty($customer['last_booking_date']) ? htmlspecialchars(showDate((string) $customer['last_booking_date'])) : 'Sin historial'; ?></span>
+                                                                <span class="text-muted fs-8">Última reserva: <?php echo !empty($customer['last_booking_date']) ? htmlspecialchars(showDate((string) $customer['last_booking_date'])) : 'Sin historial'; ?></span>
                                                             </div>
                                                         </td>
                                                         <td>

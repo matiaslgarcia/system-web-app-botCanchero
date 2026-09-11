@@ -4,6 +4,28 @@ const form = document.querySelector('#add-booking-form')
 let time_booking = document.querySelector('#time_booking')
 let id_field = document.querySelector('#id_field')
 let date_booking = document.querySelector('#date_booking')
+const summaryEl = document.querySelector('#booking-summary')
+
+const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+// RES-03/RES-06: el formulario no mostraba ni el precio ni un resumen de lo
+// que se estaba por crear, aunque el sistema ya sabe todo esto (franja
+// horaria, cancha, cupos). Se arma con lo que haya seleccionado hasta el
+// momento, y se completa a medida que se elige cancha/fecha/hora.
+let selectedSlot = null;
+function updateSummary() {
+    if (!summaryEl) return;
+    const parts = [];
+    if (date_booking?.value) parts.push(date_booking.value);
+    const canchaText = id_field?.tagName === 'SELECT' ? id_field.options[id_field.selectedIndex]?.text : '';
+    if (canchaText && canchaText !== '--SELECCIONE--') parts.push(canchaText);
+    if (selectedSlot?.text) parts.push(selectedSlot.text.replace(/\s*\(\d+\/\d+ cupos libres\).*/, ''));
+    if (selectedSlot?.price != null) {
+        const rango = selectedSlot.price_range ? ` — franja ${selectedSlot.price_range}` : '';
+        parts.push(`${fmtMoney(selectedSlot.price)}${rango}`);
+    }
+    summaryEl.textContent = parts.length ? parts.join(' · ') : 'Completá los datos del turno.';
+}
 
 function limpiarHorarios() {
     time_booking.innerHTML = '<option selected="true" disabled value="">--SELECCIONE--</option>'
@@ -86,6 +108,19 @@ $(time_booking).select2({
 
 $(date_booking).on('change', () => {
     limpiarHorarios();
+    selectedSlot = null;
+    updateSummary();
+});
+
+$(id_field).on('change', updateSummary);
+
+$(time_booking).on('select2:select', (e) => {
+    selectedSlot = e.params?.data || null;
+    updateSummary();
+});
+$(time_booking).on('select2:clear', () => {
+    selectedSlot = null;
+    updateSummary();
 });
 
 form.addEventListener('submit', e => {

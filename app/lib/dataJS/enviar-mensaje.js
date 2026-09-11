@@ -12,6 +12,7 @@ const initEnviarMensaje = () => {
     const countSelEl    = document.querySelector('#countSeleccionados');
     const countTotalEl  = document.querySelector('#countTotal');
     const countEnviarEl = document.querySelector('#countEnviar');
+    const tiempoEstimadoEl = document.querySelector('#tiempoEstimado');
     const btnEnviar     = document.querySelector('#btnEnviar');
     const btnTodos      = document.querySelector('#btnSeleccionarTodos');
 
@@ -106,11 +107,23 @@ const initEnviarMensaje = () => {
         );
     };
 
+    // OP-01: "~300ms por mensaje para respetar límites de Meta" es
+    // información técnica que no contesta lo que el canchero quiere saber
+    // (¿cuánto tarda esto?). Traducido a lo que sí importa.
+    const tiempoEstimadoTexto = (n) => {
+        if (n === 0) return 'Se envía al instante.';
+        const segundos = Math.max(1, Math.ceil(n * 0.3));
+        return segundos <= 1
+            ? 'Se envía en menos de 1 segundo.'
+            : `Se envía en aproximadamente ${segundos} segundos.`;
+    };
+
     // --- Contadores y estado del botón ---
     const actualizarContadores = () => {
         const n = seleccionados.size;
         countSelEl.textContent    = n;
         countEnviarEl.textContent = n;
+        if (tiempoEstimadoEl) tiempoEstimadoEl.textContent = tiempoEstimadoTexto(n);
         btnEnviar.disabled = n === 0 || !mensajeEl?.value.trim();
     };
 
@@ -133,7 +146,7 @@ const initEnviarMensaje = () => {
         const confirmResult = await swal({
             icon: 'question',
             title: 'Confirmar envío',
-            html: `Se enviará el siguiente mensaje a <strong>${phones.length} destinatario(s)</strong>:<br><br>
+            html: `Se enviará el siguiente mensaje a <strong>${phones.length} destinatario(s)</strong> (${tiempoEstimadoTexto(phones.length).toLowerCase()}):<br><br>
                    <div class="text-start bg-light rounded p-3 fs-7" style="white-space:pre-wrap;max-height:120px;overflow-y:auto">${escapeHtml(mensaje)}</div>`,
             showCancelButton: true,
             confirmButtonText: '<i class="fa-brands fa-whatsapp me-2"></i>Sí, enviar',

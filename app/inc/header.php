@@ -1,9 +1,9 @@
-<div id="kt_header" class="header align-items-stretch glass-header">
+<header id="kt_header" class="header align-items-stretch glass-header">
 	<!--begin::Container-->
 	<div class="container-fluid d-flex align-items-stretch justify-content-between">
 		<!--begin::Aside mobile toggle-->
 		<div class="d-flex align-items-center d-lg-none ms-n2 me-2" title="Show aside menu">
-			<div class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="kt_aside_mobile_toggle">
+			<div class="btn btn-icon btn-active-light-primary w-30px h-30px w-md-40px h-md-40px" id="kt_aside_mobile_toggle" role="button" tabindex="0" aria-label="Abrir menú">
 				<!--begin::Svg Icon | path: icons/duotune/abstract/abs015.svg-->
 				<span class="svg-icon svg-icon-1">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -77,4 +77,4 @@
 		<!--end::Wrapper-->
 	</div>
 	<!--end::Container-->
-</div>
+</header>

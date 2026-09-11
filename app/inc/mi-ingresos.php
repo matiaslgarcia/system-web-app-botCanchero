@@ -27,7 +27,12 @@
 			<div class="content d-flex flex-column flex-column-fluid pt-5" id="kt_content">
 				<div class="post d-flex flex-column-fluid" id="kt_post">
 					<div id="kt_content_container" class="container-xxl">
-                        
+
+                        <div class="d-flex flex-column mb-5">
+                            <h1 class="fs-2 fw-bolder mb-1">Ingresos</h1>
+                            <span class="text-muted fs-7">Mirá cuánto facturaste hoy y el detalle de cada cobro</span>
+                        </div>
+
                         <!-- Resumen de Ingresos -->
                         <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
                             <div class="col-md-4">

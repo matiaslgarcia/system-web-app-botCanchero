@@ -160,5 +160,23 @@ document.addEventListener('DOMContentLoaded', () => {
         state.filtroEstado = e.target.value;
         cargar();
     });
+
+    // TXT-06: los contadores de arriba ahora son un atajo al filtro que
+    // muestran, en vez de números que no llevan a ningún lado.
+    document.querySelectorAll('.kpi-filtro-atajo').forEach((card) => {
+        const irAlFiltro = () => {
+            const select = document.getElementById('filtroEstado');
+            select.value = card.dataset.status;
+            select.dispatchEvent(new Event('change'));
+        };
+        card.addEventListener('click', irAlFiltro);
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                irAlFiltro();
+            }
+        });
+    });
+
     cargar();
 });

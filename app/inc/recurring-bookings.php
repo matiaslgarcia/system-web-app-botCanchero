@@ -17,8 +17,8 @@
                         <div class="card mb-5">
                             <div class="card-header border-0 pt-5">
                                 <div class="card-title align-items-start flex-column">
-                                    <span class="card-label fw-bolder fs-3 mb-1">Reservas Fijas</span>
-                                    <span class="text-muted fw-bold fs-7">Gestiona los compromisos semanales de tus clientes</span>
+                                    <h1 class="card-label fw-bolder fs-3 mb-1">Reservas Fijas</h1>
+                                    <span class="text-muted fw-bold fs-7">Gestioná los compromisos semanales de tus clientes</span>
                                 </div>
                                 <div class="card-toolbar">
                                     <div class="d-flex align-items-center gap-3 recurring-toolbar">

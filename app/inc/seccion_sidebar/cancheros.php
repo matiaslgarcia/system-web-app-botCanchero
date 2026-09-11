@@ -17,7 +17,7 @@
     </div>
     
     <div class="menu-item">
-        <a class="menu-link" href="./">
+        <a class="menu-link <?php echo $currentRoute === 'index' ? 'active' : ''; ?>" href="./">
             <span class="menu-icon">
                 <i class="fa-solid fa-calendar-days fs-4"></i>
             </span>
@@ -26,7 +26,7 @@
     </div>
 
     <div class="menu-item">
-        <a class="menu-link" href="dia">
+        <a class="menu-link <?php echo $currentRoute === 'dia' ? 'active' : ''; ?>" href="dia">
             <span class="menu-icon">
                 <i class="fa-solid fa-calendar-day fs-4"></i>
             </span>
@@ -35,7 +35,7 @@
     </div>
 
     <div class="menu-item">
-        <a class="menu-link" href="recurring-bookings">
+        <a class="menu-link <?php echo $currentRoute === 'recurring-bookings' ? 'active' : ''; ?>" href="recurring-bookings">
             <span class="menu-icon">
                 <i class="fa-solid fa-arrows-rotate fs-4"></i>
             </span>
@@ -44,7 +44,7 @@
     </div>
 
     <div class="menu-item">
-        <a class="menu-link" href="pausas-pendientes">
+        <a class="menu-link <?php echo $currentRoute === 'pausas-pendientes' ? 'active' : ''; ?>" href="pausas-pendientes">
             <span class="menu-icon">
                 <i class="fa-solid fa-clock-rotate-left fs-4"></i>
             </span>
@@ -60,30 +60,16 @@
         </div>
     </div>
 
+    <!-- NAV-01: Horarios y Servicios eran links a esta misma pantalla
+         (mi-cancha?tab=horarios / ?tab=servicios) duplicados como ítems de
+         sidebar aparte, sin reflejar cuál solapa estaba activa. Un solo
+         ítem, la pantalla ya tiene las tres solapas adentro. -->
     <div class="menu-item">
-        <a class="menu-link" href="mi-cancha">
+        <a class="menu-link <?php echo $currentRoute === 'mi-cancha' ? 'active' : ''; ?>" href="mi-cancha">
             <span class="menu-icon">
                 <i class="fa-solid fa-futbol fs-4"></i>
             </span>
             <span class="menu-title">Mi Cancha</span>
-        </a>
-    </div>
-
-    <div class="menu-item">
-        <a class="menu-link" href="./mi-cancha?tab=horarios">
-            <span class="menu-icon">
-                <i class="fa-solid fa-clock fs-4"></i>
-            </span>
-            <span class="menu-title">Horarios</span>
-        </a>
-    </div>
-
-    <div class="menu-item">
-        <a class="menu-link" href="./mi-cancha?tab=servicios">
-            <span class="menu-icon">
-                <i class="fa-solid fa-concierge-bell fs-4"></i>
-            </span>
-            <span class="menu-title">Servicios</span>
         </a>
     </div>
 
@@ -99,7 +85,7 @@
     <?php endif; ?>
 
     <div class="menu-item">
-        <a class="menu-link" href="mi-ingresos">
+        <a class="menu-link <?php echo $currentRoute === 'mi-ingresos' ? 'active' : ''; ?>" href="mi-ingresos">
             <span class="menu-icon">
                 <i class="fa-solid fa-file-invoice-dollar fs-4"></i>
             </span>
@@ -108,7 +94,7 @@
     </div>
 
     <div class="menu-item">
-        <a class="menu-link" href="enviar-mensaje">
+        <a class="menu-link <?php echo $currentRoute === 'enviar-mensaje' ? 'active' : ''; ?>" href="enviar-mensaje">
             <span class="menu-icon">
                 <i class="fa-brands fa-whatsapp fs-4"></i>
             </span>
