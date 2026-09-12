@@ -16,7 +16,7 @@
             <!-- Body -->
             <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
                 <div class="mb-13 text-center">
-                    <h1 class="mb-3">Re-Agendar Reserva</h1>
+                    <h2 class="mb-3">Re-Agendar Reserva</h2>
                     <div class="text-muted fw-bold fs-5">Reserva #<?php echo $reserva->id ?> - Selecciona el nuevo horario</div>
                 </div>
 

@@ -15,7 +15,7 @@
 
             <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
                 <div class="mb-13 text-center">
-                    <h1 class="mb-3">Registrar Pago</h1>
+                    <h2 class="mb-3">Registrar Pago</h2>
                     <div class="text-muted fw-bold fs-5">Reserva #<?php echo $reserva->id ?> - Saldo: 
                         <span class="text-danger fw-bolder">$<?php echo number_format($montoFaltante, 0, ',', '.') ?></span>
                     </div>

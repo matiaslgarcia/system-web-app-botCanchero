@@ -251,7 +251,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title"><i class="fa-solid fa-arrow-right-arrow-left me-2"></i>Mover horario fijo</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-warning fs-7">
@@ -295,7 +295,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title"><i class="fa-solid fa-xmark me-2"></i>Cancelar reserva fija</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-danger fs-7">

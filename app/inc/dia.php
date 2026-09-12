@@ -3,7 +3,7 @@
         <?php inc('sidebar') ?>
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
             <?php inc('header') ?>
-            <div class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0" id="kt_content">
+            <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0">
                 <div class="post d-flex flex-column-fluid" id="kt_post">
                     <div id="kt_content_container" class="container-xxl">
 
@@ -27,7 +27,7 @@
                                                 }
                                             ?>
                                         </select>
-                                        <input type="date" id="filtroFecha" class="form-control form-control-sm w-150px h-40px" value="<?php echo date('Y-m-d') ?>" />
+                                        <input type="date" id="filtroFecha" class="form-control form-control-sm h-40px" style="min-width: 180px;" value="<?php echo date('Y-m-d') ?>" />
                                     </div>
                                 </div>
                             </div>
@@ -83,7 +83,7 @@
 
                     </div>
                 </div>
-            </div>
+            </main>
             <?php inc('footer') ?>
         </div>
     </div>
@@ -100,7 +100,7 @@
             </div>
             <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
                 <div class="mb-13 text-center">
-                    <h1 class="mb-3">Registrar Pago</h1>
+                    <h2 id="modalCobrarTitle" class="mb-3">Registrar Pago</h2>
                     <div class="text-muted fw-bold fs-5">
                         Cliente: <span class="text-gray-800 fw-bolder" id="modal-cliente">—</span>
                     </div>
