@@ -34,7 +34,7 @@ if ($oauthError === 'mp_oauth_failed') {
         <?php inc('sidebar') ?>
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
             <?php inc('header') ?>
-            <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+            <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid">
                 <div class="post d-flex flex-column-fluid" id="kt_post">
                     <div id="kt_content_container" class="container-xxl">
                         
@@ -265,7 +265,7 @@ if ($oauthError === 'mp_oauth_failed') {
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
             <?php inc('footer') ?>
         </div>
     </div>

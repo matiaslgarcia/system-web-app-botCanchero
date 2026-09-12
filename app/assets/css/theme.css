@@ -30,23 +30,46 @@
        mantiene disponible como --bc-primary/--bc-success para bordes,
        íconos y rellenos, que es donde de verdad funciona. */
     --bc-gradient: linear-gradient(90deg, #2b7a4f 0%, #1f5c3a 100%);
+    /* NEW-01 (segunda revisión): #50cd89 seguía de fondo con texto blanco
+       en otros cuatro lugares que el primer barrido no encontró (toggle
+       semana/día/mes del calendario, pestaña de día en Horarios, hover de
+       Mañana/Tarde/Noche, casillero de horario habilitado). Un solo token
+       para todo fondo-con-texto-blanco, para no repetir la búsqueda. */
+    --bc-primary-accessible: #2b7a4f;
     --bc-card-shadow: 0 0.5rem 1.5rem 0.5rem rgba(0, 0, 0, 0.05);
 }
 
-/* AC-02: mismo problema en otras tres combinaciones repetidas cientos de
-   veces (216 nodos solo en Clientes). Las clases de utilidad de Bootstrap
-   ya fijan estos colores con !important en style.bundle.css; como theme.css
-   carga después en todas las pantallas, esto gana la cascada sin tocar
-   ningún otro archivo. */
+/* AC-02: mismo problema en otras combinaciones repetidas cientos de veces
+   (216 nodos solo en Clientes). Las clases de utilidad de Bootstrap ya fijan
+   estos colores con !important en style.bundle.css; como theme.css carga
+   después en todas las pantallas, esto gana la cascada sin tocar ningún
+   otro archivo.
+   Segunda revisión: el primer intento apuntó a .text-gray-400/500, que
+   casi no se usan (3 veces en todo el código) — los "92 nodos, subtítulos y
+   labels de KPI" son en realidad .text-muted (294 usos). Y los teléfonos en
+   Clientes son <a> sin ninguna clase: el azul les viene de la regla de
+   etiqueta a{color:#009ef7} del bundle, no de .text-primary. */
 .text-gray-400,
-.text-gray-500 {
+.text-gray-500,
+.text-muted {
     color: #5e6278 !important; /* era #a1a5b7/#b5b5c3, 2.45:1 -> 6.01:1 */
 }
 .text-primary {
     color: #0b76bd !important; /* era #009ef7, 2.90:1 sobre blanco -> 4.84:1 */
 }
+/* Sin !important y sin clase: misma especificidad que la regla de fábrica
+   a{color:#009ef7} que le da el azul a un <a> sin clases (ej. los teléfonos
+   de Clientes), así que gana por orden de carga — pero cualquier color más
+   específico (.menu-link, .btn, .text-*, etc.) la sigue pisando sin problema,
+   por eso no rompe el texto blanco de los links del sidebar. */
+a {
+    color: #0b76bd;
+}
 .text-success {
     color: #1e7a4a !important; /* era #50cd89, 2.01:1 -> 5.33:1 (montos de dinero) */
+}
+.menu-section {
+    color: #8b8fa8 !important; /* era #4c4e6f, 2.05:1 sobre el sidebar oscuro -> 5.15:1 ("PANEL CANCHERO", "MI ESTABLECIMIENTO") */
 }
 
 /* AC-03: tabulando por la página el foco no se ve — outline:0 y sin ningún
@@ -55,6 +78,18 @@
 :focus-visible {
     outline: 2px solid #1e6b45 !important;
     outline-offset: 2px !important;
+}
+
+/* AC-03 (segunda revisión): style.bundle.css define .menu-link{outline:0!important}
+   con la misma especificidad (una clase) que el :focus-visible global de
+   arriba — a igual especificidad e igual !important gana el orden de
+   aparición, y ese archivo se carga antes, así que en teoría theme.css
+   debería ganar iguales; en la práctica el menú es el único lugar donde no
+   se ve el foco. Selector más específico (dos clases) para no dejarlo
+   librado a esa carrera. */
+.menu-link:focus-visible {
+    outline: 2px solid #4cd48a !important;
+    outline-offset: -2px !important;
 }
 
 /* NAV-02: el ítem activo del sidebar ahora se marca en todas las pantallas
@@ -130,6 +165,11 @@ body {
     box-shadow: 0 4px 15px rgba(80, 205, 137, 0.3) !important;
     transition: all 0.3s ease !important;
     border-radius: 0.75rem !important;
+    /* NEW-04: con el font-size real (AC-06) un botón de un renglón en una
+       columna angosta (ej. "Buscar" en Ingresos, "Nueva reserva" en el
+       calendario) se parte en dos. Puesto acá, en la clase, en vez de en
+       cada instancia que se encuentre partida una por una. */
+    white-space: nowrap;
 }
 
 .btn-primary:hover {
@@ -205,8 +245,8 @@ body {
 
 .fc-button-primary:not(:disabled).fc-button-active,
 .fc-button-primary:not(:disabled):active {
-    background-color: var(--bc-primary) !important;
-    border-color: var(--bc-primary) !important;
+    background-color: var(--bc-primary-accessible) !important;
+    border-color: var(--bc-primary-accessible) !important;
     color: #fff !important;
 }
 
@@ -509,7 +549,7 @@ body {
 }
 
 .nav-pills-custom .nav-link.active {
-    background-color: var(--bc-primary) !important;
+    background-color: var(--bc-primary-accessible) !important;
     color: #fff !important;
     box-shadow: 0 4px 12px rgba(80, 205, 137, 0.25) !important;
 }
@@ -534,9 +574,9 @@ body {
 }
 
 .btn-select-group:hover {
-    background: var(--bc-primary) !important;
+    background: var(--bc-primary-accessible) !important;
     color: #fff !important;
-    border-color: var(--bc-primary) !important;
+    border-color: var(--bc-primary-accessible) !important;
     transform: translateY(-1px);
 }
 
@@ -584,8 +624,8 @@ body {
 .form-horario .slot-night .form-check-label { background-color: #eff6ff; border-color: #dbeafe; color: #1e40af !important; }
 
 .form-horario .form-check-input:checked+.form-check-label {
-    background-color: var(--bc-primary) !important;
-    border-color: var(--bc-primary) !important;
+    background-color: var(--bc-primary-accessible) !important;
+    border-color: var(--bc-primary-accessible) !important;
     color: #fff !important;
     box-shadow: 0 4px 12px rgba(80, 205, 137, 0.3);
     transform: scale(1.02);
@@ -810,7 +850,7 @@ body {
 }
 .header-date-badge {
     background: rgba(80, 205, 137, 0.05);
-    color: #50cd89;
+    color: var(--bc-primary-accessible);
     padding: 0.6rem 1.2rem;
     border-radius: 1rem;
     border: 1.5px solid rgba(80, 205, 137, 0.1);
@@ -848,7 +888,7 @@ body {
     transition: all 0.2s ease;
 }
 .footer-link:hover {
-    color: #50cd89;
+    color: var(--bc-primary-accessible);
 }
 
 #dia-mobile-list {

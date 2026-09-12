@@ -10,7 +10,7 @@
         <?php inc('sidebar') ?>
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
             <?php inc('header') ?>
-            <div class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0" id="kt_content">
+            <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0">
                 <div class="post d-flex flex-column-fluid" id="kt_post">
                     <div id="kt_content_container" class="container-xxl">
 
@@ -64,7 +64,7 @@
 
                     </div>
                 </div>
-            </div>
+            </main>
             <?php inc('footer') ?>
         </div>
     </div>
@@ -76,7 +76,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fa-solid fa-calendar-plus me-2"></i>Nueva Reserva Fija</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <form id="form-nueva-fija">
@@ -184,7 +184,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fa-solid fa-arrow-right-arrow-left me-2"></i>Mover horario fijo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-warning fs-7">
@@ -229,7 +229,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fa-solid fa-xmark me-2"></i>Cancelar reserva fija</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-danger fs-7">

@@ -3,7 +3,7 @@
         <?php inc('sidebar') ?>
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
             <?php inc('header') ?>
-            <div class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0" id="kt_content">
+            <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0">
                 <div class="post d-flex flex-column-fluid" id="kt_post">
                     <div id="kt_content_container" class="container-xxl">
 
@@ -71,25 +71,25 @@
 
                     </div>
                 </div>
-            </div>
+            </main>
             <?php inc('footer') ?>
         </div>
     </div>
 </div>
 
 <!-- Modal Acción -->
-<div class="modal fade" id="modalReview" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalReview" tabindex="-1" aria-hidden="true" role="dialog" aria-labelledby="modalReviewTitle">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirmar acción</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="modalReviewTitle">Confirmar acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="review-id" />
                 <input type="hidden" id="review-decision" />
                 <div id="review-info" class="mb-3"></div>
-                <label class="form-label">Nota (opcional)</label>
+                <label class="form-label" for="review-note">Nota (opcional)</label>
                 <textarea id="review-note" class="form-control" rows="2"></textarea>
             </div>
             <div class="modal-footer">

@@ -10,7 +10,7 @@
             <?php inc('header') ?>
             <!--end::Header-->
             <!--begin::Content-->
-            <div class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0" id="kt_content">
+            <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid pt-5 pt-md-0">
                 <!--begin::Post-->
                 <div class="post d-flex flex-column-fluid " id="kt_post">
                     <!--begin::Container-->
@@ -74,7 +74,7 @@
                     <!--end::Container-->
                 </div>
                 <!--end::Post-->
-            </div>
+            </main>
             <?php inc('footer') ?>
             <!--end::Footer-->
         </div>

@@ -24,7 +24,7 @@
 		<div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
 			<?php inc('header') ?>
 
-			<div class="content d-flex flex-column flex-column-fluid pt-5" id="kt_content">
+			<main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid pt-5">
 				<div class="post d-flex flex-column-fluid" id="kt_post">
 					<div id="kt_content_container" class="container-xxl">
 
@@ -101,7 +101,7 @@
                                             <input type="text" name="date" id="date" class="form-control form-control-solid ps-12 fs-6 fw-semibold" value="<?php echo htmlspecialchars($selectedDate, ENT_QUOTES); ?>" style="padding-left: 3.25rem !important;">
                                         </div>
 									</div>
-									<div class="col-md-2">
+									<div class="col-md-3">
 										<button type="submit" class="btn btn-primary w-100">
                                             <i class="fa-solid fa-magnifying-glass me-2"></i>Buscar
                                         </button>
@@ -270,7 +270,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
+			</main>
 			<?php inc('footer') ?>
 		</div>
 	</div>
