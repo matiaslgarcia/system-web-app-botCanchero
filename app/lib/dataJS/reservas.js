@@ -29,6 +29,15 @@ const getBookingOrigin = (ev = {}) => {
     return 'web';
 };
 const getBookingOriginIcon = (ev = {}) => (getBookingOrigin(ev) === 'bot' ? '🤖' : '🖥');
+const getPaymentStatusClass = (ev = {}) => {
+    const total = Number(ev.total_amount) || 0;
+    const paid = Number(ev.paid_amount) || 0;
+    const balance = Number(ev.balance_due) || Math.max(0, total - paid);
+    if (total <= 0) return 'fc-event-pending';
+    if (balance <= 0) return 'fc-event-paid';
+    if (paid > 0) return 'fc-event-partial';
+    return 'fc-event-pending';
+};
 const toYmd = (d) => {
     const dt = new Date(d);
     const y = dt.getFullYear();
@@ -251,23 +260,21 @@ function initCalendar(events) {
             const now = new Date();
             const classes = ['shadow-sm'];
             const isFija = isFixedBooking(arg.event.extendedProps || {});
-            const origin = getBookingOrigin(arg.event.extendedProps || {});
             const status = Number(arg.event.extendedProps?.id_status ?? arg.event.extendedProps?.status ?? 0);
-            classes.push(origin === 'bot' ? 'fc-event-source-bot' : 'fc-event-source-web');
-            
+
             // Lógica de "Reserva Pasada"
             if (arg.event.end && arg.event.end < now) {
                 classes.push('fc-event-past', 'opacity-50', 'grayscale');
+            } else if (status === 2) {
+                classes.push(isFija ? 'fc-event-fixed-cancelled' : 'fc-event-danger');
+            } else if (isFija) {
+                classes.push('fc-event-fixed');
             } else {
-                if (status === 2) {
-                    classes.push(isFija ? 'fc-event-fixed-cancelled' : 'fc-event-danger');
-                } else if (isFija) {
-                    classes.push('fc-event-fixed');
-                } else {
-                    classes.push('fc-event-primary');
-                }
+                // CAL-04: antes coloreaba por origen (bot/web) — dato que ya se
+                // ve como ícono en el título — ahora por estado de cobro.
+                classes.push(getPaymentStatusClass(arg.event.extendedProps || {}));
             }
-            
+
             return classes;
         },
         eventDidMount: function (info) {
@@ -331,17 +338,25 @@ function cargarReservas(options = {}) {
             if (resp?.meta?.signature) {
                 lastReservasSignature = resp.meta.signature;
             }
-            const reservasDecoradas = (resp?.reservas || []).map((ev) => {
+            const rawReservas = resp?.reservas || [];
+            recomputeSlotUsage(rawReservas);
+
+            // CAL-02: cupos ocupados visibles en el bloque del calendario, no
+            // solo al pasar el mouse — antes solo se veía en el popover.
+            const reservasDecoradas = rawReservas.map((ev) => {
                 const icon = getBookingOriginIcon(ev);
-                const title = String(ev.title || '').trim();
-                if (title.startsWith(icon)) return ev;
-                return {
-                    ...ev,
-                    title: title ? `${icon} ${title}` : icon,
-                };
+                let title = String(ev.title || '').trim();
+                if (!title.startsWith(icon)) {
+                    title = title ? `${icon} ${title}` : icon;
+                }
+                const threshold = Math.max(1, Number(ev.threshold ?? 1));
+                if (threshold > 1) {
+                    const slotInfo = slotUsageByKey.get(getSlotKeyFromEventLike(ev));
+                    if (slotInfo) title = `${title} (${slotInfo.occupied}/${slotInfo.threshold})`;
+                }
+                return { ...ev, title };
             });
 
-            recomputeSlotUsage(reservasDecoradas);
             if (!calendar) {
                 initCalendar(reservasDecoradas);
             } else {

@@ -1,6 +1,32 @@
 <?php
 
     class Canchas{
+        // OP-02: mismo valor que estaba hardcodeado antes — un establecimiento
+        // que nunca configuró su meta ve el mismo comportamiento de siempre.
+        const DEFAULT_DAILY_REVENUE_GOAL = 100000.0;
+
+        public static function getDailyRevenueGoal(){
+            $establishmentId = (int) (FeatureGate::currentEstablishmentId() ?? 0);
+            if ($establishmentId <= 0) return self::DEFAULT_DAILY_REVENUE_GOAL;
+
+            $row = query("SELECT daily_revenue_goal FROM establishment WHERE id = ? LIMIT 1", '', [$establishmentId]);
+            $goal = (float) ($row->daily_revenue_goal ?? 0);
+            return $goal > 0 ? $goal : self::DEFAULT_DAILY_REVENUE_GOAL;
+        }
+
+        public static function saveDailyRevenueGoal($amount){
+            $establishmentId = (int) (FeatureGate::currentEstablishmentId() ?? 0);
+            if ($establishmentId <= 0) {
+                JSON(['success' => false, 'msg' => 'No se encontró el establecimiento.'], 400);
+            }
+            $amount = (float) $amount;
+            if ($amount <= 0) {
+                JSON(['success' => false, 'msg' => 'La meta debe ser un monto mayor a 0.'], 400);
+            }
+            query("UPDATE establishment SET daily_revenue_goal = ? WHERE id = ?", '', [$amount, $establishmentId]);
+            JSON(['success' => true, 'icon' => 'success', 'msg' => 'Meta diaria actualizada']);
+        }
+
         private static function getDefaultProvinceCityIds(){
             $default = query(
                 "SELECT c.id AS city_id, c.id_provincia AS province_id

@@ -5,8 +5,10 @@
     $invoices = Invoices::getMiIngresos();
     $extraIngresos = Invoices::getExtraIngresos(null, $miIdField);
     
-    // Configuración de Meta Diaria (Fácil de cambiar)
-    $metaDiaria = 100000; 
+    // OP-02: antes hardcodeada en $100.000 sin forma de configurarla — para
+    // cualquier establecimiento con otro volumen la barra quedaba pegada
+    // cerca de 0% sin que signifique nada.
+    $metaDiaria = Canchas::getDailyRevenueGoal();
     $porcentajeMeta = min(100, round(($totalDiario / $metaDiaria) * 100));
 
     // Estadísticas
@@ -46,7 +48,12 @@
                                     <div class="card-body d-flex align-items-end pt-0">
                                         <div class="d-flex align-items-center flex-column mt-3 w-100">
                                             <div class="d-flex justify-content-between w-100 mt-auto mb-2">
-                                                <span class="fw-boldest text-white fs-6">Meta Diaria</span>
+                                                <span class="fw-boldest text-white fs-6">
+                                                    Meta Diaria: $<?php echo formatearPeso($metaDiaria) ?>
+                                                    <button type="button" id="btn-editar-meta" class="btn btn-icon btn-sm btn-active-color-primary text-white opacity-75 p-0 ms-1" title="Editar meta diaria" data-meta-actual="<?php echo (float) $metaDiaria ?>">
+                                                        <i class="fa-solid fa-pen fs-8"></i>
+                                                    </button>
+                                                </span>
                                                 <span class="fw-boldest text-white fs-6"><?php echo $porcentajeMeta ?>%</span>
                                             </div>
                                             <div class="h-8px mx-3 w-100 bg-white bg-opacity-25 rounded">
