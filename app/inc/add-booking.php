@@ -35,6 +35,14 @@
                             <div class="card-body pt-9 pb-0">
                                 <form id="add-booking-form" class="row pb-5" method="post">
                                     <div class="row">
+                                        <!-- RES-02: sin esto había que re-tipear el nombre de un cliente que ya
+                                             jugó decenas de veces, y eso generaba duplicados ("Nicolas Alarcon" /
+                                             "Nicolas Alaracon" como dos personas distintas). -->
+                                        <div class="col-12 my-3">
+                                            <label for="cliente-existente" class="form-label">Cliente (opcional)</label>
+                                            <select id="cliente-existente" class="form-select" data-placeholder="Buscar cliente por nombre o teléfono..."></select>
+                                            <div class="form-text">Si ya jugó antes, buscalo acá para autocompletar teléfono y nombre.</div>
+                                        </div>
                                         <div class="col-6 my-3">
                                             <label for="phone" class="form-label">Número de Teléfono</label>
                                             <input type="tel" name="phone" id="phone" class="form-control" inputmode="numeric" autocomplete="tel" required>

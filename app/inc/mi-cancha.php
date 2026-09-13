@@ -14,6 +14,23 @@
 							<h1 class="fs-2 fw-bolder mb-1">Mi Cancha</h1>
 							<span class="text-muted fs-7">Configurá precios, horarios y servicios de tu establecimiento</span>
 						</div>
+						<!-- NAV-05: Mercado Pago y las reglas del bot viven en account_settings,
+							 que solo se llega desde el menú del avatar — lejos de "Mi Cancha",
+							 que es donde un canchero espera configurar su establecimiento. Se
+							 agrega el acceso directo acá en vez de duplicar esos formularios. -->
+						<div class="alert bg-light-primary d-flex flex-wrap align-items-center justify-content-between gap-3 mb-5">
+							<div class="d-flex align-items-center gap-3">
+								<i class="fa-solid fa-circle-info fs-2 text-primary"></i>
+								<div>
+									<div class="fw-bold">¿Buscás Mercado Pago o las reglas del bot?</div>
+									<div class="text-muted fs-7">Se configuran en Configuración de cuenta, no acá en Mi Cancha.</div>
+								</div>
+							</div>
+							<div class="d-flex gap-2">
+								<a href="account_settings#kt_user_payments_tab" class="btn btn-sm btn-light-primary">Mercado Pago</a>
+								<a href="account_settings#kt_user_operational_tab" class="btn btn-sm btn-light-primary">Reglas del bot</a>
+							</div>
+						</div>
 						<div class="card mb-5 mb-xl-10">
 							<div class="card-header card-header-stretch">
 								<div class="card-toolbar">

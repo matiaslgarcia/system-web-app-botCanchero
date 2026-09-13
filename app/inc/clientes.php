@@ -52,46 +52,29 @@ foreach ($customers as $customer) {
                             </div>
                         <?php } ?>
 
-                        <div class="row g-5 g-xl-8 mb-8">
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-primary">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Clientes visibles</div>
-                                        <div class="fw-bold fs-2"><?php echo (int) ($stats['total_customers'] ?? 0); ?></div>
-                                    </div>
-                                </div>
+                        <!-- SIS-03/SIS-05: eran 5 métricas en tarjetas bg-light-* de a 4 por fila
+                             (la 5ta quedaba sola); se pasa al componente .bc-kpi-row que ya usa
+                             "Hoy", con su variante de 5 columnas. -->
+                        <div class="bc-kpi-row bc-kpi-row-5 mb-8">
+                            <div class="bc-kpi">
+                                <div class="bc-kpi-label">Clientes visibles</div>
+                                <div class="bc-kpi-num"><?php echo (int) ($stats['total_customers'] ?? 0); ?></div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-success">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Reservas registradas</div>
-                                        <div class="fw-bold fs-2"><?php echo $totalBookingsCount; ?></div>
-                                    </div>
-                                </div>
+                            <div class="bc-kpi">
+                                <div class="bc-kpi-label">Reservas registradas</div>
+                                <div class="bc-kpi-num"><?php echo $totalBookingsCount; ?></div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-info">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Con próxima reserva</div>
-                                        <div class="fw-bold fs-2"><?php echo (int) ($stats['with_upcoming_booking'] ?? 0); ?></div>
-                                    </div>
-                                </div>
+                            <div class="bc-kpi">
+                                <div class="bc-kpi-label">Con próxima reserva</div>
+                                <div class="bc-kpi-num"><?php echo (int) ($stats['with_upcoming_booking'] ?? 0); ?></div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-danger">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Cancelaciones</div>
-                                        <div class="fw-bold fs-2"><?php echo $totalCancelledCount; ?></div>
-                                    </div>
-                                </div>
+                            <div class="bc-kpi">
+                                <div class="bc-kpi-label">Cancelaciones</div>
+                                <div class="bc-kpi-num"><?php echo $totalCancelledCount; ?></div>
                             </div>
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card bg-light-warning">
-                                    <div class="card-body p-4">
-                                        <div class="text-muted fs-7">Dinero ingresado</div>
-                                        <div class="fw-bold fs-2">$<?php echo formatearPeso($totalRevenue); ?></div>
-                                    </div>
-                                </div>
+                            <div class="bc-kpi lead">
+                                <div class="bc-kpi-label">Dinero ingresado</div>
+                                <div class="bc-kpi-num">$<?php echo formatearPeso($totalRevenue); ?></div>
                             </div>
                         </div>
 

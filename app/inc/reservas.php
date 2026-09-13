@@ -45,18 +45,23 @@
                             <!--end::Card header-->
                             <!--begin::Card body-->
                             <div class="card-body">
+                                <!-- CAL-04: leyenda por estado de cobro (antes era por origen bot/web,
+                                     que ya se ve como ícono en el título de cada reserva). -->
                                 <div class="d-flex flex-wrap align-items-center gap-3 mb-5">
                                     <span class="badge badge-light d-flex align-items-center gap-2">
-                                        <span class="bc-origin-dot bc-origin-dot-bot"></span> Desde Bot
+                                        <span class="bc-status-dot bc-status-dot-paid"></span> Pagado
                                     </span>
                                     <span class="badge badge-light d-flex align-items-center gap-2">
-                                        <span class="bc-origin-dot bc-origin-dot-web"></span> Desde Web
+                                        <span class="bc-status-dot bc-status-dot-partial"></span> Pago parcial
+                                    </span>
+                                    <span class="badge badge-light d-flex align-items-center gap-2">
+                                        <span class="bc-status-dot bc-status-dot-pending"></span> Sin pagar
                                     </span>
                                     <span class="badge badge-light-warning d-flex align-items-center gap-2">
-                                        <span class="bc-origin-dot bc-origin-dot-fixed"></span> Reserva Fija
+                                        <span class="bc-status-dot bc-status-dot-fixed"></span> Reserva Fija
                                     </span>
                                     <span class="badge badge-light-danger d-flex align-items-center gap-2">
-                                        <span class="bc-origin-dot bc-origin-dot-fixed-cancelled"></span> Fija Cancelada
+                                        <span class="bc-status-dot bc-status-dot-fixed-cancelled"></span> Fija Cancelada
                                     </span>
                                 </div>
                                 <!--begin::Calendar-->

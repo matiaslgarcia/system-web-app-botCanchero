@@ -136,7 +136,7 @@ function renderTabla() {
                     <i class="fa-solid fa-calendar-day fs-2x text-gray-400 mb-3"></i>
                     <div class="fw-bold fs-5 mb-2">Sin reservas para esta fecha</div>
                     <div class="text-muted mb-4">Todavía no hay turnos cargados para el día elegido.</div>
-                    <a href="add-booking" class="btn btn-light-primary btn-sm">
+                    <a href="add-booking?date=${state.fecha}" class="btn btn-light-primary btn-sm">
                         <i class="fa-solid fa-plus me-2"></i>Nueva reserva
                     </a>
                 </div>

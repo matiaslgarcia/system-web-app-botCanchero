@@ -10,6 +10,39 @@ const initMiIngresos = () => {
     console.log('Iniciando Mi Ingresos v1.0.11');
     const inputDate = document.querySelector('#date');
 
+    // OP-02: la Meta Diaria ahora se puede editar acá mismo, donde se ve
+    // pegada en 0% — antes estaba hardcodeada sin ninguna forma de cambiarla.
+    document.querySelector('#btn-editar-meta')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const actual = Number(btn.dataset.metaActual || 0);
+        const { value: nuevaMeta } = await Swal.fire({
+            title: 'Meta diaria de ingresos',
+            input: 'number',
+            inputLabel: 'Monto en pesos',
+            inputValue: actual || '',
+            inputAttributes: { min: 1, step: '100' },
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar',
+            inputValidator: (value) => {
+                if (!value || Number(value) <= 0) return 'Ingresá un monto mayor a 0.';
+            },
+        });
+        if (!nuevaMeta) return;
+
+        const data = new FormData();
+        data.append('csrf_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '');
+        data.append('daily_revenue_goal', nuevaMeta);
+        try {
+            const res = await fetch('lib/request/save-daily-revenue-goal.php', { method: 'POST', body: data });
+            const json = await res.json();
+            if (json.success) location.reload();
+            else Swal.fire({ icon: 'error', title: json.msg || 'No se pudo guardar la meta.' });
+        } catch {
+            Swal.fire({ icon: 'error', title: 'Error de conexión.' });
+        }
+    });
+
     // Destruir si ya existe para evitar conflictos
     if ($.fn.DataTable.isDataTable('#kt_datatable_example_1')) {
         $('#kt_datatable_example_1').DataTable().destroy();

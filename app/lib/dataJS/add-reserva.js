@@ -5,6 +5,43 @@ let time_booking = document.querySelector('#time_booking')
 let id_field = document.querySelector('#id_field')
 let date_booking = document.querySelector('#date_booking')
 const summaryEl = document.querySelector('#booking-summary')
+const phoneInput = document.querySelector('#phone')
+const nameInput = document.querySelector('#full_name')
+
+// RES-02: buscador de cliente existente (mismo patrón que Reservas Fijas)
+// para no tener que re-tipear a alguien que ya reservó antes.
+if (typeof $ !== 'undefined' && $.fn.select2) {
+    $('#cliente-existente').select2({
+        placeholder: 'Buscar cliente por nombre o teléfono...',
+        allowClear: true,
+        ajax: {
+            url: 'lib/request/searchCustomers.php',
+            dataType: 'json',
+            delay: 250,
+            data: (params) => ({ q: params.term }),
+            processResults: (data) => ({ results: data }),
+            cache: true,
+        },
+        minimumInputLength: 0,
+        language: {
+            inputTooShort: () => 'Ingresá 2 o más caracteres...',
+            searching: () => 'Buscando...',
+            noResults: () => 'No se encontraron clientes. Podés completar teléfono y nombre manualmente.',
+        },
+    });
+
+    $('#cliente-existente').on('select2:select', (e) => {
+        const selected = e.params?.data || null;
+        if (!selected) return;
+        if (phoneInput) phoneInput.value = selected.phone || '';
+        if (nameInput) nameInput.value = selected.full_name || '';
+    });
+
+    $('#cliente-existente').on('select2:clear', () => {
+        if (phoneInput) phoneInput.value = '';
+        if (nameInput) nameInput.value = '';
+    });
+}
 
 const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 

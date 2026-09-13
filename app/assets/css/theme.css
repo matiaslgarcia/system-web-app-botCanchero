@@ -288,41 +288,67 @@ body {
     text-decoration: line-through;
 }
 
-/* Indicador visual por origen */
-.fc .fc-event.fc-event-source-bot,
-.fc .fc-daygrid-event.fc-event-source-bot,
-.fc .fc-timegrid-event.fc-event-source-bot {
-    border-left: 4px solid #7e57c2 !important;
-    padding-left: 4px !important;
+/* CAL-04: el color de las reservas sueltas codificaba el ORIGEN (bot/web)
+   — dato que además ya se ve como ícono 🤖/🖥 en el título — en vez del
+   ESTADO DE COBRO, que es la pregunta de plata que el canchero mira en el
+   calendario. Reemplaza el borde por origen por un color sólido por estado. */
+.fc .fc-event.fc-event-paid,
+.fc .fc-daygrid-event.fc-event-paid,
+.fc .fc-timegrid-event.fc-event-paid {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: #ffffff !important;
 }
 
-.fc .fc-event.fc-event-source-web,
-.fc .fc-daygrid-event.fc-event-source-web,
-.fc .fc-timegrid-event.fc-event-source-web {
-    border-left: 4px solid #0ea5a6 !important;
-    padding-left: 4px !important;
+.fc .fc-event.fc-event-partial,
+.fc .fc-daygrid-event.fc-event-partial,
+.fc .fc-timegrid-event.fc-event-partial {
+    background-color: #f59f00 !important;
+    border-color: #f59f00 !important;
+    color: #ffffff !important;
 }
 
-.bc-origin-dot {
+.fc .fc-event.fc-event-pending,
+.fc .fc-daygrid-event.fc-event-pending,
+.fc .fc-timegrid-event.fc-event-pending {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+.fc .fc-event.fc-event-paid .fc-event-title,
+.fc .fc-event.fc-event-paid .fc-event-time,
+.fc .fc-event.fc-event-partial .fc-event-title,
+.fc .fc-event.fc-event-partial .fc-event-time,
+.fc .fc-event.fc-event-pending .fc-event-title,
+.fc .fc-event.fc-event-pending .fc-event-time {
+    color: #ffffff !important;
+}
+
+.bc-status-dot {
     width: 10px;
     height: 10px;
     border-radius: 999px;
     display: inline-block;
 }
 
-.bc-origin-dot-bot {
-    background-color: #7e57c2;
+.bc-status-dot-paid {
+    background-color: #198754;
 }
 
-.bc-origin-dot-web {
-    background-color: #0ea5a6;
+.bc-status-dot-partial {
+    background-color: #f59f00;
 }
 
-.bc-origin-dot-fixed {
+.bc-status-dot-pending {
+    background-color: #dc3545;
+}
+
+.bc-status-dot-fixed {
     background-color: #fd7e14;
 }
 
-.bc-origin-dot-fixed-cancelled {
+.bc-status-dot-fixed-cancelled {
     background-color: #f1416c;
 }
 
@@ -950,6 +976,17 @@ body {
 }
 .bc-kpi.lead .bc-kpi-label { color: var(--bc-lead-label); }
 .bc-kpi.lead .bc-kpi-num { color: var(--bc-lead-ink); }
+
+/* SIS-03/SIS-05: Clientes tenía 5 métricas en cuatro tarjetas bg-light-*
+   sueltas (la 5ta quedaba huérfana en su propia fila) — se migra al mismo
+   componente .bc-kpi-row que ya usa "Hoy", con un modificador de 5 columnas. */
+.bc-kpi-row.bc-kpi-row-5 { grid-template-columns: repeat(5, 1fr); }
+@media (max-width: 1199.98px) {
+    .bc-kpi-row.bc-kpi-row-5 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 767.98px) {
+    .bc-kpi-row.bc-kpi-row-5 { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* Jugada 15: el HTML y el JS de las tarjetas mobile de "Hoy" y "Reservas
    Fijas" ya existían (dia.js / recurring-bookings.js las arman), pero nunca
