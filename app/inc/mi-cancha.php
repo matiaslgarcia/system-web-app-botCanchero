@@ -173,6 +173,20 @@
 												Cada horario se habilita una sola vez y el sistema permite reservas hasta completar ese cupo.
 											</div>
 										</div>
+										<!-- SIS-06: la grilla usa color por franja (mañana/tarde/noche) cuando el
+											 horario está apagado, y se pone verde cuando está habilitado — sin
+											 leyenda esa segunda regla no se entiende. -->
+										<div class="d-flex flex-wrap align-items-center gap-4 mb-5 fs-8 text-muted">
+											<span class="fw-bold text-gray-700">Referencias:</span>
+											<span class="d-flex align-items-center gap-2">
+												<span class="d-inline-block rounded" style="width:14px;height:14px;background:var(--bc-primary-accessible);"></span>
+												Habilitado (se puede reservar)
+											</span>
+											<span class="d-flex align-items-center gap-2">
+												<span class="d-inline-block rounded" style="width:14px;height:14px;background:#fffbeb;border:1px solid #fef3c7;"></span>
+												Apagado — el color solo indica la franja del día
+											</span>
+										</div>
 										<ul class="nav nav-pills nav-pills-custom mb-8 fs-6 justify-content-center gap-2">
 											<?php foreach (Schedules::getDay() as $day) { ?>
 												<li class="nav-item">

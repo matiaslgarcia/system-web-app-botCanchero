@@ -81,7 +81,7 @@
 
 										<div class="d-flex align-items-center justify-content-between">
 											<div class="text-muted fs-7">
-												Se enviará a <strong id="countEnviar">0</strong> destinatario(s).
+												Se enviará a <strong id="countEnviar">0</strong> <span id="destinatarioLabel">destinatarios</span>.
 												<br><span class="text-muted fs-8"><i class="fa-solid fa-clock me-1"></i><span id="tiempoEstimado">Se envía al instante.</span></span>
 											</div>
 											<button type="button" id="btnEnviar" class="btn btn-success" disabled>
