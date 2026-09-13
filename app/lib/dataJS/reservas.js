@@ -39,6 +39,17 @@ const formatShortName = (fullName = '') => {
     return `${parts.slice(1).join(' ')}, ${parts[0].charAt(0)}.`;
 };
 const getPaymentStatusClass = (ev = {}) => {
+    // CRU-01: el campo payment_status ('paid'/'partial'/'pending') lo mantiene
+    // el backend en cada cobro y es la fuente de verdad; derivarlo de nuevo acá
+    // a partir de total/paid amounts fallaba en casos como una reserva con un
+    // pago parcial registrado pero total_amount todavía en 0 (quedaba "pending"
+    // en vez de "partial"). Se usa como primera fuente, con el cálculo por
+    // monto sólo como respaldo si no viniera el campo.
+    const paymentStatus = String(ev.payment_status || '').toLowerCase();
+    if (paymentStatus === 'paid') return 'fc-event-paid';
+    if (paymentStatus === 'partial') return 'fc-event-partial';
+    if (paymentStatus === 'pending') return 'fc-event-pending';
+
     const total = Number(ev.total_amount) || 0;
     const paid = Number(ev.paid_amount) || 0;
     const balance = Number(ev.balance_due) || Math.max(0, total - paid);

@@ -22,9 +22,11 @@
             '',
             [$status, $reason, $id]
         );
-        // También cancelamos bookings futuros de esta fija
+        // También cancelamos bookings futuros de esta fija.
+        // FIJ-02 (auditoría, cruce entre pantallas): iba status=3 ("Completado"),
+        // no 2 ("Cancelado") -- mismo bug que en cancelRecurringBooking.php.
         query(
-            "UPDATE booking SET status = 3 WHERE recurring_booking_id = ? AND date_booking >= CURDATE()",
+            "UPDATE booking SET status = 2 WHERE recurring_booking_id = ? AND date_booking >= CURDATE()",
             '',
             [$id]
         );

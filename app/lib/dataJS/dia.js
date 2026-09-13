@@ -86,13 +86,20 @@ function getDecoratedBookings() {
     return state.bookings.map((b) => {
         const total = Number(b.total_amount) || 0;
         const paid = Number(b.paid_amount) || 0;
-        const saldo = Math.max(0, total - paid);
+        const rawBalance = total - paid;
+        const saldo = Math.max(0, rawBalance);
+        // HOY-06: un cobro de más (precio cambiado después de cobrar, etc.)
+        // se clampeaba a $0 y se mostraba como una reserva pagada normal —
+        // la plata de más quedaba invisible en vez de señalada.
+        const sobrepago = Math.max(0, -rawBalance);
+        const saldoDisplay = sobrepago > 0 ? `A favor ${fmtMoney(sobrepago)}` : fmtMoney(saldo);
         const esFija = b.is_fixed == 1;
         const canCharge = Number(b.can_charge || 0) === 1;
         const isRealBooking = /^\d+$/.test(String(b.id || ''));
         // Jugada 19: la etiqueta dice cuánto falta, no solo "pendiente" —
         // ahorra un clic para saber si conviene pasar a cobrar.
         const badge =
+            sobrepago > 0 ? `<span class="badge badge-light-info">A favor ${fmtMoney(sobrepago)}</span>` :
             saldo <= 0 ? '<span class="badge badge-light-success">Pagada</span>' :
             `<span class="badge badge-light-warning">Falta ${fmtMoney(saldo)}</span>`;
         const isPlannedRecurring = !isRealBooking && String(b.source || '') === 'recurring_planned' && Number(b.recurring_booking_id || 0) > 0;
@@ -115,11 +122,17 @@ function getDecoratedBookings() {
         const slotInfo = slotUsage.get(slotKey);
         const nextIndex = (slotRowIndex.get(slotKey) || 0) + 1;
         slotRowIndex.set(slotKey, nextIndex);
-        const numeroCancha = slotInfo
-            ? `<span class="badge badge-light-primary" title="Cupo ${nextIndex} de ${slotInfo.threshold}">Cancha ${nextIndex}</span>`
-            : '<span class="text-muted">-</span>';
+        // HOY-01/02/03: "N° Cancha" y "Cancha" mostraban el mismo valor en
+        // las 5 filas (una sola cancha en el establecimiento) y se llevaban
+        // ~30% del ancho de la tabla, justo lo que le faltaba a la columna
+        // de acción. Una sola columna; el cupo sólo aparece cuando importa
+        // (cancha con más de un turno simultáneo).
+        const cupoBadge = (slotInfo && slotInfo.threshold > 1)
+            ? ` <span class="badge badge-light-primary ms-1" title="Cupo ${nextIndex} de ${slotInfo.threshold}">Cupo ${nextIndex}</span>`
+            : '';
+        const canchaLabel = `${b.cancha || ''}${cupoBadge}`;
 
-        return { b, total, paid, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking, recurringId };
+        return { b, total, paid, saldo, saldoDisplay, sobrepago, badge, btn, recurringTag, customerName, bookingLink, canchaLabel, isRealBooking, recurringId };
     });
 }
 
@@ -145,41 +158,40 @@ function renderTabla() {
         mobileList.innerHTML = emptyState;
         return;
     }
+    const showCancha = document.getElementById('dia-table-wrapper')?.dataset.showCancha === '1';
     const decorated = getDecoratedBookings();
-    body.innerHTML = decorated.map(({ b, total, paid, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking, recurringId }) => {
+    body.innerHTML = decorated.map(({ b, total, paid, saldo, saldoDisplay, sobrepago, badge, btn, recurringTag, customerName, bookingLink, canchaLabel, isRealBooking, recurringId }) => {
         return `<tr class="cursor-pointer" data-detail-url="${bookingLink}" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}" onclick="bcRowNavigate(event, this)">
             <td class="ps-4 fw-bold">${b.hour_label || ''}</td>
-            <td>${numeroCancha}</td>
-            <td>${b.cancha || ''}${recurringTag}</td>
+            ${showCancha ? `<td>${canchaLabel}</td>` : ''}
             <td>${isRealBooking
                 ? `<a href="${bookingLink}" class="fw-bold text-hover-primary">${customerName}</a>`
-                : `<button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}">${customerName}</button>`}</td>
+                : `<button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}">${customerName}</button>`}${recurringTag}</td>
             <td><a href="https://wa.me/${(b.customer_phone || '').replace(/\D/g, '')}" target="_blank" class="text-muted">${b.customer_phone || ''}</a></td>
             <td class="text-end">${fmtMoney(total)}</td>
             <td class="text-end text-success">${fmtMoney(paid)}</td>
-            <td class="text-end ${saldo > 0 ? 'text-warning fw-bold' : 'text-muted'}">${fmtMoney(saldo)}</td>
+            <td class="text-end ${sobrepago > 0 ? 'text-info fw-bold' : (saldo > 0 ? 'text-warning fw-bold' : 'text-muted')}">${saldoDisplay}</td>
             <td class="text-center">${badge}</td>
             <td class="text-end pe-4">${btn}</td>
         </tr>`;
     }).join('');
 
-    mobileList.innerHTML = decorated.map(({ b, total, saldo, badge, btn, recurringTag, customerName, bookingLink, numeroCancha, isRealBooking, recurringId }) => `
+    mobileList.innerHTML = decorated.map(({ b, total, saldo, saldoDisplay, sobrepago, badge, btn, recurringTag, customerName, bookingLink, canchaLabel, isRealBooking, recurringId }) => `
         <div class="dia-mobile-card mb-3 cursor-pointer" data-detail-url="${bookingLink}" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}" onclick="bcRowNavigate(event, this)">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="fw-bolder">${b.hour_label || ''}</div>
-                <div>${numeroCancha}</div>
+                ${showCancha ? `<div>${canchaLabel}</div>` : ''}
             </div>
-            <div class="fw-bold mb-1">${b.cancha || ''}${recurringTag}</div>
             <div class="mb-2">${isRealBooking
                 ? `<a href="${bookingLink}" class="fw-bold text-hover-primary">${customerName}</a>`
-                : `<button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}">${customerName}</button>`}</div>
+                : `<button class="btn btn-link p-0 fw-bold text-hover-primary btn-open-recurring-detail" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}">${customerName}</button>`}${recurringTag}</div>
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted fs-8">Total</span>
                 <span class="fw-bold">${fmtMoney(total)}</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted fs-8">Saldo</span>
-                <span class="${saldo > 0 ? 'text-warning fw-bold' : 'text-success fw-bold'}">${fmtMoney(saldo)}</span>
+                <span class="${sobrepago > 0 ? 'text-info fw-bold' : (saldo > 0 ? 'text-warning fw-bold' : 'text-success fw-bold')}">${saldoDisplay}</span>
             </div>
             <div class="d-flex justify-content-between align-items-center">
                 <div>${badge}</div>
@@ -218,7 +230,37 @@ function renderKPIs() {
 }
 
 // --- Cargar bookings del día ---
+// HOY-05: con el filtro en una fecha pasada, el título seguía diciendo "Hoy"
+// y el chip de la barra superior seguía marcando la fecha real -- tres cosas
+// afirmando que estás viendo hoy mientras la tabla mostraba mayo. Fácil
+// cobrar sobre el día equivocado sin darse cuenta.
+const DIA_SEMANA_LARGO = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+function formatFechaLarga(fechaStr) {
+    const [y, m, d] = String(fechaStr || '').split('-').map(Number);
+    if (!y || !m || !d) return fechaStr;
+    const dt = new Date(y, m - 1, d);
+    const dia = DIA_SEMANA_LARGO[dt.getDay()];
+    return `${dia.charAt(0).toUpperCase()}${dia.slice(1)} ${d} de ${MES_LARGO[m - 1]}`;
+}
+
+function updateTituloFecha() {
+    const esHoy = state.fecha === new Date().toLocaleDateString('en-CA');
+    const titulo = document.getElementById('diaTitulo');
+    const subtitulo = document.getElementById('diaSubtitulo');
+    const btnVolver = document.getElementById('btnVolverHoy');
+    if (titulo) titulo.textContent = esHoy ? 'Hoy' : formatFechaLarga(state.fecha);
+    if (subtitulo) {
+        subtitulo.textContent = esHoy
+            ? 'Gestioná las reservas de hoy y registrá los cobros presenciales'
+            : 'Gestioná las reservas de este día y registrá los cobros presenciales';
+    }
+    if (btnVolver) btnVolver.classList.toggle('d-none', esHoy);
+}
+
 function cargarDia(afterLoad) {
+    updateTituloFecha();
     document.getElementById('tabla-dia-body').innerHTML = '<tr><td colspan="10" class="text-center py-10 text-muted">Cargando...</td></tr>';
     document.getElementById('dia-mobile-list').innerHTML = '<div class="text-center py-8 text-muted">Cargando...</div>';
     fun.xhr({
@@ -364,6 +406,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnPDF = document.getElementById('btnExportarPDF');
     if (btnPDF) {
         btnPDF.addEventListener('click', exportarPDF);
+    }
+
+    const btnVolverHoy = document.getElementById('btnVolverHoy');
+    if (btnVolverHoy) {
+        btnVolverHoy.addEventListener('click', () => {
+            state.fecha = new Date().toLocaleDateString('en-CA');
+            input.value = state.fecha;
+            cargarDia();
+        });
     }
 
     const selCancha = document.getElementById('filtroCancha');

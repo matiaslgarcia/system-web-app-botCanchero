@@ -119,7 +119,22 @@ function renderTabla() {
     syncUltraMobileLayout();
     if (!state.items.length) {
         // TXT-05: mismo patrón (ícono + explicación + acción) que Pausas Pendientes.
-        const emptyState = `
+        // FIJ-01: si el filtro está escondiendo fijas que sí existen (activas=0
+        // pero total_all>0), el vacío tiene que decirlo -- "no hay" es una
+        // afirmación distinta de "no hay con este filtro".
+        const escondidas = Math.max(0, (state.totalAll || 0) - state.items.length);
+        const hayFiltro = Boolean(state.filtroEstado);
+        const emptyState = (hayFiltro && escondidas > 0) ? `
+            <div class="card border border-dashed border-gray-300">
+                <div class="card-body text-center py-12">
+                    <i class="fa-solid fa-filter-circle-xmark fs-2x text-gray-400 mb-3"></i>
+                    <div class="fw-bold fs-5 mb-2">No hay reservas fijas con este filtro</div>
+                    <div class="text-muted mb-4">Hay ${escondidas} ${escondidas === 1 ? 'reserva fija' : 'reservas fijas'} con otro estado.</div>
+                    <button type="button" class="btn btn-light-primary btn-sm" id="btnVerTodasFijas">
+                        <i class="fa-solid fa-list me-2"></i>Ver todas
+                    </button>
+                </div>
+            </div>` : `
             <div class="card border border-dashed border-gray-300">
                 <div class="card-body text-center py-12">
                     <i class="fa-solid fa-arrows-rotate fs-2x text-gray-400 mb-3"></i>
@@ -134,6 +149,14 @@ function renderTabla() {
         if (mobileList) {
             mobileList.innerHTML = emptyState;
         }
+        document.querySelectorAll('#btnVerTodasFijas').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const select = document.getElementById('filtroEstado');
+                if (select) select.value = '';
+                state.filtroEstado = '';
+                cargar();
+            });
+        });
         return;
     }
     body.innerHTML = state.items.map((rb) => `
@@ -259,6 +282,7 @@ function cargar() {
         data: fun.setForm({ status: state.filtroEstado }),
         success: (resp) => {
             state.items = Array.isArray(resp?.items) ? resp.items : [];
+            state.totalAll = Number(resp?.total_all ?? state.items.length);
             renderTabla();
         },
         error: () => {

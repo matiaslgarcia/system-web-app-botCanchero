@@ -77,7 +77,7 @@
             b.date_booking,
             b.day_booking,
             b.time_booking,
-            h.time AS hour_label,
+            TIME_FORMAT(h.time, '%H:%i') AS hour_label, -- HOY-07: sin segundos
             b.status,
             b.is_fixed,
             b.recurring_booking_id,
@@ -122,7 +122,7 @@
             :fecha_rec_day_select AS date_booking,
             rb.day_of_week AS day_booking,
             NULL AS time_booking,
-            COALESCE(s.time, DATE_FORMAT(rb.start_time, '%H:%i:%s')) AS hour_label,
+            TIME_FORMAT(COALESCE(s.time, rb.start_time), '%H:%i') AS hour_label,
             1 AS status,
             1 AS is_fixed,
             rb.id AS recurring_booking_id,

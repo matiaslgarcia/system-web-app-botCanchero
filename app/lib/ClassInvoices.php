@@ -85,6 +85,14 @@
                     b.id_field,
                     bs.name AS status,
                     bs.color AS color,
+                    -- ING-01 (auditoría, cruce entre pantallas): el concepto sólo
+                    -- decía \"Reserva / Detalle de transacción\" en las tres filas
+                    -- del día, sin cliente, hora ni cancha -- para cerrar caja
+                    -- hacía falta poder distinguir un cobro de otro por algo más
+                    -- que el número de reserva.
+                    c.full_name AS customer_name,
+                    TIME_FORMAT(h.time, '%H:%i') AS hour_label,
+                    f.full_name AS cancha_name,
                     CASE
                         WHEN COALESCE(pw.cash_amount, 0) > 0 AND COALESCE(v.method_name, '') <> '' THEN 'mixto'
                         WHEN COALESCE(pw.cash_amount, 0) > 0 THEN 'efectivo'
@@ -106,6 +114,9 @@
                     END AS estado
                 FROM booking b
                 INNER JOIN booking_status bs ON bs.id = b.status
+                INNER JOIN customers c ON c.id = b.id_customer
+                INNER JOIN schedules h ON h.id = b.time_booking
+                INNER JOIN soccer_field f ON f.id = b.id_field
                 LEFT JOIN (
                     SELECT
                         id_booking,

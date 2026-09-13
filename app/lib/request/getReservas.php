@@ -172,8 +172,26 @@
                 WHEN COALESCE(b.source, '') = '' THEN 'web'
                 ELSE b.source
             END AS source,
-            b.total_amount,
-            b.paid_amount,
+            -- CRU-01 (auditoría, cruce entre pantallas): esto leía b.total_amount
+            -- crudo, que en muchas reservas nunca se guardó (queda en 0), así que
+            -- el color del calendario terminaba clasificando como impaga o
+            -- pagada sin relación con la plata real. Hoy y la ficha de reserva
+            -- ya resuelven el precio con este mismo fallback a price_ranges; el
+            -- calendario tiene que usar la misma fuente de verdad.
+            COALESCE(
+                NULLIF(b.total_amount, 0),
+                (
+                    SELECT pr.price
+                    FROM price_ranges pr
+                    WHERE pr.id_field = f.id
+                      AND h.hour >= pr.start_time
+                      AND h.hour < pr.end_time
+                    ORDER BY pr.start_time DESC
+                    LIMIT 1
+                ),
+                f.price_hour
+            ) AS total_amount,
+            COALESCE(b.paid_amount, 0) AS paid_amount,
             b.payment_status
         FROM
             booking AS b

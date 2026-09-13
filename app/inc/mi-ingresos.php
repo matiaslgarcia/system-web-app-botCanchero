@@ -1,5 +1,10 @@
 <?php
     $selectedDate = isset($_GET['date']) ? trim((string) $_GET['date']) : date('d/m/Y');
+    // ING-05/06 (auditoría, cruce entre pantallas): con otra fecha cargada la
+    // pantalla seguía diciendo "hoy" cuatro veces (subtítulo, dos tarjetas y
+    // el filtro) -- mismo problema que HOY-05 en la pantalla de Hoy.
+    $esHoyIngresos = ($selectedDate === date('d/m/Y'));
+    $textoHoyIngresos = $esHoyIngresos ? 'hoy' : "el $selectedDate";
     $miIdField = (int) Users::infoUser('id_field');
     $totalDiario = Invoices::getTotalMiIngresos() + Invoices::getTotalExtraIngresos(null, $miIdField);
     $invoices = Invoices::getMiIngresos();
@@ -14,9 +19,21 @@
     // Estadísticas
     $countApproved = 0;
     $countRefunded = 0;
+    // ING-04: "Online"/"Presencial" eran etiquetas sueltas sin ningún número
+    // al lado -- ocupaban el lugar donde el ojo espera el desglose y nunca
+    // cambiaban entre un día todo en efectivo y uno todo por Mercado Pago.
+    $totalOnline = 0.0;
+    $totalPresencial = 0.0;
     foreach($invoices as $inv) {
         if($inv->estado == 'approved') $countApproved++;
         if($inv->estado == 'refunded') $countRefunded++;
+        if ($inv->estado === 'refunded') continue;
+        $metodo = strtolower((string) ($inv->paymet_method ?? ''));
+        if (in_array($metodo, ['efectivo', 'mixto'], true)) {
+            $totalPresencial += (float) $inv->total;
+        } else {
+            $totalOnline += (float) $inv->total;
+        }
     }
 ?>
 
@@ -32,7 +49,7 @@
 
                         <div class="d-flex flex-column mb-5">
                             <h1 class="fs-2 fw-bolder mb-1">Ingresos</h1>
-                            <span class="text-muted fs-7">Mirá cuánto facturaste hoy y el detalle de cada cobro</span>
+                            <span class="text-muted fs-7">Mirá cuánto facturaste <?php echo $textoHoyIngresos ?> y el detalle de cada cobro</span>
                         </div>
 
                         <!-- Resumen de Ingresos -->
@@ -73,10 +90,10 @@
                                         </div>
                                     </div>
                                     <div class="card-body d-flex flex-column justify-content-end pe-0">
-                                        <span class="fs-6 fw-bolder text-gray-800 d-block mb-2">Transacciones exitosas hoy</span>
+                                        <span class="fs-6 fw-bolder text-gray-800 d-block mb-2">Transacciones exitosas <?php echo $textoHoyIngresos ?></span>
                                         <div class="d-flex flex-wrap gap-2">
-                                            <span class="badge badge-light-success fw-bold px-3 py-2">Online</span>
-                                            <span class="badge badge-light-primary fw-bold px-3 py-2">Presencial</span>
+                                            <span class="badge badge-light-success fw-bold px-3 py-2">Online $<?php echo formatearPeso($totalOnline) ?></span>
+                                            <span class="badge badge-light-primary fw-bold px-3 py-2">Presencial $<?php echo formatearPeso($totalPresencial) ?></span>
                                         </div>
                                     </div>
                                 </div>
@@ -91,7 +108,7 @@
                                         </div>
                                     </div>
                                     <div class="card-body d-flex align-items-end pt-0">
-                                        <div class="text-gray-400 fw-semibold fs-6">Monto total reembolsado hoy por cancelaciones.</div>
+                                        <div class="text-gray-400 fw-semibold fs-6">Monto total reembolsado <?php echo $textoHoyIngresos ?> por cancelaciones.</div>
                                     </div>
                                 </div>
                             </div>
@@ -146,11 +163,11 @@
 											: ($invoice->estado == 'refunded' ? ['Reembolsado', 'danger']
 											: ($invoice->estado == 'pending' ? ['Pendiente', 'warning'] : [ucfirst($invoice->estado), 'warning']));
 									?>
-										<div class="bc-mobile-card">
+										<a href="reserva/<?php echo $invoice->nroReserva ?>" class="bc-mobile-card text-reset d-block">
 											<div class="d-flex justify-content-between align-items-start mb-2">
 												<div class="d-flex flex-column">
-													<span class="text-gray-800 fw-bolder fs-6">Reserva #<?php echo $invoice->nroReserva ?></span>
-													<span class="text-muted fs-7"><?php echo date('d/m/Y', strtotime($invoice->date)) ?></span>
+													<span class="text-gray-800 fw-bolder fs-6">Reserva #<?php echo $invoice->nroReserva ?> · <?php echo htmlspecialchars($invoice->customer_name ?? '', ENT_QUOTES) ?></span>
+													<span class="text-muted fs-7"><?php echo date('d/m/Y', strtotime($invoice->date)) ?> · <?php echo $invoice->hour_label ?? '' ?> · <?php echo htmlspecialchars($invoice->cancha_name ?? '', ENT_QUOTES) ?></span>
 												</div>
 												<span class="fw-boldest <?php echo $colorClass ?> fs-5"><?php echo $prefix ?>$<?php echo formatearPeso($val) ?></span>
 											</div>
@@ -158,7 +175,7 @@
 												<span class="badge badge-light-<?php echo $estadoBadge[1] ?> fs-8 fw-bold"><?php echo $estadoBadge[0] ?></span>
 												<span class="text-muted fs-8"><?php echo ucfirst(str_replace('_', ' ', $invoice->paymet_method)) ?></span>
 											</div>
-										</div>
+										</a>
 									<?php } ?>
 									<?php foreach ($extraIngresos as $extra) { ?>
 										<div class="bc-mobile-card bg-light-success bg-opacity-10">
@@ -196,19 +213,21 @@
 										<?php foreach ($invoices as $invoice) { ?>
 											<tr>
 												<td>
-                                                    <div class="d-flex align-items-center">
+                                                    <a href="reserva/<?php echo $invoice->nroReserva ?>" class="d-flex align-items-center text-reset">
                                                         <div class="symbol symbol-40px me-3">
                                                             <div class="symbol-label fs-7 fw-bold bg-light-dark text-gray-800">#<?php echo $invoice->nroReserva ?></div>
                                                         </div>
                                                         <div class="d-flex justify-content-start flex-column">
-                                                            <span class="text-gray-800 fw-bolder mb-1 fs-6">Reserva</span>
-                                                            <span class="text-muted fw-bold d-block fs-7">Detalle de transacción</span>
+                                                            <!-- ING-01: antes decía "Reserva / Detalle de transacción" en
+                                                                 las tres filas, sin cliente ni turno -- para cerrar caja
+                                                                 hacía falta poder distinguir un cobro de otro. -->
+                                                            <span class="text-gray-800 fw-bolder mb-1 fs-6"><?php echo htmlspecialchars($invoice->customer_name ?? 'Reserva #' . $invoice->nroReserva, ENT_QUOTES) ?></span>
+                                                            <span class="text-muted fw-bold d-block fs-7"><?php echo $invoice->hour_label ?? '' ?> · <?php echo htmlspecialchars($invoice->cancha_name ?? '', ENT_QUOTES) ?></span>
                                                         </div>
-                                                    </div>
+                                                    </a>
                                                 </td>
 												<td>
                                                     <span class="text-gray-800 fw-bold d-block fs-6"><?php echo date('d/m/Y', strtotime($invoice->date)) ?></span>
-                                                    <span class="text-muted fw-semibold d-block fs-7">Fecha de pago</span>
                                                 </td>
 												<td>
 													<?php

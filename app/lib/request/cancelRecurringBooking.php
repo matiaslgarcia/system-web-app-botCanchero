@@ -38,8 +38,14 @@
         [':id' => $id, ':reason' => $reason]
     );
 
+    // FIJ-02 (auditoría, cruce entre pantallas): esto ponía status=3
+    // ("Completado"), no 2 ("Cancelado") -- una reserva futura que se cancela
+    // junto con su fija no "se completó". El bug real es semántico: dos fijas
+    // canceladas en la cuenta de prueba seguían mostrando bloques naranjas
+    // activos los jueves/viernes siguientes porque sus bookings ya
+    // materializados nunca quedaron marcados como cancelados.
     query(
-        "UPDATE booking SET status = 3
+        "UPDATE booking SET status = 2
           WHERE recurring_booking_id = :id AND date_booking >= CURDATE()",
         '',
         [':id' => $id]

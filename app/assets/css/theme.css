@@ -192,6 +192,15 @@ body {
     color: var(--bc-dark);
 }
 
+/* NEW-04 / HOY-07-08 (auditoría, cruce entre pantallas): con el font-size real
+   (AC-06) un botón de un renglón en una columna angosta se parte en dos --
+   pasó en "Buscar", en "Nueva reserva" y ahora en "Exportar PDF" en Hoy: la
+   cuarta pasada con el mismo defecto en un botón distinto cada vez. Regla
+   general sobre .btn en vez de ir arreglando instancia por instancia. */
+.btn {
+    white-space: nowrap;
+}
+
 /* Vibrant Buttons */
 .btn-primary {
     background: var(--bc-gradient) !important;
@@ -199,11 +208,6 @@ body {
     box-shadow: 0 4px 15px rgba(80, 205, 137, 0.3) !important;
     transition: all 0.3s ease !important;
     border-radius: 0.75rem !important;
-    /* NEW-04: con el font-size real (AC-06) un botón de un renglón en una
-       columna angosta (ej. "Buscar" en Ingresos, "Nueva reserva" en el
-       calendario) se parte en dos. Puesto acá, en la clase, en vez de en
-       cada instancia que se encuentre partida una por una. */
-    white-space: nowrap;
 }
 
 .btn-primary:hover {

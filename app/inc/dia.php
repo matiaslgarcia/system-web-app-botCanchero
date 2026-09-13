@@ -11,17 +11,21 @@
                         <div class="card mb-5">
                             <div class="card-header border-0 pt-5">
                                 <div class="card-title align-items-start flex-column">
-                                    <h1 class="card-label fw-bolder fs-3 mb-1">Hoy</h1>
-                                    <span class="text-muted fw-bold fs-7">Gestioná las reservas de hoy y registrá los cobros presenciales</span>
+                                    <h1 id="diaTitulo" class="card-label fw-bolder fs-3 mb-1">Hoy</h1>
+                                    <span id="diaSubtitulo" class="text-muted fw-bold fs-7">Gestioná las reservas de hoy y registrá los cobros presenciales</span>
                                 </div>
                                 <div class="card-toolbar">
                                     <div class="d-flex align-items-center gap-3">
+                                        <?php // HOY-05: el título decía "Hoy" aunque estuvieras viendo mayo -- dia.js lo actualiza según la fecha elegida. ?>
+                                        <button type="button" id="btnVolverHoy" class="btn btn-sm btn-light-primary h-40px d-none">
+                                            <i class="fa-solid fa-calendar-day me-2"></i>Volver a hoy
+                                        </button>
                                         <button type="button" id="btnExportarPDF" class="btn btn-sm btn-light-danger h-40px d-flex align-items-center px-4">
                                             <i class="fa-solid fa-file-pdf me-2"></i>Exportar PDF
                                         </button>
                                         <select id="filtroCancha" class="form-select form-select-sm w-200px h-40px">
                                             <option value="">Todas las canchas</option>
-                                            <?php 
+                                            <?php
                                                 foreach(Canchas::getByIdUser() as $cancha){
                                                     echo '<option value="'.$cancha->id.'">'.$cancha->name.'</option>';
                                                 }
@@ -56,14 +60,21 @@
                         <!-- Tabla de reservas -->
                         <div class="card">
                             <div class="card-body p-0">
+                                <?php
+                                    // HOY-01/02/03: "N° Cancha" y "Cancha" repetían el mismo dato en las
+                                    // 5 filas de una cuenta con una sola cancha, y se llevaban ~30% del
+                                    // ancho -- justo lo que le faltaba a la columna de Acción, que quedaba
+                                    // cortada. Una sola columna, oculta del todo si sólo hay una cancha
+                                    // (mismo criterio que el selector de arriba).
+                                    $showCanchaColumn = count(Canchas::getByIdUser()) > 1;
+                                ?>
                                 <div id="dia-mobile-list" class="p-3"></div>
-                                <div id="dia-table-wrapper" class="table-responsive">
+                                <div id="dia-table-wrapper" class="table-responsive" data-show-cancha="<?php echo $showCanchaColumn ? 1 : 0 ?>">
                                     <table class="table table-row-dashed table-row-gray-300 align-middle gs-3 gy-4">
                                         <thead>
                                             <tr class="fw-bold text-muted bg-light">
                                                 <th class="ps-4">Hora</th>
-                                                <th>N° Cancha</th>
-                                                <th>Cancha</th>
+                                                <?php if ($showCanchaColumn): ?><th>Cancha</th><?php endif; ?>
                                                 <th>Cliente</th>
                                                 <th>Teléfono</th>
                                                 <th class="text-end">Total</th>
