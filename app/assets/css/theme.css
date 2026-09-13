@@ -2,17 +2,19 @@
  * BotCanchero - MODERN THEME SYSTEM (Phase 2 UX)
  * ============================================================ */
 
+/* DAT-01/DAT-02 (auditoría, 5ª pasada, con datos reales): esto forzaba fondo
+   gris + texto gris en TODA reserva pasada, pero el título y la hora del
+   evento (.fc-event-title/.fc-event-time) los pinta FullCalendar mismo por
+   .fc-event-main{color:var(--fc-event-text-color)} -- una regla que apunta
+   directo a esos hijos y por eso no hereda el gris de acá, sino el blanco
+   por defecto de la librería. Texto blanco sobre gris clarito: 1.13:1, el
+   peor número de las cuatro pasadas anteriores. Sumado a esto, el tachado
+   se aplicaba a las 25 reservas del mes, pagadas incluidas -- tachado es
+   "se canceló", no "ya pasó". Ahora lo pasado conserva el color real del
+   estado de cobro (no se pierde la lectura del historial) y sólo se
+   desatura un poco; el tachado vive únicamente en .fc-event-cancelled. */
 .fc-event-past {
-    background-color: #f1f1f2 !important;
-    border-color: #d1d1d4 !important;
-    color: #7e8299 !important;
-}
-.fc-event-past .fc-event-main-frame {
-    filter: grayscale(1);
-}
-.fc-event-past .fc-event-title {
-    text-decoration: line-through;
-    opacity: 0.8;
+    filter: saturate(0.5);
 }
 
 :root {
@@ -68,8 +70,40 @@ a {
 .text-success {
     color: #1e7a4a !important; /* era #50cd89, 2.01:1 -> 5.33:1 (montos de dinero) */
 }
+.text-warning {
+    color: #7a4e00 !important; /* era #ffc700, 1.47:1 -> 6.76:1 sobre blanco (RSV-07/08: inicial de avatar) */
+}
 .menu-section {
     color: #8b8fa8 !important; /* era #4c4e6f, 2.05:1 sobre el sidebar oscuro -> 5.15:1 ("PANEL CANCHERO", "MI ESTABLECIMIENTO") */
+}
+
+/* RSV-07/08 (auditoría, 5ª pasada): los botones/badges "light" de Metronic
+   (texto de color sobre su propio fondo clarito) nunca se tocaron -- son una
+   familia de clases distinta a .text-success/.text-primary de más arriba.
+   En Ficha de Reserva salieron "Activo" 1.92:1, "Cerrar Pago" 1.92:1,
+   "Pausar Fija" 1.47:1, pero el patrón es el mismo en todo el panel
+   dondequiera que aparezcan estas clases, no sólo en esta pantalla. */
+.btn.btn-light-success,
+.badge.badge-light-success {
+    color: #1e7a4a !important; /* era #50cd89 sobre #e8fff3, 1.92:1 -> 5.09:1 */
+}
+.btn.btn-light-warning,
+.badge.badge-light-warning {
+    color: #7a4e00 !important; /* era #ffc700 sobre #fff8dd, 1.47:1 -> 6.76:1 */
+}
+.btn.btn-light-danger,
+.badge.badge-light-danger {
+    color: #c81e4a !important; /* era #f1416c sobre #fff5f8, 3.44:1 -> 5.26:1 */
+}
+.btn.btn-light-primary,
+.badge.badge-light-primary {
+    color: #0b76bd !important; /* era #009ef7 sobre #f1faff, 2.75:1 -> 4.58:1 */
+}
+.btn.btn-light-success .svg-icon, .btn.btn-light-success i,
+.btn.btn-light-warning .svg-icon, .btn.btn-light-warning i,
+.btn.btn-light-danger .svg-icon, .btn.btn-light-danger i,
+.btn.btn-light-primary .svg-icon, .btn.btn-light-primary i {
+    color: inherit !important;
 }
 
 /* AC-03: tabulando por la página el foco no se ve — outline:0 y sin ningún
@@ -260,38 +294,22 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Reservas fijas: color distintivo en semana/dia/mes */
-.fc .fc-event.fc-event-fixed,
-.fc .fc-daygrid-event.fc-event-fixed,
-.fc .fc-timegrid-event.fc-event-fixed {
-    background-color: #fd7e14 !important;
-    border-color: #fd7e14 !important;
-    color: #ffffff !important;
-}
-
-.fc .fc-event.fc-event-fixed .fc-event-title,
-.fc .fc-event.fc-event-fixed .fc-event-time {
-    color: #ffffff !important;
-}
-
-.fc .fc-event.fc-event-fixed-cancelled,
-.fc .fc-daygrid-event.fc-event-fixed-cancelled,
-.fc .fc-timegrid-event.fc-event-fixed-cancelled {
-    background-color: #f1416c !important;
-    border-color: #f1416c !important;
-    color: #ffffff !important;
-}
-
-.fc .fc-event.fc-event-fixed-cancelled .fc-event-title,
-.fc .fc-event.fc-event-fixed-cancelled .fc-event-time {
-    color: #ffffff !important;
-    text-decoration: line-through;
+/* DAT-04 (auditoría, 5ª pasada): "reserva fija" (tipo) y "sin pagar" (cobro)
+   son dos preguntas distintas que competían por el mismo color de fondo —
+   una fija impaga y una fija pagada se veían igual, las dos naranjas. El
+   fondo es siempre el estado de cobro (abajo); "fija" ahora es sólo un
+   borde, para no perder ninguna de las dos lecturas en el mismo bloque. */
+.fc .fc-event.fc-event-fija,
+.fc .fc-daygrid-event.fc-event-fija,
+.fc .fc-timegrid-event.fc-event-fija {
+    border-left: 4px solid #b8590e !important;
 }
 
 /* CAL-04: el color de las reservas sueltas codificaba el ORIGEN (bot/web)
    — dato que además ya se ve como ícono 🤖/🖥 en el título — en vez del
    ESTADO DE COBRO, que es la pregunta de plata que el canchero mira en el
-   calendario. Reemplaza el borde por origen por un color sólido por estado. */
+   calendario. Colores oscurecidos donde hacía falta para que el texto
+   blanco llegue a 4.5:1 (partial y pending original quedaban en 2.13/2.57). */
 .fc .fc-event.fc-event-paid,
 .fc .fc-daygrid-event.fc-event-paid,
 .fc .fc-timegrid-event.fc-event-paid {
@@ -303,8 +321,8 @@ body {
 .fc .fc-event.fc-event-partial,
 .fc .fc-daygrid-event.fc-event-partial,
 .fc .fc-timegrid-event.fc-event-partial {
-    background-color: #f59f00 !important;
-    border-color: #f59f00 !important;
+    background-color: #9c6408 !important;
+    border-color: #9c6408 !important;
     color: #ffffff !important;
 }
 
@@ -316,13 +334,32 @@ body {
     color: #ffffff !important;
 }
 
+/* DAT-01/DAT-02: reemplaza fc-event-danger + fc-event-fixed-cancelled — antes
+   dos clases separadas para el mismo significado ("esta reserva no va"), una
+   de ellas (fc-event-danger) sin ninguna regla CSS propia. El tachado ahora
+   vive únicamente acá, no en fc-event-past. */
+.fc .fc-event.fc-event-cancelled,
+.fc .fc-daygrid-event.fc-event-cancelled,
+.fc .fc-timegrid-event.fc-event-cancelled {
+    background-color: #c81e4a !important;
+    border-color: #c81e4a !important;
+    color: #ffffff !important;
+}
+
 .fc .fc-event.fc-event-paid .fc-event-title,
 .fc .fc-event.fc-event-paid .fc-event-time,
 .fc .fc-event.fc-event-partial .fc-event-title,
 .fc .fc-event.fc-event-partial .fc-event-time,
 .fc .fc-event.fc-event-pending .fc-event-title,
-.fc .fc-event.fc-event-pending .fc-event-time {
+.fc .fc-event.fc-event-pending .fc-event-time,
+.fc .fc-event.fc-event-cancelled .fc-event-title,
+.fc .fc-event.fc-event-cancelled .fc-event-time {
     color: #ffffff !important;
+}
+
+.fc .fc-event.fc-event-cancelled .fc-event-title,
+.fc .fc-event.fc-event-cancelled .fc-event-time {
+    text-decoration: line-through;
 }
 
 .bc-status-dot {

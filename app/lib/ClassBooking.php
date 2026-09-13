@@ -271,7 +271,7 @@
             f.full_name AS cancha,
             b.time_booking,
             b.date_booking AS fecha,
-            h.hour12 AS hora,
+            h.hour AS hora,
             c.full_name AS customer_name,
             c.phone AS customer_phone,
             CASE
@@ -398,25 +398,34 @@
                 $row = (object)[
                     'fecha' => $f_fecha,
                     'hora' => $f_hora,
+                    // RSV-03: timestamp crudo para poder intercalar esto con la
+                    // fila sintética "Completada" y ordenar por fecha real, no
+                    // por hora del día.
+                    'timestamp' => $createdTs !== false ? $createdTs : 0,
                     'user' => $l->user_name ?? 'Sistema',
                     'action' => $l->action,
                     'logs_name' => '',
                     'logs_color' => '',
                     'note' => self::humanizeLogNote((string) ($l->action ?? ''), (string) ($l->note ?? ''))
                 ];
-                
+
                 // Mapeo de estilos Metronic basado en 'action'
                 switch($l->action) {
-                    case 'reagendar': case '6': 
+                    case 'reagendar': case '6':
                         $row->logs_name = 'Re-agendada'; $row->logs_color = 'warning'; break;
-                    case 'cancelar': case '2': 
+                    case 'cancelar': case '2':
                         $row->logs_name = 'Cancelada'; $row->logs_color = 'danger'; break;
                     case 'pago_completado': case '3': case 'cash_payment':
                         $row->logs_name = 'Pago Registrado'; $row->logs_color = 'success'; break;
                     case 'crear': case '1':
                         $row->logs_name = 'Reserva Creada'; $row->logs_color = 'primary'; break;
-                    default: 
-                        $row->logs_name = ucfirst(str_replace('_', ' ', (string) $l->action)); 
+                    // RSV-03: "Actualizar" (infinitivo) al lado de "Creada",
+                    // "Cancelada", "Completada" (participio) leía como un verbo
+                    // suelto en medio de una lista de hechos ya ocurridos.
+                    case 'actualizar': case 'update': case '4':
+                        $row->logs_name = 'Actualizada'; $row->logs_color = 'info'; break;
+                    default:
+                        $row->logs_name = ucfirst(str_replace('_', ' ', (string) $l->action));
                         $row->logs_color = 'info'; break;
                 }
                 $formatted[] = $row;

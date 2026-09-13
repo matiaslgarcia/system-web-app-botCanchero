@@ -16,8 +16,8 @@
             <div class="modal-body scroll-y px-10 px-lg-15 pt-0 pb-15">
                 <div class="mb-13 text-center">
                     <h2 class="mb-3">Registrar Pago</h2>
-                    <div class="text-muted fw-bold fs-5">Reserva #<?php echo $reserva->id ?> - Saldo: 
-                        <span class="text-danger fw-bolder">$<?php echo number_format($montoFaltante, 0, ',', '.') ?></span>
+                    <div class="text-muted fw-bold fs-5">Reserva #<?php echo $reserva->id ?> - Saldo:
+                        <span class="text-danger fw-bolder">$<?php echo formatearPeso($montoFaltante) ?></span>
                     </div>
                 </div>
 
@@ -63,7 +63,7 @@
                     <label class="fs-5 fw-bold mb-2">Monto a Cobrar</label>
                     <div class="input-group input-group-solid">
                         <span class="input-group-text fs-3 fw-bold text-gray-700">$</span>
-                        <input type="text" name="cantidad_a_pagar_display" class="form-control ps-3 fs-3 fw-bolder" value="<?php echo number_format($montoFaltante, 0, ',', '.') ?>" readonly>
+                        <input type="text" name="cantidad_a_pagar_display" class="form-control ps-3 fs-3 fw-bolder" value="<?php echo formatearPeso($montoFaltante) ?>" readonly>
                         <input type="hidden" name="cantidad_a_pagar" id="cantidad_a_pagar" value="<?php echo $montoFaltante ?>">
                     </div>
                     <div class="text-muted fs-7 mt-2">El monto está bloqueado al saldo total pendiente.</div>
@@ -73,7 +73,7 @@
                 <div class="text-center">
                     <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-success">
-                        <span class="indicator-label">Confirmar y Cerrar Pago</span>
+                        <span class="indicator-label">Confirmar y Registrar Pago</span>
                     </button>
                 </div>
             </div>

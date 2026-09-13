@@ -29,6 +29,15 @@ const getBookingOrigin = (ev = {}) => {
     return 'web';
 };
 const getBookingOriginIcon = (ev = {}) => (getBookingOrigin(ev) === 'bot' ? '🤖' : '🖥');
+// DAT-03: "Matias Garcia" no entra en el chip de 118px del mes y se corta a
+// "Matias G"/"Matias C" -- con varios clientes que comparten nombre de pila
+// eso no alcanza para distinguirlos. Apellido primero entra en el mismo
+// ancho y sí distingue.
+const formatShortName = (fullName = '') => {
+    const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length <= 1) return parts[0] || '';
+    return `${parts.slice(1).join(' ')}, ${parts[0].charAt(0)}.`;
+};
 const getPaymentStatusClass = (ev = {}) => {
     const total = Number(ev.total_amount) || 0;
     const paid = Number(ev.paid_amount) || 0;
@@ -172,6 +181,29 @@ function getSlotBounds() {
     return { min: `${min}:00`, max: `${max}:00` };
 }
 
+// DAT-05: tocar "14" en un día con 7 reservas cargadas abría "Nueva reserva"
+// en vez de mostrar ese día, y una fecha de cuatro meses atrás se aceptaba
+// sin avisar. Un mismo punto de entrada para crear reserva desde el
+// calendario, con aviso cuando la fecha ya pasó.
+function goToAddBooking(date, time) {
+    const target = `add-booking?date=${date}&time=${time}`;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const clicked = new Date(`${date}T00:00:00`);
+    if (clicked < today) {
+        fun.confirm({
+            title: 'Fecha pasada',
+            text: `Vas a cargar una reserva para el ${date.split('-').reverse().join('/')}, que ya pasó. ¿Confirmás que es correcto?`,
+            confirmButtonText: 'Sí, cargar igual',
+            cancelButtonText: 'Cancelar',
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = target;
+        });
+        return;
+    }
+    window.location.href = target;
+}
+
 function initCalendar(events) {
     const mobile = isMobileViewport();
     const bounds = getSlotBounds();
@@ -193,12 +225,18 @@ function initCalendar(events) {
         select: (info) => {
             const date = info.startStr.split('T')[0];
             const time = info.startStr.split('T')[1] ? info.startStr.split('T')[1].substring(0, 5) : '';
-            window.location.href = `add-booking?date=${date}&time=${time}`;
+            goToAddBooking(date, time);
         },
         dateClick: (info) => {
             const date = info.dateStr.split('T')[0];
             const time = info.dateStr.split('T')[1] ? info.dateStr.split('T')[1].substring(0, 5) : '';
-            window.location.href = `add-booking?date=${date}&time=${time}`;
+            goToAddBooking(date, time);
+        },
+        // DAT-05: en vista Mes, el número del día navega a esa vista Día; crear
+        // una reserva queda para el espacio vacío de la celda (dateClick arriba).
+        navLinks: true,
+        navLinkDayClick: (date) => {
+            calendar.changeView('timeGridDay', date);
         },
         eventDrop: (info) => {
             const startStr = splitDateTime(info.event.startStr);
@@ -234,6 +272,13 @@ function initCalendar(events) {
         expandRows: true,
         nowIndicator: true,
         handleWindowResize: true,
+        // DAT-03: por defecto FullCalendar omite los minutos en punto ("19" en
+        // vez de "19:00"), y como todos los turnos son en punto el chip parece
+        // un dato incompleto en vez de una hora redonda.
+        eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+        // DAT-06: el día 14 con 7 reservas estiraba la fila del mes para meterlas
+        // todas; con dayMaxEvents corta con un "+N más" nativo de FullCalendar.
+        dayMaxEvents: true,
         datesSet: function (info) {
             // Al navegar semana/mes/día refrescamos con el rango visible actual.
             if (calendar) {
@@ -257,23 +302,32 @@ function initCalendar(events) {
         },
         events: events,
         eventClassNames: function(arg) {
-            const now = new Date();
             const classes = ['shadow-sm'];
-            const isFija = isFixedBooking(arg.event.extendedProps || {});
-            const status = Number(arg.event.extendedProps?.id_status ?? arg.event.extendedProps?.status ?? 0);
+            const ev = arg.event.extendedProps || {};
+            const isFija = isFixedBooking(ev);
+            const status = Number(ev.id_status ?? ev.status ?? 0);
+            const isPast = !!(arg.event.end && arg.event.end < new Date());
 
-            // Lógica de "Reserva Pasada"
-            if (arg.event.end && arg.event.end < now) {
-                classes.push('fc-event-past', 'opacity-50', 'grayscale');
-            } else if (status === 2) {
-                classes.push(isFija ? 'fc-event-fixed-cancelled' : 'fc-event-danger');
-            } else if (isFija) {
-                classes.push('fc-event-fixed');
+            // DAT-04: "reserva fija" (tipo) y "sin pagar" (cobro) son dos
+            // preguntas distintas, pero antes competían por el mismo color de
+            // fondo y una fija pagada se veía igual que una fija impaga. El
+            // fondo ahora es siempre el estado de cobro; lo fijo se marca con
+            // un borde aparte (CSS) para no perder ninguna de las dos lecturas.
+            if (status === 2) {
+                classes.push('fc-event-cancelled');
             } else {
                 // CAL-04: antes coloreaba por origen (bot/web) — dato que ya se
                 // ve como ícono en el título — ahora por estado de cobro.
-                classes.push(getPaymentStatusClass(arg.event.extendedProps || {}));
+                classes.push(getPaymentStatusClass(ev));
             }
+            if (isFija) classes.push('fc-event-fija');
+
+            // DAT-01/DAT-02: antes "pasada" pisaba el color de estado con gris
+            // y tachaba el texto aunque estuviera pagada (texto blanco sobre
+            // gris clarito, 1.13:1 -- el peor número de toda la auditoría).
+            // Ahora lo pasado conserva su color real (ver CSS) y el tachado
+            // queda sólo para lo efectivamente cancelado.
+            if (isPast && status !== 2) classes.push('fc-event-past');
 
             return classes;
         },
@@ -310,7 +364,7 @@ function initCalendar(events) {
             }
 
             new bootstrap.Popover(info.el, {
-                title: '#' + info.event.id + ' ' + info.event.title,
+                title: '#' + info.event.id + ' ' + (ev.customer_name || info.event.title),
                 content: lines.join('<br>'),
                 html: true,
                 trigger: 'hover',
@@ -345,10 +399,8 @@ function cargarReservas(options = {}) {
             // solo al pasar el mouse — antes solo se veía en el popover.
             const reservasDecoradas = rawReservas.map((ev) => {
                 const icon = getBookingOriginIcon(ev);
-                let title = String(ev.title || '').trim();
-                if (!title.startsWith(icon)) {
-                    title = title ? `${icon} ${title}` : icon;
-                }
+                const shortName = formatShortName(ev.customer_name || ev.title);
+                let title = shortName ? `${icon} ${shortName}` : String(ev.title || '').trim();
                 const threshold = Math.max(1, Number(ev.threshold ?? 1));
                 if (threshold > 1) {
                     const slotInfo = slotUsageByKey.get(getSlotKeyFromEventLike(ev));

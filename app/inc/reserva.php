@@ -65,12 +65,15 @@
                 <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
                     <?php inc('header') ?>
 
-                    <div class="content d-flex flex-column flex-column-fluid pt-5" id="kt_content">
+                    <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid pt-5">
                         <div class="post d-flex flex-column-fluid" id="kt_post">
                             <div id="kt_content_container" class="container-xxl">
 
                                 <div class="d-flex flex-wrap flex-stack mb-6 reserva-page-header">
                                     <div class="d-flex align-items-center reserva-header-main">
+                                        <a href="./" class="btn btn-sm btn-icon btn-light me-4" title="Volver al calendario" aria-label="Volver al calendario">
+                                            <i class="fa-solid fa-arrow-left"></i>
+                                        </a>
                                         <div class="symbol symbol-45px me-5">
                                             <span class="symbol-label bg-light-info">
                                                 <i class="fa-solid fa-arrows-rotate fs-2x text-info"></i>
@@ -81,7 +84,7 @@
                                                 <h1 class="text-dark fw-bolder fs-2 mb-0 me-3 reserva-page-title">Reserva fija #RB-<?php echo $rbId ?></h1>
                                                 <span class="badge badge-light-<?php echo $stColor ?> fs-7 fw-bold"><?php echo $stLabel ?></span>
                                             </div>
-                                            <span class="text-muted fw-bold fs-6 reserva-page-subtitle">Gestiona el compromiso semanal y sus acciones</span>
+                                            <span class="text-muted fw-bold fs-6 reserva-page-subtitle">Gestioná el compromiso semanal y sus acciones</span>
                                         </div>
                                     </div>
                                 </div>
@@ -239,7 +242,7 @@
 
                             </div>
                         </div>
-                    </div>
+                    </main>
 
                     <?php inc('footer') ?>
                 </div>
@@ -335,6 +338,49 @@
     $timestampReserva = strtotime("$fechaReserva $horaInicio");
     $esPasada = ($timestampReserva < time());
     $esReservaFija = ((int) ($reserva->is_fixed ?? 0) === 1) || ((int) ($reserva->recurring_booking_id ?? 0) > 0);
+
+    // RSV-01: la pantalla mostraba cuatro palabras distintas para la misma
+    // reserva ("Activo", "Saldo Pendiente", "Completada", "Reserva
+    // Finalizada"), dos de ellas contradiciéndose a 500px de distancia. Acá
+    // se resuelve en dos ejes únicos: estado de la reserva y estado de cobro.
+    if ((int) $reserva->status_id === 2) {
+        $estadoReserva = ['label' => 'Cancelada', 'color' => 'danger'];
+    } elseif ($esPasada) {
+        $estadoReserva = ['label' => 'Jugada', 'color' => 'secondary'];
+    } else {
+        $estadoReserva = ['label' => 'Confirmada', 'color' => 'success'];
+    }
+    if ($faltaPagar <= 0) {
+        $estadoCobro = ['label' => 'Pagada', 'color' => 'success'];
+    } elseif ($pagado > 0) {
+        $estadoCobro = ['label' => 'Pago parcial', 'color' => 'warning'];
+    } else {
+        $estadoCobro = ['label' => 'Impaga', 'color' => 'danger'];
+    }
+
+    // RSV-03: el historial ordenaba por hora del día ignorando la fecha —
+    // la fila sintética "Jugada" se insertaba siempre primero sin importar
+    // su fecha real. Se arma una sola lista con timestamp y se ordena.
+    $timelineItems = [];
+    if ($esPasada && (int) $reserva->status_id !== 2) {
+        $horaFinRaw = explode(' - ', $reserva->hora)[1] ?? '--:--';
+        $horaFin = date('H:i', strtotime($horaFinRaw));
+        $timelineItems[] = (object) [
+            'timestamp' => (int) strtotime("$fechaReserva $horaFin"),
+            'fecha' => showDate($fechaReserva),
+            'hora' => $horaFin,
+            'logs_name' => 'Jugada',
+            'logs_color' => 'success',
+            'user' => null,
+            'note' => '',
+        ];
+    }
+    foreach ($logs as $log) {
+        $timelineItems[] = $log;
+    }
+    usort($timelineItems, function ($a, $b) {
+        return ($b->timestamp ?? 0) <=> ($a->timestamp ?? 0);
+    });
 ?>
 
 <div class="d-flex flex-column flex-root reserva-mobile-page">
@@ -343,13 +389,16 @@
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
             <?php inc('header') ?>
 
-            <div class="content d-flex flex-column flex-column-fluid pt-5" id="kt_content">
+            <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid pt-5">
                 <div class="post d-flex flex-column-fluid" id="kt_post">
                     <div id="kt_content_container" class="container-xxl">
-                        
+
                         <!-- Header de la Reserva -->
                         <div class="d-flex flex-wrap flex-stack mb-6 reserva-page-header">
                             <div class="d-flex align-items-center reserva-header-main">
+                                <a href="./" class="btn btn-sm btn-icon btn-light me-4" title="Volver al calendario" aria-label="Volver al calendario">
+                                    <i class="fa-solid fa-arrow-left"></i>
+                                </a>
                                 <div class="symbol symbol-45px me-5">
                                     <span class="symbol-label bg-light-primary">
                                         <i class="fa-solid fa-calendar-check fs-2x text-primary"></i>
@@ -359,20 +408,21 @@
                                     <div class="d-flex align-items-center mb-1 reserva-badges-wrap">
                                         <h1 class="text-dark fw-bolder fs-2 mb-0 me-3 reserva-page-title">Reserva #<?php echo $idReserva ?></h1>
                                         <span class="badge badge-light-primary fs-7 fw-bold me-2">
-                                            <?php echo 'Cancha ' . (int) ($reserva->slot_number ?? 1) . '/' . (int) ($reserva->threshold ?? 1) ?>
+                                            <?php echo 'Cupo ' . (int) ($reserva->slot_number ?? 1) . '/' . (int) ($reserva->threshold ?? 1) ?>
                                         </span>
                                         <?php if ($esReservaFija): ?>
                                             <span class="badge badge-light-info fs-7 fw-bold me-2">
-                                                ♻️ Reserva Fija
+                                                Reserva Fija
                                             </span>
                                         <?php endif; ?>
                                         <?php $origenReserva = in_array(strtolower((string)($reserva->source ?? 'web')), ['bot','customer_bot','whatsapp','bot_whatsapp'], true) ? 'Bot' : 'Web'; ?>
                                         <span class="badge fs-7 fw-bold me-2 <?php echo $origenReserva === 'Bot' ? 'badge-light-info' : 'badge-light-dark' ?>">
                                             <?php echo $origenReserva === 'Bot' ? '🤖 Desde Bot' : '🖥 Desde Web' ?>
                                         </span>
-                                        <span class="badge badge-light-<?php echo $reserva->status_color ?> fs-7 fw-bold"><?php echo $reserva->status_name ?></span>
+                                        <span class="badge badge-light-<?php echo $estadoReserva['color'] ?> fs-7 fw-bold me-2"><?php echo $estadoReserva['label'] ?></span>
+                                        <span class="badge badge-light-<?php echo $estadoCobro['color'] ?> fs-7 fw-bold"><?php echo $estadoCobro['label'] ?></span>
                                     </div>
-                                    <span class="text-muted fw-bold fs-6 reserva-page-subtitle">Gestiona los detalles y el pago de esta reserva</span>
+                                    <span class="text-muted fw-bold fs-6 reserva-page-subtitle">Gestioná los detalles y el pago de esta reserva</span>
                                 </div>
                             </div>
                         </div>
@@ -387,14 +437,14 @@
                                         <div class="card card-flush h-md-100">
                                             <div class="card-header pt-5">
                                                 <div class="card-title d-flex flex-column">
-                                                    <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">$<?php echo number_format($precioCancha, 0, ',', '.') ?></span>
+                                                    <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">$<?php echo formatearPeso($precioCancha) ?></span>
                                                     <span class="text-gray-400 pt-1 fw-semibold fs-6">Valor Cancha</span>
                                                 </div>
                                             </div>
                                             <div class="card-body d-flex flex-column justify-content-end pe-0">
                                                 <span class="badge badge-light-dark fs-8 fw-bold w-fit"><?php echo $reserva->cancha ?></span>
                                                 <span class="badge badge-light-primary fs-8 fw-bold w-fit mt-2">
-                                                    N° Cancha: <?php echo 'Cancha ' . (int) ($reserva->slot_number ?? 1) . '/' . (int) ($reserva->threshold ?? 1) ?>
+                                                    Cupo <?php echo (int) ($reserva->slot_number ?? 1) . '/' . (int) ($reserva->threshold ?? 1) ?>
                                                 </span>
                                             </div>
                                         </div>
@@ -403,7 +453,7 @@
                                         <div class="card card-flush h-md-100">
                                             <div class="card-header pt-5">
                                                 <div class="card-title d-flex flex-column">
-                                                    <span class="fs-2hx fw-bold text-success me-2 lh-1 ls-n2">$<?php echo number_format($pagado, 0, ',', '.') ?></span>
+                                                    <span class="fs-2hx fw-bold text-success me-2 lh-1 ls-n2">$<?php echo formatearPeso($pagado) ?></span>
                                                     <span class="text-gray-400 pt-1 fw-semibold fs-6">Total Pagado</span>
                                                 </div>
                                             </div>
@@ -416,16 +466,12 @@
                                         <div class="card card-flush h-md-100">
                                             <div class="card-header pt-5">
                                                 <div class="card-title d-flex flex-column">
-                                                    <span class="fs-2hx fw-bold text-danger me-2 lh-1 ls-n2">$<?php echo number_format($faltaPagar, 0, ',', '.') ?></span>
+                                                    <span class="fs-2hx fw-bold text-danger me-2 lh-1 ls-n2">$<?php echo formatearPeso($faltaPagar) ?></span>
                                                     <span class="text-gray-400 pt-1 fw-semibold fs-6">Falta Pagar</span>
                                                 </div>
                                             </div>
                                             <div class="card-body d-flex flex-column justify-content-end pe-0">
-                                                <?php if($faltaPagar > 0): ?>
-                                                    <span class="badge badge-light-danger fs-8 fw-bold w-fit">Saldo Pendiente</span>
-                                                <?php else: ?>
-                                                    <span class="badge badge-light-success fs-8 fw-bold w-fit">Pagado Total</span>
-                                                <?php endif; ?>
+                                                <span class="badge badge-light-<?php echo $estadoCobro['color'] ?> fs-8 fw-bold w-fit"><?php echo $estadoCobro['label'] ?></span>
                                             </div>
                                         </div>
                                     </div>
@@ -455,7 +501,7 @@
                                     <div class="card-header pt-7">
                                         <h3 class="card-title align-items-start flex-column">
                                             <span class="card-label fw-bolder text-gray-800">Acciones de Reserva</span>
-                                            <span class="text-gray-400 mt-1 fw-bold fs-7">Gestiona el estado y cobro</span>
+                                            <span class="text-gray-400 mt-1 fw-bold fs-7">Gestioná el estado y cobro</span>
                                         </h3>
                                     </div>
                                     <div class="card-body pt-5">
@@ -464,7 +510,7 @@
                                             <div class="col-md-4">
                                                 <button class="btn btn-flex btn-light-success px-6 w-100 h-100px flex-column justify-content-center" data-bs-toggle="modal" data-bs-target="#cerrarpago-reserva">
                                                     <i class="fa-solid fa-money-bill-wave fs-2x mb-3"></i>
-                                                    <span class="fw-bolder fs-6">Cerrar Pago</span>
+                                                    <span class="fw-bolder fs-6">Registrar Pago</span>
                                                 </button>
                                             </div>
                                             <?php endif; ?>
@@ -514,8 +560,12 @@
                                                     <i class="fa-solid fa-circle-info fs-2tx text-warning me-4"></i>
                                                     <div class="d-flex flex-stack flex-grow-1 ">
                                                         <div class=" fw-semibold">
-                                                            <h4 class="text-gray-900 fw-bold">Reserva Finalizada</h4>
-                                                            <div class="fs-6 text-gray-700 ">Esta reserva ya ha pasado su horario de juego y no admite modificaciones.</div>
+                                                            <h4 class="text-gray-900 fw-bold">Reserva Jugada</h4>
+                                                            <!-- RSV-02: antes decía "no admite modificaciones" mientras
+                                                                 "Registrar Pago"/"Pausar Fija" seguían activos y
+                                                                 funcionando -- cobrar un turno viejo es correcto, lo
+                                                                 que no corresponde es re-agendar o cancelar. -->
+                                                            <div class="fs-6 text-gray-700 ">Esta reserva ya se jugó: no se puede re-agendar ni cancelar, pero podés seguir registrando el cobro.</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -537,39 +587,24 @@
                                     </div>
                                     <div class="card-body pt-5">
                                         <div class="timeline-label reserva-timeline">
-                                            <?php if(empty($logs)): ?>
+                                            <?php if(empty($timelineItems)): ?>
                                                 <div class="text-center py-10">
                                                     <i class="fa-solid fa-clock-rotate-left fs-3x text-gray-200 mb-3"></i>
                                                     <p class="text-gray-400 fw-bold">No hay movimientos registrados</p>
                                                 </div>
                                             <?php else: ?>
-                                                <?php if($esPasada && $reserva->status_id != 2): ?>
+                                                <?php foreach ($timelineItems as $log) { ?>
                                                     <div class="timeline-item">
-                                                        <div class="timeline-label fw-bolder text-gray-800 fs-6">
-                                                            <?php 
-                                                                $horaFinRaw = explode(' - ', $reserva->hora)[1] ?? '--:--';
-                                                                echo date('H:i', strtotime($horaFinRaw));
-                                                            ?>
-                                                        </div>
-                                                        <div class="timeline-badge">
-                                                            <i class="fa fa-genderless text-success fs-1"></i>
-                                                        </div>
-                                                        <div class="fw-mormal timeline-content text-muted ps-3">
-                                                            <span class="text-gray-800 fw-bolder">Completada</span>
-                                                            <span class="d-block fs-8 text-gray-400"><?php echo showDate($reserva->fecha) ?></span>
-                                                        </div>
-                                                    </div>
-                                                <?php endif; ?>
-
-                                                <?php foreach ($logs as $log) { ?>
-                                                    <div class="timeline-item">
-                                                        <div class="timeline-label fw-bolder text-gray-800 fs-6"><?php echo $log->hora ?></div>
+                                                        <!-- RSV-04/05: antes la hora iba en grande acá y la fecha
+                                                             chica debajo -- al revisar un historial se busca el día,
+                                                             no el minuto. Se invierte la jerarquía. -->
+                                                        <div class="timeline-label fw-bolder text-gray-800 fs-6"><?php echo $log->fecha ?></div>
                                                         <div class="timeline-badge">
                                                             <i class="fa fa-genderless text-<?php echo $log->logs_color ?> fs-1"></i>
                                                         </div>
                                                         <div class="fw-mormal timeline-content text-muted ps-3">
-                                                            <span class="text-gray-800 fw-bolder"><?php echo $log->logs_name ?></span> por <?php echo $log->user ?>
-                                                            <span class="d-block fs-8 text-gray-400"><?php echo $log->fecha ?></span>
+                                                            <span class="text-gray-800 fw-bolder"><?php echo $log->logs_name ?></span><?php if (!empty($log->user)): ?> por <?php echo $log->user ?><?php endif; ?>
+                                                            <span class="d-block fs-8 text-gray-400"><?php echo $log->hora ?> hs</span>
                                                             <?php if (!empty($log->note)): ?>
                                                                 <span class="d-block fs-8 text-gray-600"><?php echo htmlspecialchars($log->note) ?></span>
                                                             <?php endif; ?>
@@ -585,7 +620,7 @@
 
                     </div>
                 </div>
-            </div>
+            </main>
             <?php inc('footer') ?>
             <?php modal('re-agendar') ?>
             <?php modal('cerrar-pago') ?>

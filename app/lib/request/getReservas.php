@@ -259,10 +259,10 @@
         $reserva = is_array($row) ? (object) $row : $row;
         $reserva->start = date("Y-m-d\TH:i:s", strtotime($reserva->start));
 
-        // Tag visual fija + estado de pago
-        $tags = [];
-        if ($reserva->is_fixed == 1) $tags[] = '♻️';
-        $reserva->title = (count($tags) ? implode(' ', $tags) . ' ' : '') . $reserva->title;
+        // DAT-04/DAT-06 (auditoría, 5ª pasada): el ♻️ en el título competía por
+        // espacio con el nombre del cliente en el chip de 118px; "fija" ya se
+        // marca con un borde en el bloque del calendario (theme.css), así que
+        // el título queda libre para el nombre.
 
         // Pintar fijas en naranja, sueltas con color del status (mantener original)
         $isRecurringBooking = !empty($reserva->recurring_booking_id) && (int)$reserva->recurring_booking_id > 0;
