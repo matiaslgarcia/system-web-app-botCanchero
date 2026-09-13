@@ -39,7 +39,7 @@
                                 <div class="card card-flush h-md-100" style="background: var(--bc-lead-bg, #0E1A12) !important;" data-bs-theme="dark">
                                     <div class="card-header pt-5">
                                         <div class="card-title d-flex flex-column">
-                                            <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">$<?php echo number_format($totalDiario, 2) ?></span>
+                                            <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">$<?php echo formatearPeso($totalDiario) ?></span>
                                             <span class="text-white opacity-75 pt-1 fw-semibold fs-6">Ingreso Total del Día</span>
                                         </div>
                                     </div>
@@ -145,7 +145,7 @@
 													<span class="text-gray-800 fw-bolder fs-6">Reserva #<?php echo $invoice->nroReserva ?></span>
 													<span class="text-muted fs-7"><?php echo date('d/m/Y', strtotime($invoice->date)) ?></span>
 												</div>
-												<span class="fw-boldest <?php echo $colorClass ?> fs-5"><?php echo $prefix ?>$<?php echo number_format($val, 2) ?></span>
+												<span class="fw-boldest <?php echo $colorClass ?> fs-5"><?php echo $prefix ?>$<?php echo formatearPeso($val) ?></span>
 											</div>
 											<div class="d-flex justify-content-between align-items-center">
 												<span class="badge badge-light-<?php echo $estadoBadge[1] ?> fs-8 fw-bold"><?php echo $estadoBadge[0] ?></span>
@@ -160,7 +160,7 @@
 													<span class="text-gray-800 fw-bolder fs-6"><?php echo htmlspecialchars($extra->description, ENT_QUOTES) ?></span>
 													<span class="text-muted fs-7"><?php echo date('d/m/Y', strtotime($extra->date_income)) ?></span>
 												</div>
-												<span class="fw-boldest text-success fs-5">$<?php echo number_format((float) $extra->amount, 2) ?></span>
+												<span class="fw-boldest text-success fs-5">$<?php echo formatearPeso((float) $extra->amount) ?></span>
 											</div>
 											<div class="d-flex justify-content-between align-items-center">
 												<span class="badge badge-light-info fs-8 fw-bold">Ingreso extra</span>
@@ -232,7 +232,7 @@
                                                     $isNegative = ((float) $invoice->signed_total) < 0;
                                                     $colorClass = $isNegative ? 'text-danger' : 'text-success';
                                                     $prefix = $isNegative ? '-' : '';
-                                                    echo '<span class="fw-boldest '.$colorClass.' fs-5">'.$prefix.'$'.number_format($val, 2).'</span>';
+                                                    echo '<span class="fw-boldest '.$colorClass.' fs-5">'.$prefix.'$'.formatearPeso($val).'</span>';
  													?>
 												</td>
 												<td></td>
@@ -256,7 +256,7 @@
 												</td>
 												<td><span class="badge badge-light-info fs-7 fw-bold">Ingreso extra</span></td>
 												<td><span class="text-gray-800 fw-bold fs-6"><?php echo ucfirst(str_replace('_', ' ', $extra->method_payment)) ?></span></td>
-												<td class="text-end"><span class="fw-boldest text-success fs-5">$<?php echo number_format((float) $extra->amount, 2) ?></span></td>
+												<td class="text-end"><span class="fw-boldest text-success fs-5">$<?php echo formatearPeso((float) $extra->amount) ?></span></td>
 												<td class="text-end">
 													<button class="btn btn-icon btn-sm btn-light-danger btn-delete-extra" data-id="<?php echo $extra->id ?>" title="Eliminar">
 														<i class="fa-solid fa-trash fs-7"></i>

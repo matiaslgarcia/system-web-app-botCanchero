@@ -10,7 +10,8 @@ Theme::header([
         'plugins.bundle',
         'style.bundle',
         'FontAwesome',
-        'theme'
+        'theme',
+        'dataTables'
     ]
 ]);
 inc('clientes');
@@ -18,5 +19,7 @@ Theme::footer([
     'js' => [
         'plugins.bundle',
         'scripts.bundle',
-    ]
+        'dataTables',
+    ],
+    'dataJS' => ['clientes']
 ]);

@@ -89,7 +89,7 @@ foreach ($customers as $customer) {
                                 <div class="card bg-light-warning">
                                     <div class="card-body p-4">
                                         <div class="text-muted fs-7">Dinero ingresado</div>
-                                        <div class="fw-bold fs-2">$<?php echo number_format($totalRevenue, 2); ?></div>
+                                        <div class="fw-bold fs-2">$<?php echo formatearPeso($totalRevenue); ?></div>
                                     </div>
                                 </div>
                             </div>
@@ -176,9 +176,14 @@ foreach ($customers as $customer) {
                                                     <span class="text-muted fs-8">Reservas</span>
                                                     <span class="fw-semibold text-gray-800"><?php echo (int) ($customer['total_bookings'] ?? 0); ?> (canceladas: <?php echo (int) ($customer['cancelled_bookings'] ?? 0); ?>)</span>
                                                 </div>
+                                                <?php $cancelRateCard = (int) ($customer['total_bookings'] ?? 0) > 0 ? round(((int) ($customer['cancelled_bookings'] ?? 0) / (int) $customer['total_bookings']) * 100, 2) : 0.0; ?>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="text-muted fs-8">Tasa de cancelación</span>
+                                                    <span class="fw-semibold <?php echo $cancelRateCard >= 30 ? 'text-danger' : 'text-gray-800'; ?>"><?php echo formatearPeso($cancelRateCard); ?>%</span>
+                                                </div>
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span class="text-muted fs-8">Dinero generado</span>
-                                                    <span class="fw-bolder text-success">$<?php echo number_format((float) ($customer['paid_total'] ?? 0), 2); ?></span>
+                                                    <span class="fw-bolder text-success">$<?php echo formatearPeso((float) ($customer['paid_total'] ?? 0)); ?></span>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <span class="text-muted fs-8">Próxima reserva</span>
@@ -188,7 +193,7 @@ foreach ($customers as $customer) {
                                         <?php } ?>
                                     </div>
                                     <div id="clientes-table-wrapper" class="table-responsive">
-                                        <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                                        <table id="tabla-clientes" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
                                             <thead>
                                                 <tr class="fw-bolder text-muted">
                                                     <th>Cliente</th>
@@ -198,7 +203,7 @@ foreach ($customers as $customer) {
                                                     <th>Reservas</th>
                                                     <th>Dinero generado</th>
                                                     <th>Próxima reserva</th>
-                                                    <th class="text-end">Acciones</th>
+                                                    <th class="text-end no-sort">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -228,22 +233,23 @@ foreach ($customers as $customer) {
                                                         <?php if ($isSuperAdmin && $selectedEstablishmentId === 0) { ?>
                                                             <td><?php echo htmlspecialchars((string) $customer['establishment_name']); ?></td>
                                                         <?php } ?>
-                                                        <td>
+                                                        <td data-order="<?php echo (int) ($customer['total_bookings'] ?? 0); ?>">
                                                             <div class="d-flex flex-column">
-                                                                <span class="fw-semibold text-gray-800"><?php echo (int) ($customer['total_bookings'] ?? 0); ?> reservas</span>
-                                                                <span class="text-muted fs-7">Canceladas: <?php echo (int) ($customer['cancelled_bookings'] ?? 0); ?></span>
+                                                                <span class="fw-semibold text-gray-800"><?php echo plural((int) ($customer['total_bookings'] ?? 0), 'reserva'); ?></span>
+                                                                <?php $cancelRateRow = (int) ($customer['total_bookings'] ?? 0) > 0 ? round(((int) ($customer['cancelled_bookings'] ?? 0) / (int) $customer['total_bookings']) * 100, 2) : 0.0; ?>
+                                                                <span class="text-muted fs-7">Canceladas: <?php echo (int) ($customer['cancelled_bookings'] ?? 0); ?> <span class="<?php echo $cancelRateRow >= 30 ? 'text-danger fw-bold' : ''; ?>">(<?php echo formatearPeso($cancelRateRow); ?>%)</span></span>
                                                                 <span class="text-muted fs-8">Última reserva: <?php echo !empty($customer['last_booking_date']) ? htmlspecialchars(showDate((string) $customer['last_booking_date'])) : 'Sin historial'; ?></span>
                                                             </div>
                                                         </td>
-                                                        <td>
+                                                        <td data-order="<?php echo (float) ($customer['paid_total'] ?? 0); ?>">
                                                             <div class="d-flex flex-column">
-                                                                <span class="fw-bolder text-success">$<?php echo number_format((float) ($customer['paid_total'] ?? 0), 2); ?></span>
-                                                                <span class="text-muted fs-8">Promedio por reserva: $<?php echo number_format((int) ($customer['total_bookings'] ?? 0) > 0 ? ((float) ($customer['paid_total'] ?? 0) / (int) ($customer['total_bookings'] ?? 0)) : 0, 2); ?></span>
+                                                                <span class="fw-bolder text-success">$<?php echo formatearPeso((float) ($customer['paid_total'] ?? 0)); ?></span>
+                                                                <span class="text-muted fs-8">Promedio por reserva: $<?php echo formatearPeso((int) ($customer['total_bookings'] ?? 0) > 0 ? ((float) ($customer['paid_total'] ?? 0) / (int) ($customer['total_bookings'] ?? 0)) : 0); ?></span>
                                                             </div>
                                                         </td>
-                                                        <td>
+                                                        <td data-order="<?php echo !empty($customer['next_booking_date']) ? strtotime((string) $customer['next_booking_date']) : 0; ?>">
                                                             <div class="d-flex flex-column">
-                                                                <span class="fw-semibold text-gray-800"><?php echo (int) ($customer['upcoming_bookings'] ?? 0); ?> pendiente/s</span>
+                                                                <span class="fw-semibold text-gray-800"><?php echo plural((int) ($customer['upcoming_bookings'] ?? 0), 'pendiente'); ?></span>
                                                                 <span class="text-muted fs-8">
                                                                     <?php echo !empty($customer['next_booking_date']) ? htmlspecialchars(showDate((string) $customer['next_booking_date'])) : 'Sin próxima reserva'; ?>
                                                                 </span>

@@ -27,7 +27,7 @@
 								<div class="card card-flush h-md-100" style="background: linear-gradient(112.14deg, #00D2FF 0%, #3A7BD5 100%) !important;" data-bs-theme="dark">
 									<div class="card-header pt-5">
 										<div class="card-title d-flex flex-column">
-											<span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">$<?php echo number_format((float) $totalDiario, 2); ?></span>
+											<span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">$<?php echo formatearPeso((float) $totalDiario); ?></span>
 											<span class="text-white opacity-75 pt-1 fw-semibold fs-6">Ingresos del día</span>
 										</div>
 									</div>
@@ -142,7 +142,7 @@
 													<?php
 														$value = (float) $invoice->signed_total;
 														$prefix = $value < 0 ? '-' : '';
-														echo $prefix . '$' . number_format(abs($value), 2);
+														echo $prefix . '$' . formatearPeso(abs($value));
 													?>
 												</td>
 												<td></td>
@@ -156,7 +156,7 @@
 												<td><?php echo date('d/m/Y', strtotime($extra->date_income)) ?></td>
 												<td><span class="badge badge-light-info">Ingreso extra</span></td>
 												<td><?php echo ucfirst(str_replace('_', ' ', $extra->method_payment)) ?></td>
-												<td class="text-end fw-bolder text-success">$<?php echo number_format((float) $extra->amount, 2) ?></td>
+												<td class="text-end fw-bolder text-success">$<?php echo formatearPeso((float) $extra->amount) ?></td>
 												<td class="text-end">
 													<button class="btn btn-icon btn-sm btn-light-danger btn-delete-extra" data-id="<?php echo $extra->id ?>" title="Eliminar">
 														<i class="fa-solid fa-trash fs-7"></i>

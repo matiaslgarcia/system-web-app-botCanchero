@@ -19,7 +19,8 @@ const initMiIngresos = () => {
     $("#kt_datatable_example_1").DataTable({
         "language": {
             "decimal": "",
-            "emptyTable": "No hay información",
+            // TXT-05: "No hay información" no explica nada — mismo patrón de ícono + explicación que el resto del panel.
+            "emptyTable": '<div class="text-center py-6"><i class="fa-solid fa-file-invoice-dollar fs-2x text-gray-400 mb-3"></i><div class="fw-bold fs-5 mb-1">Todavía no hay ingresos</div><div class="text-muted">Los cobros de reservas y los ingresos extra van a aparecer acá.</div></div>',
             "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
             "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
             "infoFiltered": "(Filtrado de _MAX_ total entradas)",

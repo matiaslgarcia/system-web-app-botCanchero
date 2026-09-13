@@ -48,6 +48,20 @@
         $dir = __DIR__ . '/../inc/' . $ruta . $file . $extencion;
         require $dir;
     }
+    // TXT-01/02: number_format($n, 2) usa coma de miles y punto decimal
+    // (formato EEUU); en es-AR es al revés — "$25.100,00", no "$25,100.00".
+    function numeroAr($n, $decimales = 2){
+        return number_format((float) $n, $decimales, ',', '.');
+    }
+    function formatearPeso($n){
+        return numeroAr($n, 2);
+    }
+    // "1 reservas", "0 pendiente/s" -> plural real según cantidad.
+    function plural($n, $singular, $pluralWord = null){
+        $n = (int) $n;
+        if ($pluralWord === null) $pluralWord = $singular . 's';
+        return $n . ' ' . ($n === 1 ? $singular : $pluralWord);
+    }
     // PHP-15: por defecto termina el script — evita doble JSON / headers ya enviados.
     function JSON($arr, $status = 200, $die = true) {
         $requestId = getRequestId();

@@ -129,8 +129,20 @@ function renderTabla() {
     const mobileList = document.getElementById('dia-mobile-list');
     syncUltraMobileLayout();
     if (!state.bookings.length) {
-        body.innerHTML = '<tr><td colspan="10" class="text-center py-10 text-muted">Sin reservas para esta fecha</td></tr>';
-        mobileList.innerHTML = '<div class="text-center py-8 text-muted">Sin reservas para esta fecha</div>';
+        // TXT-05: mismo patrón (ícono + explicación + acción) que Pausas Pendientes.
+        const emptyState = `
+            <div class="card border border-dashed border-gray-300">
+                <div class="card-body text-center py-12">
+                    <i class="fa-solid fa-calendar-day fs-2x text-gray-400 mb-3"></i>
+                    <div class="fw-bold fs-5 mb-2">Sin reservas para esta fecha</div>
+                    <div class="text-muted mb-4">Todavía no hay turnos cargados para el día elegido.</div>
+                    <a href="add-booking" class="btn btn-light-primary btn-sm">
+                        <i class="fa-solid fa-plus me-2"></i>Nueva reserva
+                    </a>
+                </div>
+            </div>`;
+        body.innerHTML = `<tr><td colspan="10" class="p-0">${emptyState}</td></tr>`;
+        mobileList.innerHTML = emptyState;
         return;
     }
     const decorated = getDecoratedBookings();

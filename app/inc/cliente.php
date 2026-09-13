@@ -107,9 +107,9 @@ $historyBaseUrl = 'cliente?id=' . (int) ($_GET['id'] ?? 0)
                                             </div>
                                         </div>
                                         <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                                            <span class="badge badge-light-primary fs-7"><?php echo (int) ($summary['total_bookings'] ?? 0); ?> reservas</span>
-                                            <span class="badge badge-light-danger fs-7"><?php echo (int) ($summary['cancelled_bookings'] ?? 0); ?> cancelaciones</span>
-                                            <span class="badge badge-light-success fs-7">$<?php echo number_format((float) ($summary['paid_total'] ?? 0), 2); ?> generados</span>
+                                            <span class="badge badge-light-primary fs-7"><?php echo plural((int) ($summary['total_bookings'] ?? 0), 'reserva'); ?></span>
+                                            <span class="badge badge-light-danger fs-7"><?php echo plural((int) ($summary['cancelled_bookings'] ?? 0), 'cancelación', 'cancelaciones'); ?></span>
+                                            <span class="badge badge-light-success fs-7">$<?php echo formatearPeso((float) ($summary['paid_total'] ?? 0)); ?> generados</span>
                                         </div>
                                     </div>
                                 </div>
@@ -137,7 +137,7 @@ $historyBaseUrl = 'cliente?id=' . (int) ($_GET['id'] ?? 0)
                                         <div class="card-body p-4 d-flex flex-column justify-content-between" style="min-height: 112px;">
                                             <div class="text-muted fs-7">Cancelaciones</div>
                                             <div class="fw-bold fs-2"><?php echo (int) ($summary['cancelled_bookings'] ?? 0); ?></div>
-                                            <div class="text-muted fs-8 mt-1">Tasa: <?php echo number_format((float) ($summary['cancel_rate'] ?? 0), 2); ?>%</div>
+                                            <div class="text-muted fs-8 mt-1">Tasa: <?php echo formatearPeso((float) ($summary['cancel_rate'] ?? 0)); ?>%</div>
                                         </div>
                                     </div>
                                 </div>
@@ -145,8 +145,8 @@ $historyBaseUrl = 'cliente?id=' . (int) ($_GET['id'] ?? 0)
                                     <div class="card bg-light-success h-100">
                                         <div class="card-body p-4 d-flex flex-column justify-content-between" style="min-height: 112px;">
                                             <div class="text-muted fs-7">Dinero generado</div>
-                                            <div class="fw-bold fs-2">$<?php echo number_format((float) ($summary['paid_total'] ?? 0), 2); ?></div>
-                                            <div class="text-muted fs-8 mt-1">Promedio por reserva: $<?php echo number_format((int) ($summary['total_bookings'] ?? 0) > 0 ? ((float) ($summary['paid_total'] ?? 0) / (int) ($summary['total_bookings'] ?? 0)) : 0, 2); ?></div>
+                                            <div class="fw-bold fs-2">$<?php echo formatearPeso((float) ($summary['paid_total'] ?? 0)); ?></div>
+                                            <div class="text-muted fs-8 mt-1">Promedio por reserva: $<?php echo formatearPeso((int) ($summary['total_bookings'] ?? 0) > 0 ? ((float) ($summary['paid_total'] ?? 0) / (int) ($summary['total_bookings'] ?? 0)) : 0); ?></div>
                                         </div>
                                     </div>
                                 </div>
@@ -232,7 +232,7 @@ $historyBaseUrl = 'cliente?id=' . (int) ($_GET['id'] ?? 0)
                                                                     </td>
                                                                     <td><?php echo htmlspecialchars((string) ($booking['field_name'] ?? '')); ?></td>
                                                                     <td><?php echo htmlspecialchars((string) ($booking['status_label'] ?? '')); ?></td>
-                                                                    <td class="text-end">$<?php echo number_format((float) ($booking['paid_amount'] ?? 0), 2); ?></td>
+                                                                    <td class="text-end">$<?php echo formatearPeso((float) ($booking['paid_amount'] ?? 0)); ?></td>
                                                                 </tr>
                                                             <?php } ?>
                                                         </tbody>

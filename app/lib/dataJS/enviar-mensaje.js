@@ -12,6 +12,7 @@ const initEnviarMensaje = () => {
     const countSelEl    = document.querySelector('#countSeleccionados');
     const countTotalEl  = document.querySelector('#countTotal');
     const countEnviarEl = document.querySelector('#countEnviar');
+    const destinatarioLabelEl = document.querySelector('#destinatarioLabel');
     const tiempoEstimadoEl = document.querySelector('#tiempoEstimado');
     const btnEnviar     = document.querySelector('#btnEnviar');
     const btnTodos      = document.querySelector('#btnSeleccionarTodos');
@@ -65,6 +66,9 @@ const initEnviarMensaje = () => {
     };
 
     const escapeHtml = (str) => String(str).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+    // TXT-01: "destinatario(s)" no dice nada para 1 — plural real según cantidad.
+    const plural = (n, singular, pluralWord = singular + 's') => (n === 1 ? singular : pluralWord);
 
     // --- Toggle individual ---
     const toggleSeleccion = (phone, checked, labelEl) => {
@@ -123,6 +127,7 @@ const initEnviarMensaje = () => {
         const n = seleccionados.size;
         countSelEl.textContent    = n;
         countEnviarEl.textContent = n;
+        if (destinatarioLabelEl) destinatarioLabelEl.textContent = plural(n, 'destinatario');
         if (tiempoEstimadoEl) tiempoEstimadoEl.textContent = tiempoEstimadoTexto(n);
         btnEnviar.disabled = n === 0 || !mensajeEl?.value.trim();
     };
@@ -146,7 +151,7 @@ const initEnviarMensaje = () => {
         const confirmResult = await swal({
             icon: 'question',
             title: 'Confirmar envío',
-            html: `Se enviará el siguiente mensaje a <strong>${phones.length} destinatario(s)</strong> (${tiempoEstimadoTexto(phones.length).toLowerCase()}):<br><br>
+            html: `Se enviará el siguiente mensaje a <strong>${phones.length} ${plural(phones.length, 'destinatario')}</strong> (${tiempoEstimadoTexto(phones.length).toLowerCase()}):<br><br>
                    <div class="text-start bg-light rounded p-3 fs-7" style="white-space:pre-wrap;max-height:120px;overflow-y:auto">${escapeHtml(mensaje)}</div>`,
             showCancelButton: true,
             confirmButtonText: '<i class="fa-brands fa-whatsapp me-2"></i>Sí, enviar',

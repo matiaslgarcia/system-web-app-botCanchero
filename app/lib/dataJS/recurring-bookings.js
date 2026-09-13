@@ -118,9 +118,21 @@ function renderTabla() {
     const mobileList = document.getElementById('recurring-mobile-list');
     syncUltraMobileLayout();
     if (!state.items.length) {
-        body.innerHTML = '<tr><td colspan="9" class="text-center py-10 text-muted">No hay reservas fijas</td></tr>';
+        // TXT-05: mismo patrón (ícono + explicación + acción) que Pausas Pendientes.
+        const emptyState = `
+            <div class="card border border-dashed border-gray-300">
+                <div class="card-body text-center py-12">
+                    <i class="fa-solid fa-arrows-rotate fs-2x text-gray-400 mb-3"></i>
+                    <div class="fw-bold fs-5 mb-2">No hay reservas fijas</div>
+                    <div class="text-muted mb-4">Los turnos recurrentes de tus clientes van a aparecer acá.</div>
+                    <button type="button" class="btn btn-light-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNueva">
+                        <i class="fa-solid fa-plus me-2"></i>Nueva Reserva Fija
+                    </button>
+                </div>
+            </div>`;
+        body.innerHTML = `<tr><td colspan="9" class="p-0">${emptyState}</td></tr>`;
         if (mobileList) {
-            mobileList.innerHTML = '<div class="text-center py-8 text-muted">No hay reservas fijas</div>';
+            mobileList.innerHTML = emptyState;
         }
         return;
     }
