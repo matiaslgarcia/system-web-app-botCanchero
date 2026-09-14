@@ -137,6 +137,16 @@ function getDecoratedBookings() {
 }
 
 // --- Render ---
+// NEW-09 (auditoría, 7ª pasada): el reviewer no logró reproducir un
+// desalineo real entre thead/tbody contra el código actual (8 th y 8 td
+// coinciden), pero sugiere un chequeo automático como red de seguridad
+// para la próxima vez que se toque esta tabla. getColCount() centraliza el
+// número real de columnas en vez de tener "10" hardcodeado en 4 lugares.
+function getColCount() {
+    const showCancha = document.getElementById('dia-table-wrapper')?.dataset.showCancha === '1';
+    return showCancha ? 9 : 8;
+}
+
 function renderTabla() {
     const body = document.getElementById('tabla-dia-body');
     const mobileList = document.getElementById('dia-mobile-list');
@@ -154,7 +164,7 @@ function renderTabla() {
                     </a>
                 </div>
             </div>`;
-        body.innerHTML = `<tr><td colspan="10" class="p-0">${emptyState}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="${getColCount()}" class="p-0">${emptyState}</td></tr>`;
         mobileList.innerHTML = emptyState;
         return;
     }
@@ -261,7 +271,7 @@ function updateTituloFecha() {
 
 function cargarDia(afterLoad) {
     updateTituloFecha();
-    document.getElementById('tabla-dia-body').innerHTML = '<tr><td colspan="10" class="text-center py-10 text-muted">Cargando...</td></tr>';
+    document.getElementById('tabla-dia-body').innerHTML = `<tr><td colspan="${getColCount()}" class="text-center py-10 text-muted">Cargando...</td></tr>`;
     document.getElementById('dia-mobile-list').innerHTML = '<div class="text-center py-8 text-muted">Cargando...</div>';
     fun.xhr({
         url: 'getDia',
@@ -277,7 +287,7 @@ function cargarDia(afterLoad) {
             if (typeof afterLoad === 'function') afterLoad();
         },
         error: (err) => {
-            document.getElementById('tabla-dia-body').innerHTML = '<tr><td colspan="10" class="text-center py-10 text-danger">Error al cargar</td></tr>';
+            document.getElementById('tabla-dia-body').innerHTML = `<tr><td colspan="${getColCount()}" class="text-center py-10 text-danger">Error al cargar</td></tr>`;
             document.getElementById('dia-mobile-list').innerHTML = '<div class="text-center py-8 text-danger">Error al cargar</div>';
             console.error(err);
         },

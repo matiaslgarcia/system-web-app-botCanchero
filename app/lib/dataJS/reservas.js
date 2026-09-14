@@ -39,6 +39,15 @@ const formatShortName = (fullName = '') => {
     return `${parts.slice(1).join(' ')}, ${parts[0].charAt(0)}.`;
 };
 const getPaymentStatusClass = (ev = {}) => {
+    const total = Number(ev.total_amount) || 0;
+    const paid = Number(ev.paid_amount) || 0;
+    // HOY-06 (7ª pasada): un sobrepago (precio cambiado después de cobrar)
+    // dejaba payment_status en "partial" en la base -- confiar ciegamente en
+    // ese campo pintaba de ámbar "Pago parcial" una reserva que en realidad
+    // está pagada de más. Si lo pagado ya cubre el total, es verde, gane lo
+    // que gane payment_status.
+    if (total > 0 && paid >= total) return 'fc-event-paid';
+
     // CRU-01: el campo payment_status ('paid'/'partial'/'pending') lo mantiene
     // el backend en cada cobro y es la fuente de verdad; derivarlo de nuevo acá
     // a partir de total/paid amounts fallaba en casos como una reserva con un
@@ -50,8 +59,6 @@ const getPaymentStatusClass = (ev = {}) => {
     if (paymentStatus === 'partial') return 'fc-event-partial';
     if (paymentStatus === 'pending') return 'fc-event-pending';
 
-    const total = Number(ev.total_amount) || 0;
-    const paid = Number(ev.paid_amount) || 0;
     const balance = Number(ev.balance_due) || Math.max(0, total - paid);
     if (total <= 0) return 'fc-event-pending';
     if (balance <= 0) return 'fc-event-paid';

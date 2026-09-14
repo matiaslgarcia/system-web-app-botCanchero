@@ -2,6 +2,26 @@
  * BotCanchero - MODERN THEME SYSTEM (Phase 2 UX)
  * ============================================================ */
 
+/* NEW-10 (auditoría, 7ª pasada): al pasar los importes de "$10" a "$10,00"
+   (formatearPeso, más ancho) los tres montos principales de la ficha de
+   reserva -- Valor Cancha / Total Pagado / Falta Pagar -- dejaron de entrar
+   en fs-2hx (2.5rem fijo) dentro de tarjetas angostas y se partían en dos
+   renglones. clamp() encoge el texto en vez de partirlo. */
+.bc-stat-amount {
+    font-size: clamp(1.25rem, 4vw, 2.5rem) !important;
+    white-space: nowrap;
+}
+
+/* NEW-11 (auditoría, 7ª pasada): badge-light-secondary nunca tuvo fondo propio
+   en el bundle de Metronic (sólo color:#e4e6ef, un gris casi blanco) -- el
+   chip "Jugada" que reemplaza a los cuatro sinónimos de estado quedó en
+   1.17:1. Un gris de texto legible sobre un fondo gris clarito, discreto
+   pero visible. */
+.badge-light-secondary {
+    color: #5e6278 !important;
+    background-color: #f1f3f7 !important;
+}
+
 /* DAT-01/DAT-02 (auditoría, 5ª pasada, con datos reales): esto forzaba fondo
    gris + texto gris en TODA reserva pasada, pero el título y la hora del
    evento (.fc-event-title/.fc-event-time) los pinta FullCalendar mismo por
@@ -341,12 +361,16 @@ body {
 /* DAT-01/DAT-02: reemplaza fc-event-danger + fc-event-fixed-cancelled — antes
    dos clases separadas para el mismo significado ("esta reserva no va"), una
    de ellas (fc-event-danger) sin ninguna regla CSS propia. El tachado ahora
-   vive únicamente acá, no en fc-event-past. */
+   vive únicamente acá, no en fc-event-past.
+   NEW-13 (7ª pasada): el rojo #c81e4a de acá y el #dc3545 de "sin pagar" se
+   ven casi idénticos a tamaño de bloque -- son estados opuestos (uno hay que
+   cobrarlo, el otro no existe) y competían por el mismo color. Cancelada
+   pasa a gris; el rojo entero queda para lo que sí hay que cobrar. */
 .fc .fc-event.fc-event-cancelled,
 .fc .fc-daygrid-event.fc-event-cancelled,
 .fc .fc-timegrid-event.fc-event-cancelled {
-    background-color: #c81e4a !important;
-    border-color: #c81e4a !important;
+    background-color: #5e6278 !important;
+    border-color: #5e6278 !important;
     color: #ffffff !important;
 }
 

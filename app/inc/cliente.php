@@ -29,7 +29,7 @@ $historyBaseUrl = 'cliente?id=' . (int) ($_GET['id'] ?? 0)
         <?php inc('sidebar') ?>
         <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
             <?php inc('header') ?>
-            <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+            <main id="contenido" tabindex="-1" class="content d-flex flex-column flex-column-fluid">
                 <div class="post d-flex flex-column-fluid" id="kt_post">
                     <div id="kt_content_container" class="container-xxl">
                         <div class="d-flex flex-wrap flex-stack mb-8">
@@ -270,7 +270,7 @@ $historyBaseUrl = 'cliente?id=' . (int) ($_GET['id'] ?? 0)
                         <?php } ?>
                     </div>
                 </div>
-            </div>
+            </main>
             <?php inc('footer') ?>
         </div>
     </div>

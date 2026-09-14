@@ -85,7 +85,7 @@
                                             </tr>
                                         </thead>
                                         <tbody id="tabla-dia-body">
-                                            <tr><td colspan="10" class="text-center py-10 text-muted">Cargando...</td></tr>
+                                            <tr><td colspan="<?php echo $showCanchaColumn ? 9 : 8 ?>" class="text-center py-10 text-muted">Cargando...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>

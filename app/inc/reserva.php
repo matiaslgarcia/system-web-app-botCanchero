@@ -437,7 +437,7 @@
                                         <div class="card card-flush h-md-100">
                                             <div class="card-header pt-5">
                                                 <div class="card-title d-flex flex-column">
-                                                    <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">$<?php echo formatearPeso($precioCancha) ?></span>
+                                                    <span class="bc-stat-amount fw-bold text-dark me-2 lh-1 ls-n2">$<?php echo formatearPeso($precioCancha) ?></span>
                                                     <span class="text-gray-400 pt-1 fw-semibold fs-6">Valor Cancha</span>
                                                 </div>
                                             </div>
@@ -453,7 +453,7 @@
                                         <div class="card card-flush h-md-100">
                                             <div class="card-header pt-5">
                                                 <div class="card-title d-flex flex-column">
-                                                    <span class="fs-2hx fw-bold text-success me-2 lh-1 ls-n2">$<?php echo formatearPeso($pagado) ?></span>
+                                                    <span class="bc-stat-amount fw-bold text-success me-2 lh-1 ls-n2">$<?php echo formatearPeso($pagado) ?></span>
                                                     <span class="text-gray-400 pt-1 fw-semibold fs-6">Total Pagado</span>
                                                 </div>
                                             </div>
@@ -466,7 +466,7 @@
                                         <div class="card card-flush h-md-100">
                                             <div class="card-header pt-5">
                                                 <div class="card-title d-flex flex-column">
-                                                    <span class="fs-2hx fw-bold text-danger me-2 lh-1 ls-n2">$<?php echo formatearPeso($faltaPagar) ?></span>
+                                                    <span class="bc-stat-amount fw-bold text-danger me-2 lh-1 ls-n2">$<?php echo formatearPeso($faltaPagar) ?></span>
                                                     <span class="text-gray-400 pt-1 fw-semibold fs-6">Falta Pagar</span>
                                                 </div>
                                             </div>

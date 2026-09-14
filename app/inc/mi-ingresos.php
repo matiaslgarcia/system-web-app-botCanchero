@@ -58,7 +58,7 @@
                                 <div class="card card-flush h-md-100" style="background: var(--bc-lead-bg, #0E1A12) !important;" data-bs-theme="dark">
                                     <div class="card-header pt-5">
                                         <div class="card-title d-flex flex-column">
-                                            <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">$<?php echo formatearPeso($totalDiario) ?></span>
+                                            <span class="bc-stat-amount fw-bold text-white me-2 lh-1 ls-n2">$<?php echo formatearPeso($totalDiario) ?></span>
                                             <span class="text-white opacity-75 pt-1 fw-semibold fs-6">Ingreso Total del Día</span>
                                         </div>
                                     </div>
@@ -162,6 +162,11 @@
 										$estadoBadge = $invoice->estado == 'approved' ? ['Aprobado', 'success']
 											: ($invoice->estado == 'refunded' ? ['Reembolsado', 'danger']
 											: ($invoice->estado == 'pending' ? ['Pendiente', 'warning'] : [ucfirst($invoice->estado), 'warning']));
+										// NEW-12 (auditoría, 7ª pasada): un cobro puede seguir viendo la caja
+										// aunque la reserva se haya cancelado después (una seña que no se
+										// devuelve) -- pero la pantalla no lo decía en ningún lado, y el
+										// número del día quedaba sin explicación.
+										$reservaCancelada = ($invoice->status ?? '') === 'Cancelado';
 									?>
 										<a href="reserva/<?php echo $invoice->nroReserva ?>" class="bc-mobile-card text-reset d-block">
 											<div class="d-flex justify-content-between align-items-start mb-2">
@@ -175,6 +180,9 @@
 												<span class="badge badge-light-<?php echo $estadoBadge[1] ?> fs-8 fw-bold"><?php echo $estadoBadge[0] ?></span>
 												<span class="text-muted fs-8"><?php echo ucfirst(str_replace('_', ' ', $invoice->paymet_method)) ?></span>
 											</div>
+											<?php if ($reservaCancelada): ?>
+												<div class="mt-2"><span class="badge badge-light-dark fs-8 fw-bold">Cancelada — seña retenida</span></div>
+											<?php endif; ?>
 										</a>
 									<?php } ?>
 									<?php foreach ($extraIngresos as $extra) { ?>
@@ -240,6 +248,12 @@
                                                         } else {
                                                             echo '<span class="badge badge-light-warning fs-7 fw-bold">'.ucfirst($invoice->estado).'</span>';
                                                         }
+                                                    // NEW-12: la reserva puede haberse cancelado después del cobro
+                                                    // (una seña que no se devuelve) -- si no se avisa acá, el
+                                                    // número del día queda sin explicación al cruzarlo con el calendario.
+                                                    if (($invoice->status ?? '') === 'Cancelado') {
+                                                        echo '<span class="badge badge-light-dark fs-7 fw-bold ms-1">Cancelada — seña retenida</span>';
+                                                    }
 													?>
 												</td>
 												<td>
