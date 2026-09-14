@@ -204,7 +204,7 @@ function getSlotBounds() {
 // sin avisar. Un mismo punto de entrada para crear reserva desde el
 // calendario, con aviso cuando la fecha ya pasó.
 function goToAddBooking(date, time) {
-    const target = `add-booking?date=${date}&time=${time}`;
+    const target = `nueva-reserva?date=${date}&time=${time}`;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const clicked = new Date(`${date}T00:00:00`);

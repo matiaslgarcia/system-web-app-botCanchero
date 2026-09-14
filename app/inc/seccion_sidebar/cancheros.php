@@ -26,7 +26,7 @@
     </div>
 
     <div class="menu-item">
-        <a class="menu-link <?php echo $currentRoute === 'dia' ? 'active' : ''; ?>" href="dia">
+        <a class="menu-link <?php echo in_array($currentRoute, ['dia', 'hoy'], true) ? 'active' : ''; ?>" href="hoy">
             <span class="menu-icon">
                 <i class="fa-solid fa-calendar-day fs-4"></i>
             </span>
@@ -35,7 +35,7 @@
     </div>
 
     <div class="menu-item">
-        <a class="menu-link <?php echo $currentRoute === 'recurring-bookings' ? 'active' : ''; ?>" href="recurring-bookings">
+        <a class="menu-link <?php echo in_array($currentRoute, ['recurring-bookings', 'reservas-fijas'], true) ? 'active' : ''; ?>" href="reservas-fijas">
             <span class="menu-icon">
                 <i class="fa-solid fa-arrows-rotate fs-4"></i>
             </span>

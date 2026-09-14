@@ -462,7 +462,7 @@ function cargarHorarios() {
                 select.innerHTML = '<option value="">No hay horarios configurados</option>';
                 setGuardarNuevaState(
                     false,
-                    'No hay horarios configurados para esa cancha y día. Configuralos en <a href="dia" class="fw-bold">Horarios</a>.',
+                    'No hay horarios configurados para esa cancha y día. Configuralos en <a href="mi-cancha" class="fw-bold">Mi Cancha → Horarios</a>.',
                     'text-warning'
                 );
             }

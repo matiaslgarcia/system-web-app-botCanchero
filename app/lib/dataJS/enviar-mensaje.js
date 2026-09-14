@@ -38,7 +38,21 @@ const initEnviarMensaje = () => {
             const res = await fetch('fetch/getClientesMensaje');
             todosLosClientes = await res.json();
             countTotalEl.textContent = todosLosClientes.length;
+
+            // Item 17 (auditoría UX/UI): "Enviar WhatsApp a estos" desde
+            // Clientes llega acá con ?phones=549...,549... -- se preseleccionan
+            // en vez de obligar a volver a tildarlos uno por uno.
+            const phonesParam = new URLSearchParams(window.location.search).get('phones');
+            if (phonesParam) {
+                const digitsOnly = (p) => String(p || '').replace(/\D/g, '');
+                const wanted = new Set(phonesParam.split(',').map(digitsOnly).filter(Boolean));
+                todosLosClientes.forEach((c) => {
+                    if (wanted.has(digitsOnly(c.phone))) seleccionados.add(c.phone);
+                });
+            }
+
             renderLista(todosLosClientes);
+            actualizarContadores();
         } catch {
             listaEl.innerHTML = '<div class="text-danger text-center py-5"><i class="fa-solid fa-triangle-exclamation me-2"></i>Error al cargar clientes.</div>';
         }

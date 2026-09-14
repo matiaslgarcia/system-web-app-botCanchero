@@ -8,7 +8,7 @@
     $isRoute = function($routes) use ($currentRoute) {
         return in_array($currentRoute, (array) $routes, true);
     };
-    $isReservas = $isRoute(['index', 'reservas', 'reserva', 'add-booking']);
+    $isReservas = $isRoute(['index', 'reservas', 'reserva', 'add-booking', 'nueva-reserva']);
     $isIngresos = $isRoute(['ingresos']);
     $isClientes = $isRoute(['clientes', 'cliente']);
     $isMensaje  = $isRoute(['enviar-mensaje']);

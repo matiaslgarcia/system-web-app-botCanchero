@@ -36,7 +36,7 @@
                                                 ?>
                                             </select>
                                         </div>
-                                        <a href="add-booking" class="btn btn-sm btn-primary h-40px d-flex align-items-center px-4 text-nowrap">
+                                        <a href="nueva-reserva" class="btn btn-sm btn-primary h-40px d-flex align-items-center px-4 text-nowrap">
                                             <i class="fa-solid fa-plus me-2"></i>Nueva reserva
                                         </a>
                                     </div>

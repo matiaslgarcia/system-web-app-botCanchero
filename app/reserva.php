@@ -188,7 +188,7 @@
             header('Location: reserva/' . $resolved);
             exit;
         }
-        header('Location: recurring-bookings');
+        header('Location: reservas-fijas');
         exit;
     }
 

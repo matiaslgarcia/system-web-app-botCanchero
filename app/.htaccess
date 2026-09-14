@@ -10,6 +10,14 @@ RewriteRule ^edit-user/([0-9]+)$ edit-user.php/?usuario=$1
 RewriteRule ^edit-cancha/([0-9]+)$ edit-cancha.php/?cancha=$1
 RewriteRule ^reserva/(RB-[0-9]+|[0-9]+)$ reserva.php/?reserva=$1
 
+# Item 18 (auditoría UX/UI): rutas en castellano -- las viejas siguen
+# funcionando solas via la regla catch-all de abajo, esto sólo agrega los
+# alias nuevos que sí se usan en los links de la interfaz.
+RewriteRule ^reservas-fijas$ recurring-bookings.php
+RewriteRule ^nueva-reserva$ add-booking.php
+RewriteRule ^hoy$ dia.php
+RewriteRule ^salir$ out.php
+
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule ^(.*)$ $1.php

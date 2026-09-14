@@ -730,6 +730,10 @@ class CustomerCRM
             'q' => self::normalizeText($filters['q'] ?? ''),
             'field_id' => (int) ($filters['field_id'] ?? 0),
             'activity' => trim((string) ($filters['activity'] ?? '')),
+            // Item 24 (auditoría UX/UI): sin esto los 15 clientes de prueba se
+            // renderizaban todos siempre -- con 400 clientes (un complejo de
+            // tres canchas) la pantalla se vuelve un scroll interminable.
+            'page' => max(1, (int) ($filters['page'] ?? 1)),
         ];
 
         $payload = [
@@ -821,17 +825,35 @@ class CustomerCRM
                 'score' => ['value' => 0, 'label' => 'Seguimiento', 'color' => 'warning', 'alerts' => []],
             ];
 
+            // Item 17 (auditoría UX/UI): "no vuelve hace 60 días" es el
+            // segmento que pide la auditoría -- se calcula sobre la fecha
+            // real de la última reserva, no sobre un contador de 30 días
+            // que ya existía para otra cosa.
+            $lastBookingTs = $customer['last_booking_date'] !== '' ? strtotime($customer['last_booking_date']) : false;
+            $daysSinceLastBooking = $lastBookingTs !== false ? (int) floor((time() - $lastBookingTs) / 86400) : null;
+
             $activity = $filters['activity'];
             if ($activity === 'upcoming' && $upcomingBookings <= 0) continue;
-            if ($activity === 'inactive' && $bookingsLast30 > 0) continue;
+            if ($activity === 'inactive' && ($daysSinceLastBooking === null || $daysSinceLastBooking < 60)) continue;
             if ($activity === 'frequent' && $totalBookings < 5) continue;
             if ($activity === 'risk' && $cancelRate < 30) continue;
+            // 'top10' se resuelve después de juntar a todos -- acá no filtra nada.
 
             $customers[] = $customer;
             $pairs[] = [
                 'customer_id' => $customer['customer_id'],
                 'establishment_id' => $customer['establishment_id'],
             ];
+        }
+
+        if ($filters['activity'] === 'top10') {
+            usort($customers, function ($a, $b) {
+                return $b['paid_total'] <=> $a['paid_total'];
+            });
+            $customers = array_slice($customers, 0, 10);
+            $pairs = array_map(function ($c) {
+                return ['customer_id' => $c['customer_id'], 'establishment_id' => $c['establishment_id']];
+            }, $customers);
         }
 
         $tagsMap = self::getTagsMap($pairs);
@@ -844,7 +866,9 @@ class CustomerCRM
         }
         unset($customer);
 
-        $payload['customers'] = $customers;
+        // Los KPI y los totales de plata/reservas se calculan sobre el listado
+        // COMPLETO ya filtrado por actividad -- antes de paginar, para que no
+        // cambien página a página.
         $payload['stats'] = [
             'total_customers' => count($customers),
             'active_last_30' => count(array_filter($customers, function ($row) {
@@ -865,6 +889,26 @@ class CustomerCRM
             'without_communications_consent' => count(array_filter($customers, function ($row) {
                 return (($row['consents']['communications']['status'] ?? 'unknown') === 'revoked');
             })),
+            'total_bookings_sum' => array_sum(array_column($customers, 'total_bookings')),
+            'total_cancelled_sum' => array_sum(array_column($customers, 'cancelled_bookings')),
+            'total_revenue_sum' => array_sum(array_column($customers, 'paid_total')),
+        ];
+
+        // Item 24: paginar acá, en memoria, después de aplicar el filtro de
+        // actividad y de calcular las métricas sobre el total -- así la
+        // página 2 no rompe "Dinero ingresado" ni el resto de las tarjetas.
+        $perPage = 25;
+        $totalFiltered = count($customers);
+        $totalPages = max(1, (int) ceil($totalFiltered / $perPage));
+        $page = min($filters['page'], $totalPages);
+        $offset = ($page - 1) * $perPage;
+
+        $payload['customers'] = array_slice($customers, $offset, $perPage);
+        $payload['pagination'] = [
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $totalFiltered,
+            'total_pages' => $totalPages,
         ];
 
         return $payload;

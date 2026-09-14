@@ -66,7 +66,7 @@
 							<a href="account_settings" class="menu-link px-5">Configuración</a>
 						</div>
 						<div class="menu-item px-5">
-							<a href="out" class="menu-link px-5">Cerrar sesión</a>
+							<a href="salir" class="menu-link px-5">Cerrar sesión</a>
 						</div>
 					</div>
 				</div>

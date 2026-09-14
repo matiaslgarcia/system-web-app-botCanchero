@@ -10,14 +10,15 @@ $selectedFieldId = (int) ($filters['field_id'] ?? 0);
 $selectedActivity = (string) ($filters['activity'] ?? '');
 $search = (string) ($filters['q'] ?? '');
 $isSuperAdmin = Users::isSuperAdmin();
-$totalBookingsCount = 0;
-$totalCancelledCount = 0;
-$totalRevenue = 0.0;
-foreach ($customers as $customer) {
-    $totalBookingsCount += (int) ($customer['total_bookings'] ?? 0);
-    $totalCancelledCount += (int) ($customer['cancelled_bookings'] ?? 0);
-    $totalRevenue += (float) ($customer['paid_total'] ?? 0);
-}
+// Item 24: estos totales tienen que salir del set filtrado completo, no de
+// la página actual (ya vienen calculados así desde getDashboardData).
+$totalBookingsCount = (int) ($stats['total_bookings_sum'] ?? 0);
+$totalCancelledCount = (int) ($stats['total_cancelled_sum'] ?? 0);
+$totalRevenue = (float) ($stats['total_revenue_sum'] ?? 0);
+$pagination = $dashboard['pagination'] ?? ['page' => 1, 'per_page' => 25, 'total' => count($customers), 'total_pages' => 1];
+// Reconstruye la query string de filtros activos para los links de página.
+$paginationQuery = $_GET;
+unset($paginationQuery['page']);
 ?>
 <div class="d-flex flex-column flex-root">
     <div class="page d-flex flex-row flex-column-fluid">
@@ -118,11 +119,17 @@ foreach ($customers as $customer) {
                                     </div>
                                     <div class="col-xl-3 col-md-6">
                                         <label class="form-label fw-semibold">Actividad</label>
+                                        <!-- Item 17 (auditoría UX/UI): "risk" y el segmento por facturación ya
+                                             los calculaba el backend pero no estaban en este select -- la
+                                             pantalla ya sabía que Pali Alarcón canceló el 100% y no dejaba
+                                             filtrar por eso. -->
                                         <select name="activity" class="form-select form-select-solid">
                                             <option value="">Todos</option>
                                             <option value="upcoming" <?php echo $selectedActivity === 'upcoming' ? 'selected' : ''; ?>>Con próxima reserva</option>
-                                            <option value="inactive" <?php echo $selectedActivity === 'inactive' ? 'selected' : ''; ?>>Inactivos</option>
-                                            <option value="frequent" <?php echo $selectedActivity === 'frequent' ? 'selected' : ''; ?>>Frecuentes</option>
+                                            <option value="inactive" <?php echo $selectedActivity === 'inactive' ? 'selected' : ''; ?>>No vuelve hace 60+ días</option>
+                                            <option value="frequent" <?php echo $selectedActivity === 'frequent' ? 'selected' : ''; ?>>Frecuentes (5+ reservas)</option>
+                                            <option value="risk" <?php echo $selectedActivity === 'risk' ? 'selected' : ''; ?>>Cancela más del 30%</option>
+                                            <option value="top10" <?php echo $selectedActivity === 'top10' ? 'selected' : ''; ?>>Top 10 por facturación</option>
                                         </select>
                                     </div>
                                     <div class="col-xl-6 col-md-12">
@@ -138,6 +145,20 @@ foreach ($customers as $customer) {
                                 <?php if (empty($customers)) { ?>
                                     <div class="text-muted py-10 text-center">No se encontraron clientes con el filtro actual.</div>
                                 <?php } else { ?>
+                                    <!-- Item 17 (auditoría UX/UI): la pantalla ya tenía todos los datos
+                                         para segmentar, pero no había forma de accionar sobre un grupo --
+                                         seleccionar clientes acá y mandarlos directo a Enviar Mensaje. -->
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 p-3 bg-light-secondary bg-opacity-50 rounded">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chk-seleccionar-todos-clientes">
+                                            <label class="form-check-label fw-semibold" for="chk-seleccionar-todos-clientes">
+                                                Seleccionar todos (esta página)
+                                            </label>
+                                        </div>
+                                        <button type="button" id="btn-whatsapp-seleccionados" class="btn btn-sm btn-success" disabled>
+                                            <i class="fa-brands fa-whatsapp me-2"></i>Enviar WhatsApp a seleccionados (<span id="count-seleccionados-clientes">0</span>)
+                                        </button>
+                                    </div>
                                     <div id="clientes-mobile-list" class="d-flex flex-column gap-3">
                                         <?php foreach ($customers as $customer) {
                                             $phoneDisplay = trim((string) ($customer['phone'] ?? ''));
@@ -145,7 +166,11 @@ foreach ($customers as $customer) {
                                         ?>
                                             <div class="bc-mobile-card">
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                                    <div class="d-flex flex-column">
+                                                    <div class="d-flex align-items-start gap-2">
+                                                        <?php if ($phoneWaLink !== '') { ?>
+                                                            <input type="checkbox" class="form-check-input chk-cliente-wa mt-1" value="<?php echo htmlspecialchars($phoneWaLink); ?>">
+                                                        <?php } ?>
+                                                        <div class="d-flex flex-column">
                                                         <span class="text-dark fw-bolder fs-6"><?php echo htmlspecialchars((string) $customer['full_name']); ?></span>
                                                         <span class="text-muted fs-7">
                                                             <?php if ($phoneWaLink !== '') { ?>
@@ -157,6 +182,7 @@ foreach ($customers as $customer) {
                                                         <?php if ($isSuperAdmin && $selectedEstablishmentId === 0) { ?>
                                                             <span class="text-muted fs-8"><?php echo htmlspecialchars((string) $customer['establishment_name']); ?></span>
                                                         <?php } ?>
+                                                        </div>
                                                     </div>
                                                     <a class="btn btn-sm btn-light-primary" href="cliente?id=<?php echo (int) $customer['customer_id']; ?>&establishment_id=<?php echo (int) $customer['establishment_id']; ?>">Ver ficha</a>
                                                 </div>
@@ -184,6 +210,7 @@ foreach ($customers as $customer) {
                                         <table id="tabla-clientes" class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
                                             <thead>
                                                 <tr class="fw-bolder text-muted">
+                                                    <th class="no-sort w-25px"></th>
                                                     <th>Cliente</th>
                                                     <?php if ($isSuperAdmin && $selectedEstablishmentId === 0) { ?>
                                                         <th>Establecimiento</th>
@@ -195,14 +222,18 @@ foreach ($customers as $customer) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($customers as $customer) { ?>
+                                                <?php foreach ($customers as $customer) {
+                                                    $phoneDisplay = trim((string) ($customer['phone'] ?? ''));
+                                                    $phoneWaLink = preg_replace('/\D+/', '', $phoneDisplay);
+                                                ?>
                                                     <tr>
                                                         <td>
+                                                            <?php if ($phoneWaLink !== '') { ?>
+                                                                <input type="checkbox" class="form-check-input chk-cliente-wa" value="<?php echo htmlspecialchars($phoneWaLink); ?>">
+                                                            <?php } ?>
+                                                        </td>
+                                                        <td>
                                                             <div class="d-flex flex-column">
-                                                                <?php
-                                                                $phoneDisplay = trim((string) ($customer['phone'] ?? ''));
-                                                                $phoneWaLink = preg_replace('/\D+/', '', $phoneDisplay);
-                                                                ?>
                                                                 <span class="text-dark fw-bolder fs-6"><?php echo htmlspecialchars((string) $customer['full_name']); ?></span>
                                                                 <span class="text-muted fs-7">
                                                                     <?php if ($phoneWaLink !== '') { ?>
@@ -254,6 +285,30 @@ foreach ($customers as $customer) {
                                         </table>
                                     </div>
                                 <?php } ?>
+
+                                <?php if ($pagination['total_pages'] > 1) : ?>
+                                    <!-- Item 24 (auditoría UX/UI): sin esto los clientes se renderizaban
+                                         todos de una, sin paginar ni contar -- con una base grande la
+                                         pantalla se vuelve un scroll interminable. -->
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-5 gap-3">
+                                        <div class="text-muted fs-7">
+                                            Mostrando <?php echo count($customers) ? (($pagination['page'] - 1) * $pagination['per_page'] + 1) : 0; ?>–<?php echo min($pagination['page'] * $pagination['per_page'], $pagination['total']); ?> de <?php echo $pagination['total']; ?> <?php echo plural($pagination['total'], 'cliente'); ?>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <?php if ($pagination['page'] > 1) : ?>
+                                                <a class="btn btn-sm btn-light-primary" href="clientes?<?php echo htmlspecialchars(http_build_query(array_merge($paginationQuery, ['page' => $pagination['page'] - 1]))); ?>">← Anterior</a>
+                                            <?php else : ?>
+                                                <span class="btn btn-sm btn-light disabled">← Anterior</span>
+                                            <?php endif; ?>
+                                            <span class="btn btn-sm btn-light-secondary disabled">Página <?php echo $pagination['page']; ?> de <?php echo $pagination['total_pages']; ?></span>
+                                            <?php if ($pagination['page'] < $pagination['total_pages']) : ?>
+                                                <a class="btn btn-sm btn-light-primary" href="clientes?<?php echo htmlspecialchars(http_build_query(array_merge($paginationQuery, ['page' => $pagination['page'] + 1]))); ?>">Siguiente →</a>
+                                            <?php else : ?>
+                                                <span class="btn btn-sm btn-light disabled">Siguiente →</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
