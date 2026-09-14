@@ -68,6 +68,16 @@
                                     // (mismo criterio que el selector de arriba).
                                     $showCanchaColumn = count(Canchas::getByIdUser()) > 1;
                                 ?>
+                                <!-- Item 19 (auditoría UX/UI): Ingresos y Clientes ya tienen
+                                     búsqueda en vivo; a Hoy le faltaba, siendo la pantalla donde
+                                     más se usa para encontrar un cliente rápido mientras cobra. -->
+                                <div class="p-3 pb-0">
+                                    <div class="position-relative w-100 w-md-300px">
+                                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                                        <input type="text" id="buscarDia" class="form-control form-control-sm ps-10" placeholder="Buscar por cliente o teléfono..." autocomplete="off">
+                                    </div>
+                                    <div id="buscarDiaSinResultados" class="text-center text-muted py-8 d-none">Ningún resultado para esa búsqueda.</div>
+                                </div>
                                 <div id="dia-mobile-list" class="p-3"></div>
                                 <div id="dia-table-wrapper" class="table-responsive" data-show-cancha="<?php echo $showCanchaColumn ? 1 : 0 ?>">
                                     <table class="table table-row-dashed table-row-gray-300 align-middle gs-3 gy-4">

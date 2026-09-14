@@ -5,6 +5,7 @@ const fun = new Func;
 const state = {
     fecha: new Date().toLocaleDateString('en-CA'), // Obtiene YYYY-MM-DD en hora local
     bookings: [],
+    searchQuery: '',
 };
 
 const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -152,6 +153,8 @@ function renderTabla() {
     const mobileList = document.getElementById('dia-mobile-list');
     syncUltraMobileLayout();
     if (!state.bookings.length) {
+        const sinResultadosEl = document.getElementById('buscarDiaSinResultados');
+        if (sinResultadosEl) sinResultadosEl.classList.add('d-none');
         // TXT-05: mismo patrón (ícono + explicación + acción) que Pausas Pendientes.
         const emptyState = `
             <div class="card border border-dashed border-gray-300">
@@ -169,7 +172,25 @@ function renderTabla() {
         return;
     }
     const showCancha = document.getElementById('dia-table-wrapper')?.dataset.showCancha === '1';
-    const decorated = getDecoratedBookings();
+    const allDecorated = getDecoratedBookings();
+    // Item 19 (auditoría UX/UI): "búsqueda en vivo" como ya tienen Ingresos y
+    // Clientes. Se filtra sobre los datos ya decorados (no sobre state.bookings)
+    // porque el agrupamiento de cupos por franja necesita el día completo.
+    const query = state.searchQuery.trim().toLowerCase();
+    const decorated = query
+        ? allDecorated.filter(({ b, customerName }) => {
+            const name = String(customerName || '').toLowerCase();
+            const phoneDigits = String(b.customer_phone || '').replace(/\D/g, '');
+            return name.includes(query) || phoneDigits.includes(query.replace(/\D/g, ''));
+        })
+        : allDecorated;
+    const sinResultados = document.getElementById('buscarDiaSinResultados');
+    if (sinResultados) sinResultados.classList.toggle('d-none', !(query && decorated.length === 0));
+    if (query && decorated.length === 0) {
+        body.innerHTML = '';
+        mobileList.innerHTML = '';
+        return;
+    }
     body.innerHTML = decorated.map(({ b, total, paid, saldo, saldoDisplay, sobrepago, badge, btn, recurringTag, customerName, bookingLink, canchaLabel, isRealBooking, recurringId }) => {
         return `<tr class="cursor-pointer" data-detail-url="${bookingLink}" data-recurring-id="${recurringId}" data-date-booking="${state.fecha}" onclick="bcRowNavigate(event, this)">
             <td class="ps-4 fw-bold">${b.hour_label || ''}</td>
@@ -430,6 +451,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const selCancha = document.getElementById('filtroCancha');
     if (selCancha) {
         selCancha.addEventListener('change', cargarDia);
+    }
+
+    // Item 19 (auditoría UX/UI): búsqueda en vivo, con un pequeño retardo
+    // para no re-renderizar en cada tecla.
+    const buscarDia = document.getElementById('buscarDia');
+    if (buscarDia) {
+        let searchDebounce;
+        buscarDia.addEventListener('input', () => {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(() => {
+                state.searchQuery = buscarDia.value;
+                renderTabla();
+            }, 250);
+        });
     }
 
     window.addEventListener('resize', () => {
