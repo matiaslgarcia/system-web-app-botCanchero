@@ -80,7 +80,11 @@
 											<!-- Fila 2: Precio y Cantidad -->
 											<div class="col-12 col-md-6 mb-3">
 												<label class="form-label" for="price_hour">Precio por hora ($)</label>
-												<input type="text" name="price_hour" id="price_hour" class="form-control" value="<?php echo $cancha->price_hour ?>">
+												<!-- Auditoría UX/UI (13/09): con type="text" este campo mostraba el
+												     valor crudo con punto decimal, mientras las franjas de abajo
+												     (type="number") lo muestran con coma por el locale es-AR del
+												     navegador -- mismo dato, dos separadores en la misma tarjeta. -->
+												<input type="number" min="0" step="0.01" name="price_hour" id="price_hour" class="form-control" value="<?php echo $cancha->price_hour ?>">
 												<small class="text-muted">Este precio se usa como respaldo cuando no haya franja definida para un horario.</small>
 											</div>
 											<div class="col-12 col-md-6 mb-3">

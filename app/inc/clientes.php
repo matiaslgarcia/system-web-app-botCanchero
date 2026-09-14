@@ -55,7 +55,16 @@ foreach ($customers as $customer) {
                         <!-- SIS-03/SIS-05: eran 5 métricas en tarjetas bg-light-* de a 4 por fila
                              (la 5ta quedaba sola); se pasa al componente .bc-kpi-row que ya usa
                              "Hoy", con su variante de 5 columnas. -->
+                        <!-- Auditoría UX/UI (13/09): la tarjeta oscura (.lead) es siempre la
+                             métrica de dinero principal y va siempre primera -- en Hoy es "A
+                             cobrar en cancha" y va primera, acá "Dinero ingresado" quedaba
+                             última, como si el énfasis visual más fuerte no siguiera ninguna
+                             regla entre pantallas. -->
                         <div class="bc-kpi-row bc-kpi-row-5 mb-8">
+                            <div class="bc-kpi lead">
+                                <div class="bc-kpi-label">Dinero ingresado</div>
+                                <div class="bc-kpi-num">$<?php echo formatearPeso($totalRevenue); ?></div>
+                            </div>
                             <div class="bc-kpi">
                                 <div class="bc-kpi-label">Clientes visibles</div>
                                 <div class="bc-kpi-num"><?php echo (int) ($stats['total_customers'] ?? 0); ?></div>
@@ -71,10 +80,6 @@ foreach ($customers as $customer) {
                             <div class="bc-kpi">
                                 <div class="bc-kpi-label">Cancelaciones</div>
                                 <div class="bc-kpi-num"><?php echo $totalCancelledCount; ?></div>
-                            </div>
-                            <div class="bc-kpi lead">
-                                <div class="bc-kpi-label">Dinero ingresado</div>
-                                <div class="bc-kpi-num">$<?php echo formatearPeso($totalRevenue); ?></div>
                             </div>
                         </div>
 

@@ -55,7 +55,7 @@
 											</div>
 											<div class="col-12 col-md-6 mb-3">
 												<label class="form-label" for="price_hour">Precio por Hora</label>
-												<input type="text" name="price_hour" id="price_hour" class="form-control" placeholder="00.0" value="<?php echo $cancha->price_hour ?>">
+												<input type="number" min="0" step="0.01" name="price_hour" id="price_hour" class="form-control" placeholder="0.00" value="<?php echo $cancha->price_hour ?>">
 												<div class="form-text">Precio base usado como fallback si no existe franja para ese horario.</div>
 											</div>
 											<div class="col-12 col-md-6 mb-3">

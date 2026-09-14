@@ -70,14 +70,28 @@
    casi no se usan (3 veces en todo el código) — los "92 nodos, subtítulos y
    labels de KPI" son en realidad .text-muted (294 usos). Y los teléfonos en
    Clientes son <a> sin ninguna clase: el azul les viene de la regla de
-   etiqueta a{color:#009ef7} del bundle, no de .text-primary. */
+   etiqueta a{color:#009ef7} del bundle, no de .text-primary.
+   Auditoría UX/UI (13/09): .text-gray-600 (#7e8299, 3.79:1) es el mismo gris
+   apagado repetido en bajadas de sección, tarjetas y tablas de Clientes —
+   .text-gray-700 ya vale #5e6278 en el bundle, así que sólo faltaba sumar
+   esta clase al grupo para que las dos aterricen en el mismo tono. */
 .text-gray-400,
 .text-gray-500,
+.text-gray-600,
 .text-muted {
-    color: #5e6278 !important; /* era #a1a5b7/#b5b5c3, 2.45:1 -> 6.01:1 */
+    color: #5e6278 !important; /* era #a1a5b7/#b5b5c3/#7e8299, hasta 2.45:1 -> 6.01:1 */
 }
 .text-primary {
     color: #0b76bd !important; /* era #009ef7, 2.90:1 sobre blanco -> 4.84:1 */
+}
+/* Auditoría UX/UI (13/09): pestañas de Configuración de cuenta (Perfil,
+   Seguridad, Pagos MP...) -- .nav-link/.text-active-primary son selectores
+   de Metronic que .text-primary/.text-gray-* de arriba no tocan. */
+.nav-link {
+    color: #5e6278; /* era #a1a5b7, 2.45:1 -> 6.01:1 (pestañas inactivas) */
+}
+.text-active-primary.active {
+    color: #0b76bd !important; /* era #009ef7, 2.90:1 -> 4.84:1 (pestaña activa) */
 }
 /* Sin !important y sin clase: misma especificidad que la regla de fábrica
    a{color:#009ef7} que le da el azul a un <a> sin clases (ej. los teléfonos
@@ -316,6 +330,13 @@ body {
     font-size: 0.8rem !important;
     font-weight: 500 !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Auditoría UX/UI (13/09): un turno que arranca justo en punto (ej. 22:00)
+   se dibuja pegado al borde superior de su franja y tapa la etiqueta de esa
+   hora en el eje de la izquierda. Un par de píxeles de aire alcanza. */
+.fc-timegrid-event {
+    margin-top: 2px !important;
 }
 
 /* DAT-04 (auditoría, 5ª pasada): "reserva fija" (tipo) y "sin pagar" (cobro)
@@ -933,8 +954,12 @@ body {
 }
 
 /* PREMIUM UI */
+/* Auditoría UX/UI (13/09): al 80% de opacidad, los badges del título de una
+   pantalla (ej. "Cupo 1/2", "Jugada") quedaban visibles -translúcidos- por
+   detrás del header fijo al scrollear. Con blur ya alcanza para el efecto
+   vidrio; subir la opacidad no le saca el efecto, sólo esconde lo de abajo. */
 .glass-header {
-    background: rgba(255, 255, 255, 0.8) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px) !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
