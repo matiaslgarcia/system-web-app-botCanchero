@@ -196,6 +196,93 @@
             return (float) ($row['total'] ?? 0);
         }
 
+        // Item 16 (auditoría UX/UI): Finance::getPaymentMethodSummary() (usada
+        // por Caja) y Finance::getPaymentMethodSummaryByRange() llamaban a
+        // este método para un solo día -- nunca había existido, fatal error
+        // apenas se pedía el desglose de un día puntual. Misma lógica de
+        // método de pago que ya usan getIngresos()/getMiIngresos(), pero
+        // parametrizada (sin leer $_GET) y con filtro opcional por
+        // establecimiento cuando no hay una cancha puntual.
+        public static function getIngresosByFilters($date, $idField = null, $establishmentId = 0) {
+            $where = ['DATE(COALESCE(b.paid_in_cash_at, v.last_voucher_date, b.date_booking)) = ?'];
+            $params = [$date];
+            if ($idField) {
+                $where[] = 'b.id_field = ?';
+                $params[] = $idField;
+            } elseif ($establishmentId > 0) {
+                $where[] = 'sf_filter.establishment_id = ?';
+                $params[] = $establishmentId;
+            }
+            $where[] = "(COALESCE(b.paid_amount, 0) > 0 OR b.payment_status = 'refunded')";
+
+            return query(
+                "SELECT
+                    CASE
+                        WHEN COALESCE(pw.cash_amount, 0) > 0 AND COALESCE(v.method_name, '') <> '' THEN 'mixto'
+                        WHEN COALESCE(pw.cash_amount, 0) > 0 THEN 'efectivo'
+                        WHEN COALESCE(v.method_name, '') <> '' THEN v.method_name
+                        ELSE 'online'
+                    END AS paymet_method,
+                    ROUND(
+                        CASE
+                            WHEN b.payment_status = 'refunded' THEN -ABS(COALESCE(b.paid_amount, 0))
+                            ELSE ABS(COALESCE(b.paid_amount, 0))
+                        END,
+                        2
+                    ) AS signed_total
+                 FROM booking b
+                 INNER JOIN soccer_field sf_filter ON sf_filter.id = b.id_field
+                 LEFT JOIN (
+                    SELECT
+                        id_booking,
+                        MAX(date_create) AS last_voucher_date,
+                        SUBSTRING_INDEX(GROUP_CONCAT(method_name ORDER BY date_create DESC), ',', 1) AS method_name
+                    FROM vouchers
+                    GROUP BY id_booking
+                 ) v ON v.id_booking = b.id
+                 LEFT JOIN (
+                    SELECT
+                        id_booking,
+                        SUM(amount_payment) AS cash_amount
+                    FROM payment_app_web
+                    GROUP BY id_booking
+                 ) pw ON pw.id_booking = b.id
+                 WHERE " . implode(' AND ', $where),
+                'ARRAY_ALL',
+                $params
+            ) ?: [];
+        }
+
+        // Mismo caso que getIngresosByFilters(): getExtraIngresos() ya existe
+        // pero sólo filtra por cancha puntual, sin la opción de todo un
+        // establecimiento cuando no hay una cancha seleccionada.
+        public static function getExtraIngresosByFilters($date, $idField = null, $establishmentId = 0) {
+            if ($idField) {
+                return query(
+                    "SELECT ei.method_payment, ei.amount
+                       FROM extra_income ei
+                      WHERE ei.date_income = ? AND ei.id_field = ?",
+                    'ARRAY_ALL',
+                    [$date, $idField]
+                ) ?: [];
+            }
+            if ($establishmentId > 0) {
+                return query(
+                    "SELECT ei.method_payment, ei.amount
+                       FROM extra_income ei
+                       INNER JOIN soccer_field sf ON sf.id = ei.id_field
+                      WHERE ei.date_income = ? AND sf.establishment_id = ?",
+                    'ARRAY_ALL',
+                    [$date, $establishmentId]
+                ) ?: [];
+            }
+            return query(
+                "SELECT ei.method_payment, ei.amount FROM extra_income ei WHERE ei.date_income = ?",
+                'ARRAY_ALL',
+                [$date]
+            ) ?: [];
+        }
+
         public static function getTotalIngresos(){
             $date   = (isset($_GET['date'])) ? setDate($_GET['date']) : date('Y-m-d');
             $cancha = (isset($_GET['cancha'])) ? $_GET['cancha'] : '%';

@@ -24,6 +24,12 @@
     require 'lib/ClassMercadoPago.php';
     require 'lib/ClassServices.php';
     require 'lib/ClassWhatsApp.php';
+    // Item 16 (auditoría UX/UI): Finance::getMonthlyAnalyticsData() -- que
+    // usa dashboard-gerencial.php -- nunca se pudo ejecutar porque esta
+    // clase (2723 líneas, ya escrita) no estaba en el bootstrap. No
+    // requiere ClassResource/ClassWaitlist/ClassAvailabilityBlock: la única
+    // que toca (Waitlist) ya está protegida con class_exists() adentro.
+    require 'lib/ClassFinance.php';
 
     if (!defined('SKIP_AUTH')) {
         Users::loginCheck();
