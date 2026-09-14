@@ -107,5 +107,17 @@
             <div class="separator mx-1 my-4"></div>
         </div>
     </div>
+
+    <!-- Item 15 (auditoría UX/UI): "Configuración de cuenta" sólo se llegaba
+         desde el avatar arriba a la derecha -- no había forma de saber
+         dónde estabas parado desde el sidebar. -->
+    <div class="menu-item">
+        <a class="menu-link <?php echo $currentRoute === 'account_settings' ? 'active' : ''; ?>" href="account_settings">
+            <span class="menu-icon">
+                <i class="fa-solid fa-gear fs-4"></i>
+            </span>
+            <span class="menu-title">Configuración de Cuenta</span>
+        </a>
+    </div>
 </div>
 <?php endif ;?>

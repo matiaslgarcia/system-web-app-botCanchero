@@ -4,6 +4,7 @@
 
     Theme::header([
         'title' => 'Dashboard',
+        'fullcalendar' => true,
         'css'   => [
             'plugins.bundle',
             'style.bundle',

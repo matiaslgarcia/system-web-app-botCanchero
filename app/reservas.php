@@ -6,6 +6,7 @@
 
     Theme::header([
         'title' => 'Reservas',
+        'fullcalendar' => true,
         'css'   => [
             'plugins.bundle',
             'style.bundle',

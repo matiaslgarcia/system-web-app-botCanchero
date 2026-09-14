@@ -17,6 +17,12 @@
             $icon512 = self::appUrl('assets/img/logos/pwa/icon-512.png');
             $appleIcon = self::appUrl('assets/img/logos/pwa/icon-180.png');
             $appleIconIpad = self::appUrl('assets/img/logos/pwa/icon-152.png');
+            // Item 25 (auditoría UX/UI): FullCalendar (200-400KB) se cargaba en
+            // las 27 pantallas del panel aunque sólo la usa el calendario --
+            // ahora sólo se agrega cuando la pantalla la pide explícitamente.
+            $fullCalendarTag = !empty($arr['fullcalendar'])
+                ? '<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>'
+                : '';
 
             // Heredoc evita el quote-hell del concat con HTML+JS.
             echo <<<HTML
@@ -55,7 +61,7 @@
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    {$fullCalendarTag}
     {$css}
     {$extra_css}
 </head>
