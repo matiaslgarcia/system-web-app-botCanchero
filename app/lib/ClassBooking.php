@@ -375,24 +375,33 @@
                     $keyUser = -1;
                 }
                 $actionKey = $action . '|' . $keyUser;
-                $createdTs = strtotime((string) ($l->created_at ?? ''));
+
+                // booking_logs.created_at se persiste en UTC; lo mostramos en hora local AR (UTC-03).
+                // El $createdTs usado para ordenar el historial (RSV-03) salía de un
+                // strtotime() ingenuo sobre ese mismo string UTC, pero date_default_timezone
+                // es America/Argentina/Buenos_Aires (int.php) -- strtotime lo interpretaba
+                // como si ya fuera hora local, corriendo cada timestamp +3 horas. Contra la
+                // fila sintética "Jugada" (calculada en hora local, sin ese corrimiento) el
+                // historial terminaba mostrando entradas de las 15:21 después de una de las
+                // 17:00. $dt->getTimestamp() ya resuelve la zona horaria correctamente.
+                try {
+                    $dt = new DateTime((string) $l->created_at, new DateTimeZone('UTC'));
+                    $dt->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
+                    $f_fecha = $dt->format('d/m/Y');
+                    $f_hora = $dt->format('H:i');
+                    $createdTs = $dt->getTimestamp();
+                } catch (Exception $e) {
+                    $f_fecha = date('d/m/Y');
+                    $f_hora = '--:--';
+                    $createdTs = false;
+                }
+
                 if ($createdTs !== false) {
                     $lastTs = $recentActions[$actionKey] ?? null;
                     if ($lastTs !== null && abs($lastTs - $createdTs) <= 3) {
                         continue;
                     }
                     $recentActions[$actionKey] = $createdTs;
-                }
-
-                // booking_logs.created_at se persiste en UTC; lo mostramos en hora local AR (UTC-03).
-                try {
-                    $dt = new DateTime((string) $l->created_at, new DateTimeZone('UTC'));
-                    $dt->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
-                    $f_fecha = $dt->format('d/m/Y');
-                    $f_hora = $dt->format('H:i');
-                } catch (Exception $e) {
-                    $f_fecha = date('d/m/Y');
-                    $f_hora = '--:--';
                 }
                 
                 $row = (object)[
