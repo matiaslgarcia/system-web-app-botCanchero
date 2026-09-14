@@ -10,6 +10,7 @@
     };
     $isReservas = $isRoute(['index', 'reservas', 'reserva', 'add-booking', 'nueva-reserva']);
     $isIngresos = $isRoute(['ingresos']);
+    $isAnalytics = $isRoute(['dashboard-gerencial']);
     $isClientes = $isRoute(['clientes', 'cliente']);
     $isMensaje  = $isRoute(['enviar-mensaje']);
     $isUsuarios = $isRoute(['users-list', 'add-users', 'edit-user']);
@@ -37,6 +38,17 @@
                 <i class="fa-solid fa-money-bill-trend-up fs-2"></i>
             </span>
             <span class="menu-title">Ingresos</span>
+        </a>
+    </div>
+    <!-- Item 16 (auditoría UX/UI): "Dashboard Gerencial" ya existía (período
+         mensual, comparación, gráficos) pero no estaba linkeado en ningún
+         menú. -->
+    <div class="menu-item">
+        <a class="menu-link <?php echo $isAnalytics ? 'active' : ''; ?>" href="dashboard-gerencial">
+            <span class="menu-icon">
+                <i class="fa-solid fa-chart-line fs-2"></i>
+            </span>
+            <span class="menu-title">Dashboard Gerencial</span>
         </a>
     </div>
     <?php if ($showCRM) : ?>

@@ -8,6 +8,11 @@
     }
     $currentEstablishmentId = (int) (FeatureGate::currentEstablishmentId() ?? 0);
     $showCRM = FeatureGate::isEnabled($currentEstablishmentId, 'mod_crm', true);
+    // Item 16 (auditoría UX/UI): "Dashboard Gerencial" ya existía -- período
+    // mensual, comparación contra el mes anterior, gráficos de ingresos,
+    // ocupación y medios de pago -- pero no estaba linkeado desde ningún
+    // lado del menú, así que nadie llegaba a usarlo.
+    $showAnalytics = FeatureGate::isEnabled($currentEstablishmentId, 'mod_analytics', true);
 ?>
 <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true" data-kt-menu-expand="false">
     <div class="menu-item">
@@ -92,6 +97,17 @@
             <span class="menu-title">Ingresos</span>
         </a>
     </div>
+
+    <?php if ($showAnalytics) : ?>
+    <div class="menu-item">
+        <a class="menu-link <?php echo $currentRoute === 'dashboard-gerencial' ? 'active' : ''; ?>" href="dashboard-gerencial">
+            <span class="menu-icon">
+                <i class="fa-solid fa-chart-line fs-4"></i>
+            </span>
+            <span class="menu-title">Dashboard Gerencial</span>
+        </a>
+    </div>
+    <?php endif; ?>
 
     <div class="menu-item">
         <a class="menu-link <?php echo $currentRoute === 'enviar-mensaje' ? 'active' : ''; ?>" href="enviar-mensaje">

@@ -47,9 +47,19 @@
 				<div class="post d-flex flex-column-fluid" id="kt_post">
 					<div id="kt_content_container" class="container-xxl">
 
-                        <div class="d-flex flex-column mb-5">
-                            <h1 class="fs-2 fw-bolder mb-1">Ingresos</h1>
-                            <span class="text-muted fs-7">Mirá cuánto facturaste <?php echo $textoHoyIngresos ?> y el detalle de cada cobro</span>
+                        <div class="d-flex flex-wrap justify-content-between align-items-end mb-5 gap-3">
+                            <div class="d-flex flex-column">
+                                <h1 class="fs-2 fw-bolder mb-1">Ingresos</h1>
+                                <span class="text-muted fs-7">Mirá cuánto facturaste <?php echo $textoHoyIngresos ?> y el detalle de cada cobro</span>
+                            </div>
+                            <?php if (FeatureGate::isEnabled((int) (FeatureGate::currentEstablishmentId() ?? 0), 'mod_analytics', true)) : ?>
+                                <!-- Item 16 (auditoría UX/UI): esta pantalla sólo sabe mostrar un día a
+                                     la vez, sin acumulado mensual ni gráfico -- el Dashboard Gerencial
+                                     ya resuelve eso, pero desde acá no se llegaba. -->
+                                <a href="dashboard-gerencial" class="btn btn-sm btn-light-primary">
+                                    <i class="fa-solid fa-chart-line me-2"></i>Ver reporte mensual y gráficos
+                                </a>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Resumen de Ingresos -->
