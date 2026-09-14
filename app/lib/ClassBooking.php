@@ -517,6 +517,24 @@
                 JSON(['ok' => false, 'error' => 'No se pudo crear la reserva'], 500);
             }
             self::addLog($data->id, 'crear'); // Registro inicial
+
+            // Item 09 (auditoría UX/UI): "te la reservo y me pasás la seña" es el
+            // flujo real -- antes había que crear la reserva, salir, buscarla y
+            // recién ahí cobrar. Seña opcional en el mismo alta.
+            $depositAmount = (float) ($data->deposit_amount ?? 0);
+            if ($depositAmount > 0) {
+                $depositMethod = (string) ($data->deposit_method ?? 'efectivo');
+                $paymentResult = self::registerPayment($data->id, $depositAmount, $depositMethod, (int) $data->id_field);
+                if ($paymentResult['ok']) {
+                    $data->paid_amount = $paymentResult['paid_amount'];
+                    $data->balance_due = $paymentResult['balance_due'];
+                    $data->payment_status = $paymentResult['payment_status'];
+                } else {
+                    // La reserva ya se creó; no se pierde por un error al cobrar la
+                    // seña -- se avisa aparte para que el canchero cobre a mano.
+                    $data->deposit_error = $paymentResult['error'];
+                }
+            }
             JSON($data);
         }
         public static function reagendar($data) {
@@ -593,12 +611,34 @@
             $amount = (float) ($data->cantidad_a_pagar ?? 0);
             $idField = isset($data->id_field) ? (int) $data->id_field : 0;
             $method = $data->metodo_pago ?? 'Efectivo';
-            $userId = (int) ($_SESSION['canchero'] ?? 0);
 
             if ($bookingId <= 0 || $amount <= 0) {
                 JSON(['ok' => false, 'error' => 'id_reserva y cantidad_a_pagar son obligatorios y > 0'], 400);
             }
 
+            $result = self::registerPayment($bookingId, $amount, $method, $idField);
+            if (!$result['ok']) {
+                JSON(['ok' => false, 'error' => $result['error']], $result['http_code'] ?? 400);
+            }
+
+            JSON([
+                'ok' => true,
+                'booking_id' => $bookingId,
+                'paid_amount' => $result['paid_amount'],
+                'balance_due' => $result['balance_due'],
+                'payment_status' => $result['payment_status'],
+            ]);
+        }
+
+        // Item 09 (auditoría UX/UI): antes había que crear la reserva, salir,
+        // buscarla y entrar al detalle para registrar la seña. La lógica de
+        // cobro (precio efectivo, payment_app_web, estado) vivía sólo dentro
+        // de cerrarPago() con JSON()+exit al final, así que no se podía
+        // reusar desde Booking::add() -- se extrae acá para que las dos
+        // rutas (registrar pago sobre una reserva existente, y seña al
+        // crear una nueva) hagan exactamente lo mismo.
+        private static function registerPayment(int $bookingId, float $amount, string $method, int $idField = 0): array {
+            $userId = (int) ($_SESSION['canchero'] ?? 0);
             $pdo = Db::pdo();
             try {
                 $pdo->beginTransaction();
@@ -614,11 +654,11 @@
 
                 if (!$b) {
                     $pdo->rollBack();
-                    JSON(['ok' => false, 'error' => 'Booking not found'], 404);
+                    return ['ok' => false, 'error' => 'Booking not found', 'http_code' => 404];
                 }
                 if ($idField > 0 && (int) $b['id_field'] !== $idField) {
                     $pdo->rollBack();
-                    JSON(['ok' => false, 'error' => 'Booking no pertenece a la cancha indicada'], 403);
+                    return ['ok' => false, 'error' => 'Booking no pertenece a la cancha indicada', 'http_code' => 403];
                 }
 
                 // Effective price: from price_ranges for the booking's time slot, or field default
@@ -683,18 +723,18 @@
                 $pdo->commit();
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
-                error_log('cerrarPago error: ' . $e->getMessage());
-                JSON(['ok' => false, 'error' => 'Internal error'], 500);
+                error_log('registerPayment error: ' . $e->getMessage());
+                return ['ok' => false, 'error' => 'Internal error', 'http_code' => 500];
             }
 
             self::addLog($bookingId, 'pago_completado', sprintf('Pago %s: $%.2f', $method, $amount));
-            JSON([
+            return [
                 'ok' => true,
-                'booking_id' => $bookingId,
                 'paid_amount' => $newPaid,
                 'balance_due' => max(0, $total - $newPaid),
                 'payment_status' => $newStatus,
-            ]);
+                'total' => $total,
+            ];
         }
 
         public static function addLog($id_booking, $action, $note = '') {

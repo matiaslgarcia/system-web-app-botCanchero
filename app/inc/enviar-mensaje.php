@@ -55,10 +55,21 @@
 										</div>
 									</div>
 									<div class="card-body pt-3">
+										<!-- Item 11 (auditoría UX/UI): sin plantillas había que redactar desde
+										     cero cada vez, hasta para los avisos que se repiten siempre igual. -->
+										<div class="mb-4">
+											<label class="form-label fw-bold text-gray-700 mb-2">Plantillas</label>
+											<div class="d-flex flex-wrap gap-2" id="plantillasWA">
+												<button type="button" class="btn btn-sm btn-light-primary btn-plantilla" data-template-key="recordatorio" data-template-text="Hola {nombre}! Te recordamos tu turno reservado. Cualquier cambio avisanos con tiempo. ¡Te esperamos!">Recordatorio de turno</button>
+												<button type="button" class="btn btn-sm btn-light-primary btn-plantilla" data-template-key="horario_libre" data-template-text="Hola {nombre}! Se liberó un horario que capaz te interesa. Respondé este mensaje si te lo querés quedar.">Se liberó un horario</button>
+												<button type="button" class="btn btn-sm btn-light-primary btn-plantilla" data-template-key="promo_semana" data-template-text="Hola {nombre}! Tenemos una promo especial para reservar entre semana. Consultanos los horarios disponibles.">Promo día de semana</button>
+												<button type="button" class="btn btn-sm btn-light" id="btnLimpiarPlantilla">Limpiar</button>
+											</div>
+										</div>
 										<div class="mb-4">
 											<textarea id="mensajeTexto" class="form-control form-control-solid" rows="8" maxlength="4096" placeholder="Escribí el mensaje que querés enviar a los clientes seleccionados..."></textarea>
 											<div class="d-flex justify-content-between mt-1">
-												<span class="text-muted fs-8">Máximo 4096 caracteres</span>
+												<span class="text-muted fs-8">Máximo 4096 caracteres · Usá <code>{nombre}</code> para que cada cliente reciba su propio nombre</span>
 												<span id="charCount" class="text-muted fs-8">0 / 4096</span>
 											</div>
 										</div>
@@ -98,9 +109,41 @@
 							</div>
 
 						</div>
+
+						<!-- Item 11 (auditoría UX/UI): antes un envío masivo no dejaba ningún
+						     rastro de a quién le llegó el mensaje y a quién no. -->
+						<div class="card shadow-sm mt-5">
+							<div class="card-header border-0 pt-5">
+								<div class="card-title">
+									<h4 class="fw-bolder text-dark mb-0">Historial de envíos</h4>
+								</div>
+							</div>
+							<div class="card-body pt-3">
+								<div id="historialWA">
+									<div class="text-center text-muted py-5">
+										<span class="spinner-border spinner-border-sm me-2"></span>Cargando historial...
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</main>
+
+			<!-- Detalle de un envío: estado por destinatario -->
+			<div class="modal fade" id="modalDetalleWA" tabindex="-1" aria-hidden="true" role="dialog" aria-labelledby="modalDetalleWATitle">
+				<div class="modal-dialog modal-dialog-centered modal-lg">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="modalDetalleWATitle">Detalle del envío</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+						</div>
+						<div class="modal-body">
+							<div id="detalleWABody"></div>
+						</div>
+					</div>
+				</div>
+			</div>
 			<?php inc('footer') ?>
 		</div>
 	</div>

@@ -16,6 +16,8 @@ const initEnviarMensaje = () => {
     const tiempoEstimadoEl = document.querySelector('#tiempoEstimado');
     const btnEnviar     = document.querySelector('#btnEnviar');
     const btnTodos      = document.querySelector('#btnSeleccionarTodos');
+    const historialEl   = document.querySelector('#historialWA');
+    let templateKeyActual = null;
 
     const swal = (opts) => Swal.fire({
         buttonsStyling: false,
@@ -136,10 +138,30 @@ const initEnviarMensaje = () => {
     mensajeEl?.addEventListener('input', () => {
         const txt = mensajeEl.value;
         charCountEl.textContent = `${txt.length} / 4096`;
+        // La vista previa muestra {nombre} tal cual -- cada destinatario recibe
+        // su propio nombre recién al enviar, uno por uno.
         previewEl.innerHTML = txt
-            ? txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            ? txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\{nombre\}/gi, '<strong>{nombre}</strong>')
             : '<span class="text-muted fst-italic">El mensaje aparecerá aquí...</span>';
+        templateKeyActual = null;
         actualizarContadores();
+    });
+
+    // --- Plantillas ---
+    document.querySelectorAll('.btn-plantilla').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (!mensajeEl) return;
+            mensajeEl.value = btn.dataset.templateText || '';
+            templateKeyActual = btn.dataset.templateKey || null;
+            mensajeEl.dispatchEvent(new Event('input'));
+            mensajeEl.focus();
+        });
+    });
+    document.querySelector('#btnLimpiarPlantilla')?.addEventListener('click', () => {
+        if (!mensajeEl) return;
+        mensajeEl.value = '';
+        templateKeyActual = null;
+        mensajeEl.dispatchEvent(new Event('input'));
     });
 
     // --- Envío ---
@@ -167,12 +189,14 @@ const initEnviarMensaje = () => {
         const formData = new FormData();
         formData.append('csrf_token', csrf);
         formData.append('message', mensaje);
+        if (templateKeyActual) formData.append('template_key', templateKeyActual);
         phones.forEach((p) => formData.append('recipients[]', p));
 
         try {
             const res  = await fetch('fetch/enviarMensajeWA', { method: 'POST', body: formData });
             const json = await res.json();
             mostrarResultado(json, phones.length);
+            cargarHistorial();
         } catch {
             mostrarResultado({ success: false, sent: 0, failed: phones.length, errors: ['Error de conexión.'] }, phones.length);
         } finally {
@@ -227,7 +251,120 @@ const initEnviarMensaje = () => {
         }
     };
 
+    // --- Historial de envíos (item 11) ---
+    const fmtFecha = (iso) => {
+        const d = new Date((iso || '').replace(' ', 'T'));
+        return Number.isNaN(d.getTime()) ? (iso || '—') : d.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+    const TEMPLATE_LABELS = {
+        recordatorio: 'Recordatorio de turno',
+        horario_libre: 'Se liberó un horario',
+        promo_semana: 'Promo día de semana',
+    };
+
+    const cargarHistorial = async () => {
+        if (!historialEl) return;
+        try {
+            const res = await fetch('fetch/getWhatsappBroadcasts');
+            const json = await res.json();
+            renderHistorial(json.broadcasts || []);
+        } catch {
+            historialEl.innerHTML = '<div class="text-danger text-center py-5">Error al cargar el historial.</div>';
+        }
+    };
+
+    const renderHistorial = (broadcasts) => {
+        if (!broadcasts.length) {
+            historialEl.innerHTML = `
+                <div class="text-center text-muted py-8">
+                    <i class="fa-solid fa-clock-rotate-left fs-2x text-gray-300 mb-3"></i>
+                    <div class="fw-bold">Todavía no enviaste ningún mensaje</div>
+                    <div class="fs-7">Los envíos que hagas van a aparecer acá, con el resultado por destinatario.</div>
+                </div>`;
+            return;
+        }
+        historialEl.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-row-dashed table-row-gray-300 align-middle gs-3 gy-3">
+                    <thead>
+                        <tr class="fw-bold text-muted bg-light">
+                            <th>Fecha</th>
+                            <th>Mensaje</th>
+                            <th>Plantilla</th>
+                            <th class="text-center">Enviados</th>
+                            <th class="text-center">Fallidos</th>
+                            <th class="text-end pe-4">Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${broadcasts.map((b) => `
+                            <tr>
+                                <td class="text-nowrap">${fmtFecha(b.created_at)}</td>
+                                <td class="text-truncate" style="max-width:280px" title="${escapeHtml(b.message)}">${escapeHtml(b.message)}</td>
+                                <td>${b.template_key ? `<span class="badge badge-light-primary">${escapeHtml(TEMPLATE_LABELS[b.template_key] || b.template_key)}</span>` : '<span class="text-muted">—</span>'}</td>
+                                <td class="text-center"><span class="badge badge-light-success">${b.total_sent}</span></td>
+                                <td class="text-center">${Number(b.total_failed) > 0 ? `<span class="badge badge-light-danger">${b.total_failed}</span>` : '<span class="text-muted">0</span>'}</td>
+                                <td class="text-end pe-4">
+                                    <button type="button" class="btn btn-sm btn-light-info btn-ver-detalle-wa" data-broadcast-id="${b.id}">Ver</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+
+        historialEl.querySelectorAll('.btn-ver-detalle-wa').forEach((btn) => {
+            btn.addEventListener('click', () => abrirDetalleWA(btn.dataset.broadcastId));
+        });
+    };
+
+    const abrirDetalleWA = async (broadcastId) => {
+        const body = document.querySelector('#detalleWABody');
+        if (!body) return;
+        body.innerHTML = '<div class="text-center py-5"><span class="spinner-border spinner-border-sm me-2"></span>Cargando...</div>';
+        new bootstrap.Modal(document.querySelector('#modalDetalleWA')).show();
+        try {
+            const res = await fetch(`fetch/getWhatsappBroadcasts?broadcast_id=${encodeURIComponent(broadcastId)}`);
+            const json = await res.json();
+            if (json.error || !json.broadcast) {
+                body.innerHTML = '<div class="text-danger text-center py-5">No se pudo cargar el detalle.</div>';
+                return;
+            }
+            const recipients = json.recipients || [];
+            body.innerHTML = `
+                <div class="mb-4">
+                    <div class="text-gray-800 fw-bold mb-1">Mensaje enviado</div>
+                    <div class="bg-light rounded p-3 fs-7" style="white-space:pre-wrap">${escapeHtml(json.broadcast.message)}</div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-row-dashed table-row-gray-300 align-middle gs-3 gy-3">
+                        <thead>
+                            <tr class="fw-bold text-muted bg-light">
+                                <th>Cliente</th>
+                                <th>Teléfono</th>
+                                <th class="text-center">Estado</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${recipients.map((r) => `
+                                <tr>
+                                    <td>${escapeHtml(r.full_name || '—')}</td>
+                                    <td>${escapeHtml(r.phone)}</td>
+                                    <td class="text-center">${r.status === 'sent' ? '<span class="badge badge-light-success">Enviado</span>' : '<span class="badge badge-light-danger">Falló</span>'}</td>
+                                    <td class="fs-8 text-muted">${escapeHtml(r.error || '—')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        } catch {
+            body.innerHTML = '<div class="text-danger text-center py-5">No se pudo cargar el detalle.</div>';
+        }
+    };
+
     cargarClientes();
+    cargarHistorial();
 };
 
 if (document.readyState === 'loading') {

@@ -89,6 +89,31 @@
                                                 </div>
                                             </div>
                                         <?php endif; ?>
+                                        <!-- Item 09 (auditoría UX/UI): el flujo real es "te la reservo y me
+                                             pasás la seña" -- antes había que crear la reserva, salir,
+                                             buscarla y entrar al detalle para recién ahí cobrar. -->
+                                        <div class="col-12 my-3">
+                                            <div class="separator my-2"></div>
+                                        </div>
+                                        <div class="col-12 mb-1">
+                                            <label class="form-label">Seña / pago inicial (opcional)</label>
+                                            <div class="text-muted fs-7" id="deposit-total-hint">Elegí cancha, fecha y hora para ver el precio del turno.</div>
+                                        </div>
+                                        <div class="col-6 col-md-4 my-2">
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" name="deposit_amount" id="deposit_amount" class="form-control" min="0" step="0.01" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                        <div class="col-6 col-md-4 my-2">
+                                            <select name="deposit_method" id="deposit_method" class="form-select">
+                                                <option value="efectivo">Efectivo</option>
+                                                <option value="mercado_pago">Mercado Pago</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 col-md-4 my-2">
+                                            <button type="button" id="btn-deposit-total" class="btn btn-sm btn-light-primary w-100" disabled>Cargar el total</button>
+                                        </div>
                                         <div class="text-end d-flex justify-content-end gap-3">
                                             <a href="./" class="btn btn-light">Cancelar</a>
                                             <button type="submit" class="btn btn-primary">Crear Reserva</button>

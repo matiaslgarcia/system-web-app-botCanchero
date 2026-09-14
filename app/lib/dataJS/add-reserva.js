@@ -50,6 +50,10 @@ const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString('es-AR', { minimumFr
 // horaria, cancha, cupos). Se arma con lo que haya seleccionado hasta el
 // momento, y se completa a medida que se elige cancha/fecha/hora.
 let selectedSlot = null;
+const depositAmountInput = document.querySelector('#deposit_amount');
+const depositTotalHint = document.querySelector('#deposit-total-hint');
+const btnDepositTotal = document.querySelector('#btn-deposit-total');
+
 function updateSummary() {
     if (!summaryEl) return;
     const parts = [];
@@ -62,7 +66,33 @@ function updateSummary() {
         parts.push(`${fmtMoney(selectedSlot.price)}${rango}`);
     }
     summaryEl.textContent = parts.length ? parts.join(' · ') : 'Completá los datos del turno.';
+
+    // Item 09: "Cargar el total" precarga la seña con el precio real del
+    // turno recién elegido, en vez de obligar a mirar el resumen y
+    // tipearlo a mano.
+    if (selectedSlot?.price != null) {
+        if (depositTotalHint) depositTotalHint.textContent = `Precio del turno: ${fmtMoney(selectedSlot.price)}.`;
+        if (btnDepositTotal) {
+            btnDepositTotal.disabled = false;
+            btnDepositTotal.textContent = `Cargar el total (${fmtMoney(selectedSlot.price)})`;
+            btnDepositTotal.dataset.total = selectedSlot.price;
+        }
+    } else {
+        if (depositTotalHint) depositTotalHint.textContent = 'Elegí cancha, fecha y hora para ver el precio del turno.';
+        if (btnDepositTotal) {
+            btnDepositTotal.disabled = true;
+            btnDepositTotal.textContent = 'Cargar el total';
+            delete btnDepositTotal.dataset.total;
+        }
+    }
 }
+
+btnDepositTotal?.addEventListener('click', () => {
+    const total = btnDepositTotal.dataset.total;
+    if (total != null && depositAmountInput) {
+        depositAmountInput.value = Number(total).toFixed(2);
+    }
+});
 
 function limpiarHorarios() {
     time_booking.innerHTML = '<option selected="true" disabled value="">--SELECCIONE--</option>'
@@ -166,9 +196,13 @@ form.addEventListener('submit', e => {
         url: 'add-booking',
         data: new FormData(form),
         success: (_r) => {
+            const seniaOk = Number(depositAmountInput?.value || 0) > 0 && !_r.deposit_error;
             fun.swal({
-                icon: 'success',
+                icon: _r.deposit_error ? 'warning' : 'success',
                 title: 'Reserva creada con éxito',
+                text: _r.deposit_error
+                    ? `La reserva se creó, pero la seña no se pudo registrar: ${_r.deposit_error}. Registrala a mano desde el detalle.`
+                    : (seniaOk ? 'Seña registrada.' : undefined),
                 success: () => {
                     location.href = 'reserva/' + _r.id;
                 }
