@@ -77,6 +77,12 @@ if ($oauthError === 'mp_oauth_failed') {
                                     </div>
                                 </div>
 
+                                <!-- Item 14 (auditoría UX/UI): misma barra de navegación unificada
+                                     que aparece en Mi Cancha, para que "Configuración" se sienta
+                                     como una sola sección de seis bloques en vez de dos pantallas
+                                     separadas. -->
+                                <?php $configNavActive = 'cuenta'; inc('config-nav'); ?>
+
                                 <!-- Tabs de Navegación -->
                                 <ul class="nav nav-stretch nav-line-tabs nav-line-tabs-2x border-transparent fs-5 fw-bolder">
                                     <li class="nav-item">
